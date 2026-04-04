@@ -97,7 +97,7 @@ Format as:
 ```
 | Repo | Commits (7d) | Last Author | Latest Message |
 |------|-------------|-------------|----------------|
-| personal/lib_sensor_utils | 5 | Anthony | feat: add temp cal |
+| personal/lib_sensor_utils | 5 | you | feat: add temp cal |
 | personal/tool_deploy_helper | 0 | — | — |
 ```
 
