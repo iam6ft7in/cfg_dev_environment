@@ -1,0 +1,4 @@
+# ShellCheck configuration for {{REPO_NAME}}
+shell=bash
+enable=all
+disable=SC2034  # Unused variables (common in sourced files)

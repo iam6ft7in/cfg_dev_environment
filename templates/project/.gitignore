@@ -1,0 +1,18 @@
+# Build outputs
+*.o
+*.obj
+*.out
+*.exe
+*.dll
+*.so
+
+# Claude session state (machine-local, not project history)
+SESSION_STATE.md
+
+# Editor artifacts
+*.orig
+*~
+
+# OS
+.DS_Store
+Thumbs.db

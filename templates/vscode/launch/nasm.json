@@ -1,0 +1,26 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "NASM: Build",
+            "type": "shell",
+            "request": "launch",
+            "command": "make",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "name": "NASM: Debug with x64dbg",
+            "type": "shell",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "command": "x64dbg",
+            "args": ["${workspaceFolder}/bin/main.exe"],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

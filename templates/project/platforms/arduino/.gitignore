@@ -1,0 +1,15 @@
+# ArduPilot flight logs — often large binary files
+logs/
+*.log
+*.tlog
+*.bin
+
+# Mission Planner / QGC temp files
+*.tmp
+*.bak
+
+# Compiled ArduPilot firmware (if building locally)
+build/
+*.elf
+*.hex
+*.apj

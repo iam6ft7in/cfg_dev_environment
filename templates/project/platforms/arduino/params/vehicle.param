@@ -1,0 +1,7 @@
+# {{REPO_NAME}} — Vehicle-Specific Parameters
+# Vehicle name: (update this)
+# Inherits: base.param
+# Last updated: {{YEAR}}
+#
+# Parameters in this file override base.param for this specific vehicle.
+

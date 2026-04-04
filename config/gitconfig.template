@@ -1,0 +1,222 @@
+# Git Global Configuration Template — {your_name}
+# Reference copy only — not applied directly by git.
+# Applied by phase_03_git_config.ps1, which writes ~/.gitconfig.
+#
+# This file documents every setting with explanatory comments so the
+# rationale is preserved even when the live ~/.gitconfig is terse.
+
+# =============================================================================
+# [user] — Identity
+# =============================================================================
+[user]
+    # Default identity for personal repos.
+    # Overridden per-repo by includeIf blocks below.
+    name  = {your_name}
+    email = UPDATE_WITH_PERSONAL_EMAIL
+
+    # SSH signing key — points to the public key file on disk. The matching
+    # private key is stored in the Bitwarden vault (never on disk). Git passes
+    # this public key to Bitwarden's SSH agent to perform the signing operation.
+    signingkey = ~/.ssh/id_ed25519_github_personal.pub
+
+# =============================================================================
+# [commit] — Commit behavior
+# =============================================================================
+[commit]
+    # Sign every commit with the SSH key defined in [user].signingkey.
+    # SSH signing requires Git 2.34+ and avoids the complexity of GPG keyring
+    # management while providing equivalent cryptographic assurance.
+    gpgsign = true
+
+    # Path to the commit message template shown in the editor on `git commit`.
+    # Enforces Conventional Commits format by showing the type/scope reminder.
+    template = ~/.gitmessage
+
+# =============================================================================
+# [tag] — Tag signing
+# =============================================================================
+[tag]
+    # Sign all annotated tags. Consistent with commit signing — any artifact
+    # that leaves the repo should be attributable.
+    gpgsign = true
+
+# =============================================================================
+# [gpg] — Signing method
+# =============================================================================
+[gpg]
+    # Use SSH for signing instead of GPG. SSH keys are already managed for
+    # GitHub authentication; reusing them for signing avoids a separate GPG
+    # setup and keyring management.
+    format = ssh
+
+[gpg "ssh"]
+    # The allowed-signers file maps email addresses to trusted public keys.
+    # Git uses this to verify signatures with `git log --show-signature`.
+    # Format per line: "email@example.com ssh-ed25519 AAAA..."
+    allowedSignersFile = ~/.ssh/allowed_signers
+
+    # Use Windows OpenSSH ssh-keygen for signing (not Git's bundled one).
+    # Git's bundled ssh-keygen uses Unix SSH_AUTH_SOCK and cannot reach
+    # Bitwarden's named-pipe agent on Windows. The Windows OpenSSH binary
+    # communicates via \\.\pipe\openssh-ssh-agent natively.
+    program = C:/Windows/System32/OpenSSH/ssh-keygen.exe
+
+# =============================================================================
+# [core] — Core behavior
+# =============================================================================
+[core]
+    # Force git to use the Windows OpenSSH client instead of Git's bundled ssh.
+    # Required for Bitwarden SSH agent on Windows: only the Windows OpenSSH
+    # client (ssh.exe) can communicate with Bitwarden's named-pipe agent at
+    # \\.\pipe\openssh-ssh-agent. Git's bundled ssh.exe does not support
+    # Windows named pipes.
+    sshCommand = C:/Windows/System32/OpenSSH/ssh.exe
+
+    # Do not convert LF to CRLF on checkout on Windows. Keeping LF everywhere
+    # avoids mixed line-ending noise in diffs and is consistent with the Linux
+    # targets (ArduPilot, WSL) this setup also serves.
+    autocrlf = false
+
+    # Treat LF -> CRLF conversions as an error on commit. Belt-and-suspenders
+    # protection against editors silently converting line endings.
+    safecrlf = true
+
+    # Default editor for commit messages, rebase instructions, etc.
+    # VS Code opens the file in a new tab; --wait makes git pause until the
+    # tab is closed. Change to 'nvim' or 'nano' if preferred.
+    editor = code --wait
+
+    # Path to global .gitignore — applies to all repos without cluttering
+    # each repo's own .gitignore with machine-specific patterns (OS files,
+    # editor artifacts, build outputs).
+    excludesfile = ~/.gitignore_global
+
+    # Enable file system monitor on platforms that support it (Windows/macOS).
+    # Dramatically speeds up `git status` in large repos by watching for
+    # changes via OS events instead of stat-ing every file.
+    fsmonitor = true
+
+    # Use untracked cache — pairs with fsmonitor to further accelerate status.
+    # The cache persists across git invocations so untracked file scanning is
+    # skipped when the directory mtime hasn't changed.
+    untrackedcache = true
+
+# =============================================================================
+# [init] — Repository initialization
+# =============================================================================
+[init]
+    # Default branch name for new repositories.
+    # 'main' is the GitHub default and avoids the legacy 'master' name.
+    defaultBranch = main
+
+# =============================================================================
+# [pull] — Pull behavior
+# =============================================================================
+[pull]
+    # Rebase local commits on top of fetched commits instead of creating a
+    # merge commit. Keeps history linear and avoids pointless merge commits
+    # when syncing a feature branch with its upstream.
+    rebase = true
+
+# =============================================================================
+# [rebase] — Rebase behavior
+# =============================================================================
+[rebase]
+    # Automatically stash uncommitted changes before a rebase and pop them
+    # after. Removes the friction of having to manually stash before rebasing.
+    autostash = true
+
+# =============================================================================
+# [fetch] — Fetch behavior
+# =============================================================================
+[fetch]
+    # Delete remote-tracking branches that no longer exist on the remote.
+    # Keeps the local branch list clean after PRs are merged and deleted
+    # on GitHub.
+    prune = true
+
+# =============================================================================
+# [push] — Push behavior
+# =============================================================================
+[push]
+    # Only push the current branch, and only if it has a tracking branch with
+    # the same name. Prevents accidentally pushing all local branches.
+    default = simple
+
+    # Automatically create a remote tracking branch if one doesn't exist yet.
+    # Avoids the verbose `--set-upstream` flag on first push of a new branch.
+    autoSetupRemote = true
+
+# =============================================================================
+# [merge] — Merge behavior
+# =============================================================================
+[merge]
+    # Show the common ancestor (base) in conflict markers in addition to
+    # ours/theirs. The three-way diff makes conflicts much easier to resolve
+    # because you can see what both sides changed from.
+    conflictstyle = diff3
+
+# =============================================================================
+# [diff] — Diff behavior
+# =============================================================================
+[diff]
+    # Use the 'histogram' diff algorithm instead of the default Myers.
+    # Histogram produces more readable diffs for code by grouping related
+    # changes and is less likely to produce confusing misaligned hunks.
+    algorithm = histogram
+
+    # Use a color-moved display: blocks of moved lines are shown in a
+    # distinct color rather than as deletion+addition noise.
+    colorMoved = default
+
+# =============================================================================
+# [alias] — Shortcuts
+# =============================================================================
+[alias]
+    # Compact, decorated one-line log with graph. Useful for a quick visual
+    # overview of branch topology.
+    lg = log --oneline --graph --decorate --all
+
+    # Show the last commit in a human-friendly format.
+    last = log -1 HEAD --stat
+
+    # List all aliases — useful when you've forgotten what you set up.
+    aliases = config --get-regexp alias
+
+    # Undo the last commit but keep the changes staged. Safe alternative to
+    # --hard reset when you need to re-commit with corrections.
+    undo = reset --soft HEAD~1
+
+    # Show the root directory of the current repo.
+    root = rev-parse --show-toplevel
+
+# =============================================================================
+# [includeIf] — Conditional identity overrides
+# =============================================================================
+# includeIf lets us override [user] identity based on the repo's location.
+# Git reads the included file and its settings take precedence over globals.
+
+[includeIf "gitdir:~/repos/client/"]
+    # All repos under ~/repos/client/ use the Client work identity.
+    path = ~/.gitconfig-client
+
+[includeIf "gitdir:~/repos/arduino/"]
+    # Arduino/ArduPilot repos may have their own author preferences.
+    path = ~/.gitconfig-arduino
+
+# =============================================================================
+# [url] — URL rewriting
+# =============================================================================
+[url "git@github-personal:"]
+    # Rewrite HTTPS GitHub URLs to use the SSH alias defined in ~/.ssh/config.
+    # This lets tools that hardcode HTTPS URLs still route through the correct
+    # SSH key without manual intervention.
+    insteadOf = https://github.com/
+
+# =============================================================================
+# [credential] — Credential helper (fallback for HTTPS, if ever needed)
+# =============================================================================
+[credential]
+    # Use the Windows Credential Manager as a fallback for any HTTPS remotes
+    # that aren't covered by the URL rewrite above.
+    helper = manager

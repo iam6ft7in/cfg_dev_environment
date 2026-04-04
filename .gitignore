@@ -1,0 +1,22 @@
+# Build outputs
+*.o
+*.obj
+*.out
+*.exe
+*.dll
+*.so
+
+# Editor artifacts
+*.orig
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code local artifacts — machine-specific, never commit
+.claude/settings.local.json
+.claude/worktrees/
+
+# Claude session state — machine-local, not project history
+SESSION_STATE.md

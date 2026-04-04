@@ -1,0 +1,30 @@
+# Git Identity Override — Client Work Account
+# Included by ~/.gitconfig via:
+#   [includeIf "gitdir:~/repos/client/"]
+#       path = ~/.gitconfig-client
+#
+# Settings here override the global ~/.gitconfig for any repo under
+# ~/repos/client/. Only identity and signing key need to change;
+# all other global settings (aliases, diff algorithm, etc.) still apply.
+
+[user]
+    name  = {your_name}
+    # Use the Client work email address for commits in this context.
+    email = UPDATE_WITH_CLIENT_EMAIL
+
+    # Client repos sign with the Client SSH key so that GitHub correctly
+    # attributes commits to the Client organization account.
+    signingkey = ~/.ssh/id_ed25519_github_client.pub
+
+# NOTE on timestamps:
+# Git always records commit timestamps in the author's local timezone unless
+# overridden. If UTC commit times are required for Client (e.g., for audit
+# logs or cross-timezone team consistency), set the following environment
+# variables in your shell profile before committing:
+#
+#   export GIT_AUTHOR_DATE="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+#   export GIT_COMMITTER_DATE="${GIT_AUTHOR_DATE}"
+#
+# Or use a shell alias that wraps `git commit` to inject UTC timestamps.
+# There is no native gitconfig setting to force UTC — it must be done via
+# environment variables.

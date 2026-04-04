@@ -1,0 +1,29 @@
+# Git Identity Override — Arduino / ArduPilot Repos
+# Included by ~/.gitconfig via:
+#   [includeIf "gitdir:~/repos/arduino/"]
+#       path = ~/.gitconfig-arduino
+#
+# Settings here override the global ~/.gitconfig for any repo under
+# ~/repos/arduino/. This covers both upstream ArduPilot fork contributions
+# and personal custom vehicle configuration repos.
+
+[user]
+    name  = {your_name}
+    # Use personal email for Arduino/ArduPilot work. ArduPilot upstream
+    # contributions are open-source and associated with the personal account.
+    # Update if you prefer a different email for open-source contributions.
+    email = UPDATE_WITH_PERSONAL_EMAIL
+
+    # Sign commits with the personal SSH key. Upstream ArduPilot PRs go
+    # through the personal GitHub account, so the personal key is correct here.
+    signingkey = ~/.ssh/id_ed25519_github_personal.pub
+
+# NOTE on upstream ArduPilot contributions:
+# ArduPilot's main repository uses 'master' as its default branch, not 'main'.
+# When working on an upstream fork:
+#   - Branch from 'master': git checkout -b feature/my_change master
+#   - Follow ArduPilot's coding standards: https://ardupilot.org/dev/docs/style-guide.html
+#   - Open PRs against ArduPilot/ardupilot master, not this fork's main.
+#
+# The global defaultBranch = main setting does NOT affect existing repos —
+# it only applies when running `git init`. Upstream clones retain 'master'.

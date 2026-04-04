@@ -1,0 +1,4 @@
+# PowerShell build artifacts
+*.zip
+TestResults/
+.PSScriptAnalyzerSettings.psd1.bak

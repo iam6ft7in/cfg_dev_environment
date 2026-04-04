@@ -1,0 +1,29 @@
+{
+    "workbench.colorTheme": "Solarized Dark",
+    "editor.fontFamily": "'JetBrainsMono Nerd Font', 'JetBrains Mono', monospace",
+    "editor.fontSize": 14,
+    "editor.fontLigatures": true,
+    "files.autoSave": "onFocusChange",
+    "editor.minimap.enabled": false,
+    "editor.rulers": [88],
+    "editor.wordWrapColumn": 88,
+    "gitlens.codeLens.enabled": false,
+    "gitlens.currentLine.enabled": false,
+    "gitlens.blame.format": "${author}, ${date}",
+    "git.autofetch": true,
+    "git.pruneOnFetch": true,
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
+    "python.terminal.activateEnvironment": true,
+    "cSpell.language": "en-US",
+    "cSpell.userWords": [],
+    "editor.formatOnSave": true,
+    "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnSave": true
+    },
+    "[powershell]": {
+        "editor.defaultFormatter": "ms-vscode.powershell"
+    },
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "terminal.integrated.fontFamily": "'JetBrainsMono Nerd Font', monospace"
+}

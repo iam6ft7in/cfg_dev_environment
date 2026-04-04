@@ -1,0 +1,10 @@
+# {{REPO_NAME}} — Base ArduPilot Parameters
+# Vehicle: Multirotor (Copter)
+# These are the baseline parameters common to all vehicles in this project.
+# Override in vehicle-specific .param files.
+#
+# Format: PARAM_NAME,VALUE
+# Generated/validated with: Mission Planner or QGroundControl
+
+SYSID_THISMAV,1
+ARMING_CHECK,1

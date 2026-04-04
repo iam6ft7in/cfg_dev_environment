@@ -1,0 +1,32 @@
+# Conventional Commits format:
+# <type>(<scope>): <short description> (max 88 chars)
+#
+# Types:
+#   feat     - New feature
+#   fix      - Bug fix
+#   docs     - Documentation only
+#   style    - Formatting, no logic change
+#   refactor - Code restructuring, no behavior change
+#   perf     - Performance improvement
+#   test     - Tests added or updated
+#   chore    - Maintenance, dependency updates
+#   ci       - CI/CD configuration
+#   revert   - Reverting a previous commit
+#
+# Scope: optional, in snake_case (e.g., feat(altitude_hold): ...)
+# Description: imperative mood ("add" not "added"), no period at end
+#
+# Body (optional — explain WHY, not WHAT):
+# Wrap at 72 characters.
+#
+#
+# Footer (optional):
+#   Closes #<issue-number>
+#   BREAKING CHANGE: <description>
+#   Co-authored-by: Name <email>
+#
+# Examples:
+#   feat(telemetry): add altitude hold mode
+#   fix(serial): correct baud rate initialization
+#   docs: update wiring diagram reference
+#   chore: update gitleaks to 8.18

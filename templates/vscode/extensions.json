@@ -1,0 +1,33 @@
+{
+    "recommendations": {
+        "all": [
+            "eamodio.gitlens",
+            "GitHub.vscode-pull-request-github",
+            "EditorConfig.EditorConfig",
+            "streetsidesoftware.code-spell-checker",
+            "anthropic.claude-code"
+        ],
+        "python": [
+            "ms-python.pylance",
+            "charliermarsh.ruff",
+            "ms-python.python"
+        ],
+        "powershell": [
+            "ms-vscode.powershell"
+        ],
+        "bash": [
+            "timonwong.shellcheck",
+            "mads-hartmann.bash-ide-vscode"
+        ],
+        "arduino": [
+            "vsciot-vscode.vscode-arduino",
+            "ms-vscode.vscode-serial-monitor"
+        ],
+        "asm": [
+            "maziac.asm-code-lens"
+        ],
+        "vbscript": [
+            "ilich8086.vbscript"
+        ]
+    }
+}

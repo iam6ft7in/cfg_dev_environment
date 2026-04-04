@@ -1,0 +1,8 @@
+# cpanfile — Perl dependencies for {{REPO_NAME}}
+# Install with: cpanm --installdeps .
+
+requires 'perl', '5.030';
+
+on test => sub {
+    requires 'Test::More', '1.302';
+};

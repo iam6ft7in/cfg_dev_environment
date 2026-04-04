@@ -1,0 +1,62 @@
+# gitleaks configuration for this development environment
+# Extends default ruleset with project-specific patterns
+# Reference: https://github.com/zricethezav/gitleaks
+
+[extend]
+useDefault = true
+
+# ArduPilot-specific patterns
+[[rules]]
+id = "ardupilot-sysid"
+description = "ArduPilot SYSID that could conflict across vehicles"
+regex = '''SYSID_THISMAV\s*,\s*[2-9][0-9]*'''
+tags = ["ardupilot", "config"]
+[rules.allowlist]
+description = "Allow in example/template param files"
+paths = ['''.*example.*''', '''.*template.*''', '''base\.param''']
+
+# Windows credential patterns
+[[rules]]
+id = "windows-password-assignment"
+description = "Windows-style password variable assignment"
+regex = '''(?i)(password|passwd|pwd)\s*[=:]\s*["']?(\S+)["']?'''
+secretGroup = 2
+tags = ["credentials", "windows"]
+[rules.allowlist]
+description = "Allow placeholder values, variable references, and expression assignments"
+regexes = [
+    '''(?i)(your_password|placeholder|example|UPDATE_THIS|<password>)''',
+    '''(?i)your\w+here''',
+    '''\$''',
+    '''\(''',
+]
+
+[[rules]]
+id = "windows-registry-credential"
+description = "Windows registry credential path"
+regex = '''HKEY.*Password'''
+tags = ["credentials", "windows", "registry"]
+
+# Generic API key patterns not in default ruleset
+[[rules]]
+id = "generic-api-key-var"
+description = "Generic API key variable assignment"
+regex = '''(?i)(api_key|apikey|api_secret)\s*[=:]\s*["']?[A-Za-z0-9_\-]{16,}["']?'''
+tags = ["api-key"]
+[rules.allowlist]
+regexes = ['''(?i)(your_api_key|placeholder|example|UPDATE_THIS)''']
+
+[allowlist]
+description = "Global allowlist"
+paths = [
+    '''.env.example''',
+    '''.*\.template''',
+    '''IMPLEMENTATION_STEPS.*''',
+    '''HOW_IT_WORKS\.md''',
+    '''DIARY\.md''',
+]
+regexes = [
+    '''UPDATE_WITH_''',
+    '''placeholder''',
+    '''your_.*_here''',
+]

@@ -1,0 +1,26 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "PowerShell: Run Current File",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "${file}",
+            "args": []
+        },
+        {
+            "name": "PowerShell: Run Main",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "${workspaceFolder}/src/main.ps1",
+            "args": []
+        },
+        {
+            "name": "PowerShell: Run Pester Tests",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "${workspaceFolder}/tests/run_tests.ps1",
+            "args": []
+        }
+    ]
+}
