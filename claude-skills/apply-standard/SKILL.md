@@ -1,6 +1,6 @@
 ---
 name: apply-standard
-description: Audit an existing GitHub repository against the gold standard and apply all missing pieces — scaffold files, resume batch file, CLAUDE.md rule imports, issue templates, linter config, branch ruleset, labels, and topics.
+description: Audit an existing GitHub repository against the gold standard and apply all missing pieces — scaffold files, resume PowerShell script, CLAUDE.md rule imports, issue templates, linter config, branch ruleset, labels, and topics.
 ---
 
 # /apply-standard — Apply Gold Standard to an Existing Repository
@@ -89,8 +89,8 @@ For each item, report status as one of: PRESENT, MISSING, or NEEDS UPDATE.
 | `.github/ISSUE_TEMPLATE/task.md` | File exists |
 | Platform linter config | `.ps-scriptanalyzer.psd1` (powershell), `.shellcheckrc` (bash), `ruff` section in `pyproject.toml` (python), etc. |
 | Git hooks | `.git/hooks/commit-msg` and `.git/hooks/pre-commit` exist and are executable |
-| `resume_claude.bat` | File exists in repo root |
-| OneDrive resume bat | `%USERPROFILE%\OneDrive\scripts\resume-{repo_name}.bat` exists |
+| `resume_claude.ps1` | File exists in repo root |
+| OneDrive resume script | `%USERPROFILE%\OneDrive\scripts\resume-{repo_name}.ps1` exists |
 
 ### GitHub Checklist (requires `gh` CLI)
 
@@ -137,8 +137,8 @@ Gold Standard Audit — {repo_name}
   .github/ISSUE_TEMPLATE/task.md         MISSING
   Platform linter config                 MISSING
   Git hooks                              PRESENT
-  resume_claude.bat (repo)               MISSING
-  resume-{repo_name}.bat (OneDrive)      MISSING
+  resume_claude.ps1 (repo)               MISSING
+  resume-{repo_name}.ps1 (OneDrive)      MISSING
   Branch ruleset (main)                  MISSING
   Standard labels                        MISSING
   Platform topic                         MISSING
@@ -282,34 +282,33 @@ chmod +x .git/hooks/commit-msg
 chmod +x .git/hooks/pre-commit
 ```
 
-### 4n. Resume Batch Files
-If `resume_claude.bat` is missing from the repo root, create it with this content,
+### 4n. Resume PowerShell Scripts
+If `resume_claude.ps1` is missing from the repo root, create it with this content,
 substituting the actual repo name and local path:
 
-```bat
-@echo off
-:: Resume the {repo_name} Claude Code session.
-:: Run this from anywhere — it changes to the repo directory automatically.
-:: Session name convention: use the repo name exactly (set with /rename {repo_name}).
-cd /d "{local_path}"
+```powershell
+# Resume the {repo_name} Claude Code session.
+# Run this from anywhere — it changes to the repo directory automatically.
+# Session name convention: use the repo name exactly (set with /rename {repo_name}).
+Set-Location -Path "{local_path}"
 claude --resume {repo_name}
 ```
 
 Then copy it to OneDrive scripts if the copy is also missing:
 ```powershell
-Copy-Item -Path "{local_path}\resume_claude.bat" `
-          -Destination "$HOME\OneDrive\scripts\resume-{repo_name}.bat" -Force
+Copy-Item -Path "{local_path}\resume_claude.ps1" `
+          -Destination "$HOME\OneDrive\scripts\resume-{repo_name}.ps1" -Force
 ```
 
-If `resume_claude.bat` exists in the repo but the OneDrive copy is missing, copy it:
+If `resume_claude.ps1` exists in the repo but the OneDrive copy is missing, copy it:
 ```powershell
-Copy-Item -Path "{local_path}\resume_claude.bat" `
-          -Destination "$HOME\OneDrive\scripts\resume-{repo_name}.bat" -Force
+Copy-Item -Path "{local_path}\resume_claude.ps1" `
+          -Destination "$HOME\OneDrive\scripts\resume-{repo_name}.ps1" -Force
 ```
 
 After creating the files, inform the user:
 "Session name convention: run `/rename {repo_name}` in Claude when working in this
-repo. The resume bat uses this name — keep them in sync."
+repo. The resume script uses this name — keep them in sync."
 
 ### 4p. Branch Ruleset on main
 Apply via GitHub API:
@@ -367,7 +366,7 @@ gh repo edit {username}/{repo} --add-topic automated-setup
 If any files were added or modified, stage and commit:
 ```
 git add .gitattributes .gitignore .editorconfig README.md CHANGELOG.md \
-        CONTRIBUTING.md SECURITY.md CLAUDE.md resume_claude.bat \
+        CONTRIBUTING.md SECURITY.md CLAUDE.md resume_claude.ps1 \
         .claude/rules/ .github/
 git commit -m "chore: apply gold standard scaffold"
 git push
@@ -393,8 +392,8 @@ Files added/updated:
   + .github/ISSUE_TEMPLATE/feature_request.md
   + .github/ISSUE_TEMPLATE/task.md
   + .ps-scriptanalyzer.psd1
-  + resume_claude.bat (repo)
-  + resume-{repo_name}.bat (OneDrive\scripts\)
+  + resume_claude.ps1 (repo)
+  + resume-{repo_name}.ps1 (OneDrive\scripts\)
 
 GitHub settings:
   + Branch ruleset applied to: main
