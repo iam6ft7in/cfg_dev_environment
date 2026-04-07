@@ -276,3 +276,18 @@ Next step: open Claude in this repo and run /rename {repo_name}
 ```
 
 If any step failed, report which step failed, what the error was, and what the user should do to recover.
+
+---
+
+## Normal Workflow — Skills to Use From Here
+
+Now that the repo exists, these skills support day-to-day work:
+
+| When | Skill |
+|------|-------|
+| Starting a new feature or bug fix | `/new-feature` — creates a linked GitHub issue and feature branch |
+| Ready to open a pull request | `/pr-create` — pre-flight checks, template population, issue linking |
+| PR has been merged on GitHub | `/merge-complete` — pulls main, cleans branches, closes issue |
+| Ending a work session | `/session-save` — writes `SESSION_STATE.md` with accomplishments, blockers, and next steps |
+| Starting a new session | `/session-resume` — reads `SESSION_STATE.md` and tells you exactly what is next |
+| Checking repo backup health | `/verify-backup` — scans all repos for unpushed commits or uncommitted changes |
