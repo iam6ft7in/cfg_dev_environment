@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "if ($env:CLAUDE_FILE_PATH -and $env:CLAUDE_FILE_PATH -notmatch \"\\.ps1$\") { Get-Content $env:CLAUDE_FILE_PATH | Select-String \"[^\\x00-\\x7F]\" | ForEach-Object { Write-Warning \"Non-ASCII char at line $($_.LineNumber): $($_.Line)\" } }"
+          }
+        ]
+      }
+    ]
+  }
+}

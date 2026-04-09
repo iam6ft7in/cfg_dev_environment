@@ -128,7 +128,7 @@ attempt to retry automatically — describe what failed and what the user should
 ## Step 5: Apply Gold Standard
 
 After a successful migration, run `/apply-standard` to ensure the migrated repo
-has all gold standard files (issue templates, CLAUDE.md rule imports, resume bat,
+has all gold standard files (issue templates, CLAUDE.md rule imports,
 linter config, branch ruleset, labels, topics).
 
 Prompt: "Run /apply-standard now to complete the gold standard setup? (yes/no)"
@@ -150,6 +150,5 @@ Migration Complete
 Next steps:
   1. Open Claude in the new repo directory
   2. Run /rename {repo_name} to name the session
-  3. The resume bat is at: OneDrive\scripts\resume-{repo_name}.bat
 ─────────────────────────────────────────────────────
 ```
