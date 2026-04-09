@@ -1,0 +1,56 @@
+{
+  "_readme": "Copy this file to config.json and fill in your values. config.json should be gitignored.",
+
+  "smtp": {
+    "host": "smtp.gmail.com",
+    "port": 587,
+    "security": "starttls",
+    "timeout": 30,
+    "_security_options": "starttls (port 587) or ssl (port 465)"
+  },
+
+  "credentials": {
+    "method": "bitwarden",
+    "_method_options": "bitwarden | env | file",
+
+    "bitwarden": {
+      "exe": "C:\\Program Files\\Bitwarden\\bw.exe",
+      "item_name": "Your Bitwarden Item Name",
+      "session_env_vars": ["BW_SESSION"],
+      "_note": "session_env_vars are checked in order; first non-empty value wins. Falls back to bw unlock --raw if none set."
+    },
+
+    "env": {
+      "username_var": "SMTP_USERNAME",
+      "password_var": "SMTP_PASSWORD",
+      "_note": "Set these environment variables before running. Values are the env var names, not the credentials themselves."
+    },
+
+    "file": {
+      "path": "~/.config/send-email/credentials",
+      "format": "username:password",
+      "_note": "File contains a single line: your_email@example.com:your_app_password"
+    }
+  },
+
+  "defaults": {
+    "from_address": "your_email@example.com",
+    "sms_to": "5551234567@msg.fi.google.com",
+    "email_to": "your_email@example.com",
+    "subject": "Claude Notification",
+    "_sms_to_note": "Format: phonenumber@sms-gateway-domain. See sms_gateway_domains below.",
+    "_email_to_note": "Default recipient when --to is not specified and destination is not SMS."
+  },
+
+  "sms_gateway_domains": [
+    "msg.fi.google.com",
+    "txt.att.net",
+    "tmomail.net",
+    "vtext.com",
+    "messaging.sprintpcs.com",
+    "mms.att.net",
+    "tmail.com",
+    "mymetropcs.com",
+    "_note": "Addresses matching these domains are treated as SMS: plain text only, no HTML."
+  ]
+}
