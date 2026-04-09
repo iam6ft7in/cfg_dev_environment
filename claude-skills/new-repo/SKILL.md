@@ -1,6 +1,6 @@
 ---
 name: new-repo
-description: Create a complete gold standard GitHub repository from scratch, including scaffold, resume PowerShell script, branch protection, GitHub Projects board, topics, and labels.
+description: Create a complete gold standard GitHub repository from scratch, including scaffold, branch protection, GitHub Projects board, topics, and labels.
 ---
 
 # /new-repo — Create a Gold Standard GitHub Repository
@@ -208,20 +208,6 @@ Also add a standard `automated-setup` topic:
 gh repo edit {username}/{repo_name} --add-topic automated-setup
 ```
 
-### 3o. Create Resume PowerShell Scripts
-The `resume_claude.ps1` is already in the repo (copied from the scaffold in 3d and
-placeholders replaced in 3f). Now copy it to the OneDrive scripts folder so it is
-available system-wide:
-
-```powershell
-Copy-Item -Path "{local_path}\resume_claude.ps1" `
-          -Destination "$HOME\OneDrive\scripts\resume-{repo_name}.ps1" -Force
-```
-
-Instruct the user:
-"When you first open Claude in this repo, run `/rename {repo_name}` to name the
-session. This is what the resume script uses — keep the session name and script in sync."
-
 ### 3p. Apply Standard Issue Labels
 Create the following labels (delete defaults first if needed):
 
@@ -269,8 +255,6 @@ Repository created successfully.
   Branch protection applied to: main
   Labels created: feat, fix, docs, chore, refactor, test, ci, breaking
   Topics applied: {platform}, automated-setup
-  Resume script: {local_path}\resume_claude.ps1
-              + %USERPROFILE%\OneDrive\scripts\resume-{repo_name}.ps1
 
 Next step: open Claude in this repo and run /rename {repo_name}
 ```
