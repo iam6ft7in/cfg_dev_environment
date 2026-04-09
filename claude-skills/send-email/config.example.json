@@ -35,22 +35,7 @@
 
   "defaults": {
     "from_address": "your_email@example.com",
-    "sms_to": "5551234567@msg.fi.google.com",
     "email_to": "your_email@example.com",
-    "subject": "Claude Notification",
-    "_sms_to_note": "Format: phonenumber@sms-gateway-domain. See sms_gateway_domains below.",
-    "_email_to_note": "Default recipient when --to is not specified and destination is not SMS."
-  },
-
-  "sms_gateway_domains": [
-    "msg.fi.google.com",
-    "txt.att.net",
-    "tmomail.net",
-    "vtext.com",
-    "messaging.sprintpcs.com",
-    "mms.att.net",
-    "tmail.com",
-    "mymetropcs.com",
-    "_note": "Addresses matching these domains are treated as SMS: plain text only, no HTML."
-  ]
+    "subject": "Claude Notification"
+  }
 }

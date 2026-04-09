@@ -1,9 +1,9 @@
 ---
 name: send-email
-description: Send an email or SMS via Gmail SMTP using config.json settings. Defaults to the configured SMS gateway address. Use for notifications, alerts, and prompting the user to return to a waiting session.
+description: Send an email via SMTP using config.json settings. Use for notifications, alerts, and prompting the user to return to a waiting session.
 ---
 
-# /send-email — Send Email or SMS
+# /send-email — Send Email
 
 Send a message via SMTP using the settings in
 `~/.claude/skills/send-email/config.json`.
@@ -19,10 +19,10 @@ automatically.
 Construct the Python invocation:
 
 ```
-python3 "~/.claude/skills/send-email/send_email.py" \
+python3 ~/.claude/skills/send-email/send_email.py \
   [--to RECIPIENT] \
   [--subject "SUBJECT"] \
-  --body "BODY TEXT"
+  --body "BODY TEXT" \
   [--html]
 ```
 
@@ -30,27 +30,23 @@ python3 "~/.claude/skills/send-email/send_email.py" \
 
 | Arg | When to include |
 |-----|----------------|
-| `--to` | Only when sending to a non-default recipient. Omit to use the default SMS address from config. |
+| `--to` | Only when sending to a non-default recipient. Omit to use the default address from config. |
 | `--subject` | Only when a specific subject is needed. Omit to use the default from config. |
-| `--body` | Always required. Keep SMS bodies under 160 characters — plain text only, no markdown, no emoji. |
-| `--html` | Only for email recipients. Never pass for SMS gateway addresses. |
+| `--body` | Always required. |
+| `--html` | When the body contains HTML markup. |
 
 **Common invocations:**
 
 ```bash
-# Notify the user that a Claude session needs attention (most common use)
+# Notify the user that a Claude session needs attention
 python3 ~/.claude/skills/send-email/send_email.py \
   --body "Claude session needs your attention."
 
-# Notify with context about which session
+# Send a formatted email with explicit recipient, subject, and HTML body
 python3 ~/.claude/skills/send-email/send_email.py \
-  --body "Claude [{session topic}] is waiting for your input."
-
-# Send a formatted email (not SMS)
-python3 ~/.claude/skills/send-email/send_email.py \
-  --to "anthony.riles@gmail.com" \
-  --subject "Build Report" \
-  --body "<h1>Build Complete</h1><p>All tests passed.</p>" \
+  --to RECIPIENT \
+  --subject "SUBJECT" \
+  --body "BODY" \
   --html
 ```
 
@@ -77,12 +73,6 @@ Do not retry a failed send more than once.
 ## Step 3: Report
 
 After a successful send, print one line:
-
-```
-SMS sent to {recipient}.
-```
-
-or
 
 ```
 Email sent to {recipient}.

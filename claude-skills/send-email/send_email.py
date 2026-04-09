@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-send_email.py — Send email or SMS via SMTP.
+send_email.py — Send email via SMTP.
 
 All configuration is loaded from config.json in the same directory.
 Copy config.example.json to config.json and fill in your values.
@@ -9,7 +9,6 @@ Usage:
     python send_email.py --body TEXT [--to ADDR] [--subject SUBJ] [--html]
 
 Defaults for --to and --subject come from config.json.
---html is ignored when sending to an SMS gateway domain.
 """
 
 import argparse
@@ -143,7 +142,7 @@ def _bw_session(exe, session_vars):
                 if session:
                     return session
 
-    # 3. Fall back to interactive-style unlock via desktop app integration
+    # 4. Fall back to interactive-style unlock via desktop app integration
     return _try_unlock(exe, interactive=True)
 
 
@@ -198,11 +197,6 @@ def creds_file(file_cfg):
 # Message building and sending
 # ---------------------------------------------------------------------------
 
-def is_sms(address, gateway_domains):
-    domain = address.split("@")[-1].lower()
-    return any(domain.endswith(d) for d in gateway_domains)
-
-
 def build_message(sender, to, subject, body, use_html):
     if use_html:
         msg = MIMEMultipart("alternative")
@@ -248,35 +242,30 @@ def send(smtp_cfg, sender, password, to, subject, body, use_html):
 def main():
     cfg = load_config()
     defaults = cfg.get("defaults", {})
-    gateway_domains = cfg.get("sms_gateway_domains", [])
 
-    parser = argparse.ArgumentParser(description="Send email or SMS via SMTP")
+    parser = argparse.ArgumentParser(description="Send email via SMTP")
     parser.add_argument("--to", default=None, help="Recipient address (default from config)")
     parser.add_argument("--subject", default=None, help="Subject line (default from config)")
     parser.add_argument("--body", required=True, help="Message body")
-    parser.add_argument("--html", action="store_true", help="Send as HTML (ignored for SMS)")
+    parser.add_argument("--html", action="store_true", help="Send as HTML")
     args = parser.parse_args()
 
-    to = args.to or defaults.get("sms_to", "")
+    to = args.to or defaults.get("email_to", "")
     subject = args.subject or defaults.get("subject", "Claude Notification")
     sender = defaults.get("from_address", "")
 
     if not to:
-        print("ERROR: No recipient. Set defaults.sms_to in config.json or pass --to.", file=sys.stderr)
+        print("ERROR: No recipient. Set defaults.email_to in config.json or pass --to.", file=sys.stderr)
         sys.exit(1)
     if not sender:
         print("ERROR: No sender. Set defaults.from_address in config.json.", file=sys.stderr)
         sys.exit(1)
 
-    sms_mode = is_sms(to, gateway_domains)
-    # SMS gateways don't render HTML — force plain text
-    use_html = args.html and not sms_mode
-
     username, password = get_credentials(cfg)
 
-    print(f"Sending {'SMS' if sms_mode else 'email'} to {to} ...", file=sys.stderr)
+    print(f"Sending email to {to} ...", file=sys.stderr)
     try:
-        send(cfg["smtp"], username, password, to, subject, args.body, use_html)
+        send(cfg["smtp"], username, password, to, subject, args.body, args.html)
         print("Sent.", file=sys.stderr)
     except Exception as e:
         print(f"ERROR: {e}", file=sys.stderr)
