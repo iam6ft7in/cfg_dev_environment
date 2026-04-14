@@ -10,7 +10,7 @@
     Phase       : 12
     Exit Criteria:
         - GitHub repo 'cfg_dev_environment' created under the authenticated account
-        - ~/projects/personal/cfg_dev_environment/ populated with all project files
+        - ~/projects/personal/public/cfg_dev_environment/ populated with all project files
         - Git initialized with remote set to git@github-personal:{user}/cfg_dev_environment.git
         - CLAUDE.md and AGENTS.md created
         - Chosen license file written
@@ -50,7 +50,7 @@ $Utf8NoBom = New-Object System.Text.UTF8Encoding $false
 # Paths
 # ---------------------------------------------------------------------------
 $RepoRoot      = Split-Path -Parent $PSScriptRoot
-$LocalRepoPath = "$HOME\projects\personal\cfg_dev_environment"
+$LocalRepoPath = "$HOME\projects\personal\public\cfg_dev_environment"
 $RepoName      = 'cfg_dev_environment'
 
 # Track results

@@ -33,9 +33,11 @@ Present a numbered list and ask the user to choose:
 
 ### 1c. Identity
 Present a numbered list:
-1. personal — maps to ~/projects/personal/
-2. client — maps to ~/projects/client/
-3. arduino — maps to ~/projects/arduino/custom/
+1. personal/public — maps to ~/projects/personal/public/ (public GitHub repos)
+2. personal/private — maps to ~/projects/personal/private/ (private GitHub repos)
+3. personal/collaborative — maps to ~/projects/personal/collaborative/
+4. client — maps to ~/projects/client/
+5. arduino — maps to ~/projects/arduino/custom/
 
 ### 1d. Short Description
 - One sentence describing what the repository does.
@@ -70,7 +72,9 @@ warn: "~/.claude/config.json not found — run phase_04_directories.ps1 to confi
 your projects root. Falling back to %USERPROFILE%\projects."
 
 Based on identity, construct the local path from `{projects_root}`:
-- `personal` → `{projects_root}\personal\{repo_name}`
+- `personal/public` → `{projects_root}\personal\public\{repo_name}`
+- `personal/private` → `{projects_root}\personal\private\{repo_name}`
+- `personal/collaborative` → `{projects_root}\personal\collaborative\{repo_name}`
 - `client` → `{projects_root}\client\{repo_name}`
 - `arduino` → `{projects_root}\arduino\custom\{repo_name}`
 
