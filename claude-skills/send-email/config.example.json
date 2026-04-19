@@ -14,7 +14,7 @@
     "_method_options": "bitwarden | env | file",
 
     "bitwarden": {
-      "exe": "C:\\Program Files\\Bitwarden\\bw.exe",
+      "exe": "C:\\Program Files\\WinGet\\Links\\bw.exe",
       "item_name": "Your Bitwarden Item Name",
       "session_env_vars": ["BW_SESSION"],
       "_note": "session_env_vars are checked in order; first non-empty value wins. Falls back to bw unlock --raw if none set."
