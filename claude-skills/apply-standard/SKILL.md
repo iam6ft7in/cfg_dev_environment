@@ -42,9 +42,11 @@ Report the detected platform and ask the user to confirm or correct it.
 
 ### 1c. Confirm Identity
 Present a numbered list:
-1. personal
-2. client
-3. arduino (custom)
+1. personal/public — maps to ~/projects/personal/public/ (public GitHub repos)
+2. personal/private — maps to ~/projects/personal/private/ (private GitHub repos)
+3. personal/collaborative — maps to ~/projects/personal/collaborative/
+4. client
+5. arduino (custom)
 
 Read the projects root from `~/.claude/config.json` (key: `projects_root`):
 ```powershell
@@ -54,12 +56,14 @@ $projectsRoot = $config.projects_root
 If absent, fall back to `$HOME\projects`.
 
 Derive the local path from `{projects_root}`:
-- `personal` → `{projects_root}\personal\{repo_name}`
+- `personal/public` → `{projects_root}\personal\public\{repo_name}`
+- `personal/private` → `{projects_root}\personal\private\{repo_name}`
+- `personal/collaborative` → `{projects_root}\personal\collaborative\{repo_name}`
 - `client` → `{projects_root}\client\{repo_name}`
 - `arduino` → `{projects_root}\arduino\custom\{repo_name}`
 
 Determine the GitHub username based on identity:
-- `personal` → use `gh api user --jq .login`
+- `personal/*` → use `gh api user --jq .login`
 - `client` → `client`
 - `arduino` → use personal username
 

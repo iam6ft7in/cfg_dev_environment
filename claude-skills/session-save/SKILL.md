@@ -28,13 +28,25 @@ and the current repo state:
 
 ---
 
-## Step 2: Write SESSION_STATE.md
+## Step 2: Read Existing File
+
+Read `SESSION_STATE.md` before writing. The Write tool requires the file to be
+read before it can be overwritten. If the file does not exist yet, skip this step.
+
+---
+
+## Step 3: Write SESSION_STATE.md
 
 Write the file using this exact structure. Omit any section that has nothing to
 report (e.g., no blockers → omit Open Items).
 
+If the current session has a name (not a default placeholder like "New Session"
+or an auto-generated timestamp), include it as a `Session` metadata line
+immediately after the heading.
+
 ```markdown
 # Session State — {YYYY-MM-DD}
+Session: {session name}
 
 ## Accomplished
 - {bullet per completed action}
@@ -56,6 +68,7 @@ report (e.g., no blockers → omit Open Items).
 
 Rules:
 - Date must be today's date in `YYYY-MM-DD` format.
+- Omit the `Session:` line entirely if the session is unnamed.
 - Bullets are past-tense for Accomplished, imperative for Next Steps.
 - Keep every line under 100 characters.
 - Total file must be under 100 lines.
@@ -63,7 +76,7 @@ Rules:
 
 ---
 
-## Step 3: Confirm
+## Step 4: Confirm
 
 After writing the file, print a single line:
 

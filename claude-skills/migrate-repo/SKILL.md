@@ -40,15 +40,17 @@ GitHub topics for discoverability. Comma-separated, lowercase, no spaces.
 
 ### 1e. Identity
 Present a numbered list:
-1. personal — migrates to `{projects_root}\personal\{repo_name}`
-2. client — migrates to `{projects_root}\client\{repo_name}`
-3. arduino — migrates to `{projects_root}\arduino\custom\{repo_name}`
+1. personal/public — migrates to `{projects_root}\personal\public\{repo_name}`
+2. personal/private — migrates to `{projects_root}\personal\private\{repo_name}`
+3. personal/collaborative — migrates to `{projects_root}\personal\collaborative\{repo_name}`
+4. client — migrates to `{projects_root}\client\{repo_name}`
+5. arduino — migrates to `{projects_root}\arduino\custom\{repo_name}`
 
 Read `{projects_root}` from `~/.claude/config.json` (key: `projects_root`).
 Fall back to `%USERPROFILE%\projects` if absent.
 
 Determine the GitHub SSH alias based on identity:
-- `personal` → `github-personal`
+- `personal/*` → `github-personal`
 - `client` → `github-client`
 - `arduino` → `github-personal`
 

@@ -21,12 +21,12 @@ Resolve `~` to the actual home directory path (use `$HOME` in PowerShell or `~` 
 
 To detect whether a directory is a Git repo, test for the presence of a `.git` directory or file. In PowerShell:
 ```powershell
-Get-ChildItem -Path "$HOME\projects" -Recurse -Depth 2 -Filter ".git" -Force | ForEach-Object { $_.Parent.FullName }
+Get-ChildItem -Path "$HOME\projects" -Recurse -Depth 3 -Filter ".git" -Force | ForEach-Object { $_.Parent.FullName }
 ```
 
 Or in bash:
 ```bash
-find ~/projects -maxdepth 3 -name ".git" -type d | sed 's/\/.git$//'
+find ~/projects -maxdepth 4 -name ".git" -type d | sed 's/\/.git$//'
 ```
 
 If any of the root directories does not exist, note it in the report as "directory not found" and skip it.

@@ -40,7 +40,7 @@ abort() {
 }
 
 REPO_NAME="personal_cfg_dev_environment"
-LOCAL_DIR="$HOME/projects/personal/cfg_dev_environment"
+LOCAL_DIR="$HOME/projects/personal/public/cfg_dev_environment"
 SCAFFOLD_SRC="$HOME/.claude/templates/project"
 
 # ------------------------------------------------------------------------------
