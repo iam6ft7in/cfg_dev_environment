@@ -79,7 +79,7 @@ For each item, report status as one of: PRESENT, MISSING, or NEEDS UPDATE.
 | Item | Check |
 |------|-------|
 | `.gitattributes` | File exists |
-| `.gitignore` | File exists |
+| `.gitignore` | File exists AND contains every non-blank non-comment line from the template `.gitignore` (base + platform-specific if applicable). Missing template lines trigger `NEEDS UPDATE`. |
 | `.editorconfig` | File exists |
 | `README.md` | File exists |
 | `CHANGELOG.md` | File exists |
@@ -162,9 +162,40 @@ If a step fails, report the error and continue to the next item, do not abort.
 If missing, copy from `~/.claude/templates/project/.gitattributes`.
 
 ### 4b. .gitignore
-If missing, copy the base `.gitignore` from `~/.claude/templates/project/.gitignore`.
-Then, if a platform-specific `.gitignore` exists at
-`~/.claude/templates/project/platforms/{platform}/.gitignore`, append its contents.
+If the file is missing, copy the base `.gitignore` from
+`~/.claude/templates/project/.gitignore`. Then, if a platform-specific
+`.gitignore` exists at
+`~/.claude/templates/project/platforms/{platform}/.gitignore`, append its
+contents.
+
+If the file is present but the audit flagged it as `NEEDS UPDATE`, the
+repo's `.gitignore` is missing one or more lines that exist in the current
+template. Handle this as an audit, not a silent rewrite.
+
+1. Build the template line set: read the base template `.gitignore` plus,
+   if applicable, the platform-specific one. Keep only lines that are
+   neither blank nor comment-only (a line is a comment if its first
+   non-whitespace character is `#`).
+2. Build the repo line set the same way.
+3. Compute `missing_lines = template_set - repo_set` (ordered as they
+   appear in the template).
+4. Report in the final summary as
+   `.gitignore drift: N template lines missing`, followed by the list of
+   missing lines. Do not modify the file in this default pass.
+5. If the user invoked the skill as `/apply-standard --merge` (i.e., the
+   user typed the exact argument `--merge` when triggering the skill),
+   append the missing lines to the end of the repo's `.gitignore` under
+   a header comment:
+   ```
+   # Added by /apply-standard on {YYYY-MM-DD}
+   ```
+   Use today's date. Preserve the trailing newline at end of file.
+6. Do not `git add` or `git commit`. Leave the change in the working
+   tree so the user can review before staging.
+
+The default (audit-only) exists because a user who deliberately removed a
+template pattern should not have it re-added silently. `--merge` is the
+explicit opt-in.
 
 ### 4c. .editorconfig
 If missing, copy from `~/.claude/templates/project/.editorconfig`.
@@ -408,6 +439,13 @@ Already present (unchanged):
   .gitattributes, .gitignore, CHANGELOG.md, CONTRIBUTING.md,
   SECURITY.md, .claude/rules/, .github/pull_request_template.md,
   Git hooks
+
+Drift reported (not modified):
+  .gitignore: 3 template lines missing
+    + SESSION_STATE.md
+    + # Claude session state (machine-local)
+    + !keep_this
+  Re-run with /apply-standard --merge to append them.
 
 Manual step required:
   Verify branch ruleset settings in GitHub UI:
