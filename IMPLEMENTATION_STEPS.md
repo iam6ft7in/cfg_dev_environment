@@ -256,15 +256,34 @@ Task Scheduler task is visible in Task Scheduler.
 ### How to start it:
    pwsh -File scripts\phase_07_claude_rules.ps1
 
-The script creates:
-- ~/.claude/rules/core.md — universal rules for all projects
-- ~/.claude/rules/arduino.md — ArduPilot/Arduino rules
-- ~/.claude/rules/python.md — Python rules (uv, ruff, pytest, src/ layout)
-- ~/.claude/rules/shell.md — bash/zsh/PowerShell/Perl rules
-- ~/.claude/rules/assembly.md — NASM x86/x64 rules
-- ~/.claude/rules/vbscript.md — VBScript/Office automation rules
+### What it does:
+Deploys 9 rule files to `~/.claude/rules/`:
+- `core.md`: universal rules for all projects
+- `shell.md`: bash/zsh, PowerShell 7, Perl scripting standards
+- `arduino.md`: ArduPilot/Arduino rules
+- `python.md`: uv, ruff, pytest, src/ layout
+- `assembly.md`: NASM x86/x64 rules
+- `vbscript.md`: VBScript/Office automation rules
+- `command_paths.md`: PATH resolution and MSYS2 path mangling
+- `powershell.md`: PS cmdlet limits, here-string gotchas, encoding hazards
+- `ssh.md`: SSH binary selection and per-repo documentation protocol
 
-EXIT CRITERIA: All six .md files exist under ~/.claude/rules/.
+### Behavior on re-run (diff-before-copy):
+First run creates every file from the repo source. On subsequent runs:
+- Files byte-identical to the repo source are reported `IN-SYNC` and skipped.
+- Files that differ from the repo source (for example, because you edited
+  the deployed copy) trigger a per-file prompt:
+  `[o]verwrite / [s]kip (default) / [A]ll / [N]one / [q]uit`.
+  Press Enter (or `s`) to preserve your personalization.
+- Non-interactive runs (piped stdin, scheduled task) skip every drifted
+  file and warn on stderr.
+
+### Force mode:
+To bypass the prompt and overwrite every drifted file (the prior behavior):
+   pwsh -File scripts\phase_07_claude_rules.ps1 -Force
+
+EXIT CRITERIA: All 9 .md files exist under ~/.claude/rules/. Every file is
+reported as one of IN-SYNC, CREATED, OVERWRITE, or SKIP.
 
 ---
 

@@ -121,7 +121,7 @@ patterns, ArduPilot SYSID values, and generic API keys.
 Installs a weekly gitleaks scan as a Windows Task Scheduler task.
 
 ### Phase 7 — Claude Rules
-Copies 9 rule files from `claude-rules/` to `~/.claude/rules/`:
+Deploys 9 rule files from `claude-rules/` to `~/.claude/rules/`:
 - `core.md`: commit standards, branch standards, code standards, security
 - `shell.md`: bash/zsh, PowerShell 7, Perl scripting standards
 - `arduino.md`: ArduPilot/MAVLink conventions
@@ -131,6 +131,13 @@ Copies 9 rule files from `claude-rules/` to `~/.claude/rules/`:
 - `command_paths.md`: PATH resolution, MSYS2 path mangling, per-repo command path files
 - `powershell.md`: PS cmdlet limits, here-string gotchas, encoding hazards, executable selection
 - `ssh.md`: SSH binary selection, per-repo SSH documentation protocol, host alias maintenance
+
+On re-run, each file is compared to its deployed counterpart. Identical files
+report `IN-SYNC` and are left alone. Drifted files trigger a per-file prompt
+(`overwrite / skip / All / None / quit`) so hand-edits to the deployed copy
+survive subsequent runs. Non-interactive runs skip every drifted file and
+warn on stderr; pass `-Force` (PS) or `--force` (bash) to overwrite without
+prompting.
 
 ### Phase 7b — Claude Skills and Helper Scripts
 Copies every skill directory from `claude-skills/` to `~/.claude/skills/`
