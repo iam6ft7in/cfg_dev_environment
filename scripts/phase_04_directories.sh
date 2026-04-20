@@ -46,13 +46,15 @@ DIRS=(
     "$HOME/projects/client"
     "$HOME/projects/arduino/upstream"
     "$HOME/projects/arduino/custom"
+    "$HOME/projects/shortcuts"    # Claude-launcher shortcuts (Phase 7b)
 
     # Git template hooks
     "$HOME/.git-templates/hooks"
 
     # Claude directories
     "$HOME/.claude/rules"
-    "$HOME/.claude/skills"
+    "$HOME/.claude/skills"        # Populated by Phase 7b
+    "$HOME/.claude/scripts"       # Populated by Phase 7b
     "$HOME/.claude/templates"
 
     # Tool config directories

@@ -11,6 +11,13 @@ paths: ["**/*.sh", "**/*.bash", "**/*.zsh", "**/*.ps1", "**/*.psm1", "**/*.psd1"
 - Declare variables before use
 - Use meaningful variable names (no single-letter variables except loop indices)
 
+## Script and Command Language Preference
+When generating scripts or suggesting commands to run manually, prefer
+PowerShell (pwsh) over Git Bash or Python unless the task is a clearly
+better fit for one of them, for example POSIX text-processing pipelines
+or direct use of a Python library. Both Git Bash and Python are installed
+locally and are valid fallbacks when they make more sense.
+
 ## bash / zsh
 - Always start with: `#!/usr/bin/env bash` and `set -euo pipefail`
 - -e: exit on error, -u: error on undefined variable, -o pipefail: pipe failures propagate
@@ -30,6 +37,11 @@ paths: ["**/*.sh", "**/*.bash", "**/*.zsh", "**/*.ps1", "**/*.psm1", "**/*.psd1"
 - Parameter names: PascalCase
 - PSScriptAnalyzer compliance required
 - Note PS 5.1 compatibility in comments when a script must run on 5.1
+
+## PowerShell Execution in Claude Code Bash Tool
+When running PowerShell scripts or commands in the Bash tool, always use
+`pwsh.exe` (PowerShell 7.x), not `powershell.exe` (PowerShell 5.1).
+This applies to every Bash tool invocation that calls PowerShell.
 
 ## Perl
 - Always start with: `use strict;` and `use warnings;`

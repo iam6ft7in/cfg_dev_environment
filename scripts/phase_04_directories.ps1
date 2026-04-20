@@ -90,6 +90,7 @@ $Directories = [ordered]@{
     "${ProjectsRoot}\client"           = 'Client GitHub projects'
     "${ProjectsRoot}\arduino\upstream"  = 'Arduino/ArduPilot upstream forks'
     "${ProjectsRoot}\arduino\custom"    = 'Arduino/ArduPilot custom work'
+    "${ProjectsRoot}\shortcuts"         = 'Claude-launcher shortcuts (Phase 7b)'
 
     # Git template directory (used by Phase 6 hooks)
     "$HOME\.git-templates"                      = 'Git template root'
@@ -98,7 +99,8 @@ $Directories = [ordered]@{
     # Claude configuration directories
     "$HOME\.claude"                             = 'Claude root config'
     "$HOME\.claude\rules"                       = 'Claude rule files (Phase 7)'
-    "$HOME\.claude\skills"                      = 'Claude skill files'
+    "$HOME\.claude\skills"                      = 'Claude skill files (Phase 7b)'
+    "$HOME\.claude\scripts"                     = 'Claude helper scripts (Phase 7b)'
     "$HOME\.claude\templates"                   = 'Claude project templates (Phase 8)'
 
     # CSpell custom dictionary directory
