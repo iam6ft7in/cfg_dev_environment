@@ -12,10 +12,10 @@ paths: ["**/*.asm", "**/*.inc", "**/Makefile"]
 - Debugger: x64dbg
 
 ## Comment Style
-- Teaching style is especially important in Assembly — comment every non-obvious instruction
+- Teaching style is especially important in Assembly, comment every non-obvious instruction
 - Comment the PURPOSE of a block before the block, not just what each instruction does
 - Document register usage at the top of each function/procedure
-- Explain syscall numbers: `mov rax, 1  ; sys_write — write to file descriptor`
+- Explain syscall numbers: `mov rax, 1  ; sys_write, write to file descriptor`
 - Explain addressing modes: `mov rax, [rbx]  ; dereference: load the value that rbx points to`
 
 ## Code Structure
@@ -36,4 +36,4 @@ paths: ["**/*.asm", "**/*.inc", "**/Makefile"]
 
 ## Safety
 - Document any code that modifies system state or makes syscalls
-- Never commit executables (*.exe, *.elf) — only source files
+- Never commit executables (*.exe, *.elf), only source files

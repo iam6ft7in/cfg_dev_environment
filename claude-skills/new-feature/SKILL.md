@@ -3,7 +3,7 @@ name: new-feature
 description: Start a fully tracked feature branch with a linked GitHub issue, ensuring main is clean and up to date before branching.
 ---
 
-# /new-feature — Start a Tracked Feature Branch
+# /new-feature, Start a Tracked Feature Branch
 
 You are preparing the repository for new work. Follow every step in order. Show each command before running it.
 
@@ -41,12 +41,12 @@ Ask the user for each of the following:
 
 ### 3a. Branch Type
 Present a numbered list:
-1. feat — new feature
-2. fix — bug fix
-3. docs — documentation change
-4. chore — maintenance, dependency updates, config
-5. refactor — code restructuring without behavior change
-6. test — adding or updating tests
+1. feat, new feature
+2. fix, bug fix
+3. docs, documentation change
+4. chore, maintenance, dependency updates, config
+5. refactor, code restructuring without behavior change
+6. test, adding or updating tests
 
 Wait for the user to pick a number or type the prefix.
 
@@ -122,7 +122,7 @@ Print a clean summary:
 Branch ready.
 
   Branch:  {type}/{snake_case_description}
-  Issue:   #{issue_number} — {issue_title}
+  Issue:   #{issue_number}, {issue_title}
   Status:  In Progress
 
 Next steps:

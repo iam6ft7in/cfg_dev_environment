@@ -19,5 +19,5 @@ This repository follows universal AI collaboration rules. All AI agents
 ## Full Rule Set
 
 See the complete rule files imported in CLAUDE.md:
-- `~/.claude/rules/core.md`   — Universal rules for all projects
-- `~/.claude/rules/shell.md`  — Shell/PowerShell-specific rules
+- `~/.claude/rules/core.md`  : Universal rules for all projects
+- `~/.claude/rules/shell.md` , Shell/PowerShell-specific rules

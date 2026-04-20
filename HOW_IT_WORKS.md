@@ -1,7 +1,7 @@
 # How This Repo Works
 
 This document explains the structure and purpose of every component in this
-repository, and how to use it — both for setting up a fresh Windows 11
+repository, and how to use it, both for setting up a fresh Windows 11
 development environment and for migrating existing projects into it.
 
 For the step-by-step run instructions, see `IMPLEMENTATION_STEPS.md`.
@@ -30,19 +30,19 @@ once on a fresh machine. After all 12 phases complete, the machine has:
 
 ```
 cfg_dev_environment/
-├── scripts/              — 27 scripts (13 PS7 + 13 bash + 1 migration)
+├── scripts/             : 27 scripts (13 PS7 + 13 bash + 1 migration)
 ├── templates/
-│   ├── project/          — Scaffold files for every new repo
-│   │   ├── platforms/    — Platform-specific starters (Python, PS, bash, etc.)
-│   │   └── .github/      — Issue templates, PR template
-│   └── vscode/           — VS Code settings, extensions, launch configs
-├── claude-rules/         — 6 global Claude rule files
-├── claude-skills/        — Claude skill directories (deployed to ~/.claude/skills/)
-├── claude-scripts/       — Helper scripts the skills call (deployed by Phase 7b)
-├── config/               — gitconfig templates, gitleaks, ssh_config, oh-my-posh
-├── IMPLEMENTATION_STEPS.md  — Authoritative run order with exit criteria
-├── IMPLEMENTATION_STEPS.txt — Plain text copy of the above
-└── HOW_IT_WORKS.md       — This file
+│   ├── project/         : Scaffold files for every new repo
+│   │   ├── platforms/   : Platform-specific starters (Python, PS, bash, etc.)
+│   │   └── .github/     : Issue templates, PR template
+│   └── vscode/          : VS Code settings, extensions, launch configs
+├── claude-rules/        : 6 global Claude rule files
+├── claude-skills/       : Claude skill directories (deployed to ~/.claude/skills/)
+├── claude-scripts/      : Helper scripts the skills call (deployed by Phase 7b)
+├── config/              : gitconfig templates, gitleaks, ssh_config, oh-my-posh
+├── IMPLEMENTATION_STEPS.md : Authoritative run order with exit criteria
+├── IMPLEMENTATION_STEPS.txt, Plain text copy of the above
+└── HOW_IT_WORKS.md      : This file
 ```
 
 ---
@@ -53,22 +53,22 @@ Each phase has a PowerShell 7 script (`phase_NN_*.ps1`) and a bash
 equivalent (`phase_NN_*.sh`). Run in strict order. Each script prints a
 pass/fail table and exits 1 if any check fails.
 
-### Phase 0 — Manual Prerequisites
+### Phase 0: Manual Prerequisites
 No script. Four manual steps:
 1. Move the OneDrive AI folder to the correct location
 2. Retrieve your GitHub noreply email from GitHub Settings → Emails
 3. Verify PowerShell 7+ is installed
 4. Verify Bitwarden Desktop 2025.1.2+ is installed and logged in
 
-### Phase 1 — Install Prerequisites
+### Phase 1: Install Prerequisites
 Installs and verifies all required tools via winget or direct download:
 git, GitHub CLI (gh), VS Code, Windows Terminal, Oh My Posh, delta,
 gitleaks, Node.js, Python, uv, NASM, x64dbg, Perl, shellcheck, BATS.
 
-### Phase 2 — SSH Setup (Bitwarden)
+### Phase 2: SSH Setup (Bitwarden)
 Guides you through creating an Ed25519 SSH key inside Bitwarden's vault.
 Writes `~/.ssh/config` with host aliases for `github-personal` and
-`github-client`. The `IdentityFile` entries point to `.pub` files only —
+`github-client`. The `IdentityFile` entries point to `.pub` files only,
 Bitwarden presents the private key at runtime via the Windows named pipe.
 Disables the Windows OpenSSH Authentication Agent service (it conflicts
 with Bitwarden on the same pipe).
@@ -80,7 +80,7 @@ Writes `~/.ssh/allowed_signers` for commit signature verification.
 Git's bundled binaries use Unix `SSH_AUTH_SOCK` and cannot reach
 Bitwarden's Windows named pipe. The Windows System32 binaries can.
 
-### Phase 3 — Git Config
+### Phase 3: Git Config
 Writes `~/.gitconfig` with:
 - User identity (name + noreply email)
 - SSH commit and tag signing (`gpg.format = ssh`)
@@ -92,7 +92,7 @@ Writes `~/.gitconfig` with:
 - Per-context include files for Client and Arduino identities
 Writes `~/.gitmessage` commit message template.
 
-### Phase 4 — Directory Structure
+### Phase 4: Directory Structure
 Creates the project directory tree:
 ```
 %USERPROFILE%\projects\
@@ -103,12 +103,12 @@ Creates the project directory tree:
     └── custom\
 ```
 
-### Phase 5 — Global gitignore
+### Phase 5: Global gitignore
 Writes `~/.gitignore_global` with patterns for Windows OS artifacts,
 editor artifacts (.vs/, *.suo), Python, Node, secrets (.env), and
 log/transcript files.
 
-### Phase 6 — Git Hooks and Secret Scanning
+### Phase 6: Git Hooks and Secret Scanning
 Installs two global git hooks to `~/.git-hooks/`:
 - `commit-msg`: enforces Conventional Commits format (case-sensitive:
   `feat:` is valid, `FEAT:` is not)
@@ -120,7 +120,7 @@ Writes `~/.gitleaks.toml` with custom rules for Windows credential
 patterns, ArduPilot SYSID values, and generic API keys.
 Installs a weekly gitleaks scan as a Windows Task Scheduler task.
 
-### Phase 7 — Claude Rules
+### Phase 7: Claude Rules
 Deploys 9 rule files from `claude-rules/` to `~/.claude/rules/`:
 - `core.md`: commit standards, branch standards, code standards, security
 - `shell.md`: bash/zsh, PowerShell 7, Perl scripting standards
@@ -139,7 +139,7 @@ survive subsequent runs. Non-interactive runs skip every drifted file and
 warn on stderr; pass `-Force` (PS) or `--force` (bash) to overwrite without
 prompting.
 
-### Phase 7b — Claude Skills and Helper Scripts
+### Phase 7b: Claude Skills and Helper Scripts
 Deploys every file under `claude-skills/` to `~/.claude/skills/` (so the
 `/new-repo`, `/migrate-repo`, `/apply-standard`, and other slash commands
 become available) and the two helper scripts the skills shell out to:
@@ -160,7 +160,7 @@ are preserved and reported as `KEPT`, never deleted. Non-interactive runs
 skip drifted files; pass `-Force` / `--force` to overwrite without
 prompting.
 
-### Phase 8 — Project Scaffold Template
+### Phase 8: Project Scaffold Template
 Deploys `templates/project/` to `~/.claude/templates/project/` so that the
 `/new-repo` skill can stamp out a fully-formed repo structure.
 
@@ -178,7 +178,7 @@ files report `IN-SYNC`, drifted files prompt per file, deployed-only
 additions are reported as `KEPT` and preserved. `-Force` / `--force`
 retains the old always-overwrite behavior.
 
-### Phase 9 — VS Code Configuration
+### Phase 9: VS Code Configuration
 Writes VS Code user settings (`settings.json`):
 - Solarized Dark theme
 - JetBrains Mono Nerd Font at 14px
@@ -188,7 +188,7 @@ Writes VS Code user settings (`settings.json`):
 Writes `extensions.json` with recommended extensions.
 Copies launch configurations for Python, PowerShell, and NASM debugging.
 
-### Phase 10 — Windows Environment
+### Phase 10: Windows Environment
 Writes the PowerShell profile (`Microsoft.PowerShell_profile.ps1`) with:
 - Oh My Posh prompt (minimal theme)
 - Wong palette colors per context (sky blue personal / golden yellow
@@ -197,23 +197,23 @@ Writes the PowerShell profile (`Microsoft.PowerShell_profile.ps1`) with:
 Sets system environment variables: `PYTHONDONTWRITEBYTECODE=1`,
 `PYTHONUTF8=1`, `GIT_SSH` pointing to Windows `ssh.exe`.
 
-### Phase 11 — End-to-End Test
+### Phase 11: End-to-End Test
 Creates a temporary test repo on GitHub and runs 8 automated tests:
 - T1: git version check
 - T2: SSH auth via `ssh -T git@github-personal`
 - T3: Conventional Commits hook blocks invalid messages
 - T4: gitleaks pre-commit hook blocks staged secrets
-- T5: commit signing — verifies the `Verified` status in git log
+- T5: commit signing, verifies the `Verified` status in git log
 - T6: push to remote
 - T7: feature branch, PR creation via gh
 - T8: delta pager is available
 Cleans up the test repo at the end. Requires `delete_repo` scope on the
 gh token (add with `gh auth refresh -h github.com -s delete_repo`).
 
-### Phase 12 — Initialize This Repo
+### Phase 12: Initialize This Repo
 Initializes `cfg_dev_environment` itself as a git repo (if not already done),
 pushes to GitHub, and applies the branch ruleset and topics. This phase
-is idempotent — re-running it is safe.
+is idempotent, re-running it is safe.
 
 ---
 
@@ -258,7 +258,7 @@ Six Markdown files installed to `~/.claude/rules/`. Claude Code loads these
 globally for every project. They define standards for commits, branches,
 code style, security, comments, and uncertainty handling per language.
 
-The `core.md` rule is the most important — it defines:
+The `core.md` rule is the most important, it defines:
 - When to stop and ask vs. when to proceed with an assumption
 - Code review format (Critical / Warning / Suggestion)
 - Security rules (never commit secrets, flag potential leaks immediately)
@@ -267,7 +267,7 @@ The `core.md` rule is the most important — it defines:
 
 ## Claude Skills (`claude-skills/`)
 
-Each subdirectory under `claude-skills/` is a Claude skill — a `SKILL.md`
+Each subdirectory under `claude-skills/` is a Claude skill, a `SKILL.md`
 file (sometimes with supporting assets like `aliases.json`) invoked via a
 slash command. Phase 7b deploys them to `~/.claude/skills/`.
 
@@ -325,10 +325,10 @@ environment. Handles the full journey in one command.
 
 ### Modes
 ```powershell
-# Check prerequisites only — no changes
+# Check prerequisites only, no changes
 pwsh -File scripts\migrate_to_github.ps1 -SourcePath "..." -RepoName "..." -Description "..." -Validate
 
-# Preview all actions — no changes
+# Preview all actions, no changes
 pwsh -File scripts\migrate_to_github.ps1 -SourcePath "..." -RepoName "..." -Description "..." -WhatIf
 
 # Execute migration
@@ -348,7 +348,7 @@ Pass bare comma-separated values:
 - The generated `.gitignore` is PowerShell-flavored. Edit it after
   migration if the project is a different platform.
 - gitleaks will block the commit if real secrets are found in the source
-  files. Fix the source before migrating — remove hardcoded credentials
+  files. Fix the source before migrating, remove hardcoded credentials
   and replace with environment variable lookups before running this script.
 
 ---

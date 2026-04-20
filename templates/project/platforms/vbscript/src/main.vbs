@@ -1,5 +1,5 @@
 Option Explicit
-' {{REPO_NAME}} — {{DESCRIPTION}}
+' {{REPO_NAME}}, {{DESCRIPTION}}
 ' Platform: VBScript
 ' Dependencies: See docs/dependencies.md
 

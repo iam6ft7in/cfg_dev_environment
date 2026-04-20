@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-send_email.py — Send email via SMTP.
+send_email.py, Send email via SMTP.
 
 All configuration is loaded from config.json in the same directory.
 Copy config.example.json to config.json and fill in your values.
@@ -41,7 +41,7 @@ def load_config():
         )
         sys.exit(1)
     with open(config_path, encoding="utf-8") as f:
-        # Strip keys starting with "_" — used for inline documentation
+        # Strip keys starting with "_", used for inline documentation
         raw = json.load(f)
     return strip_doc_keys(raw)
 
@@ -109,7 +109,7 @@ SESSION_FILE = Path.home() / ".config" / "bitwarden" / "session"
 def _bw_session(exe, session_vars):
     """Obtain a Bitwarden session key via multiple fallback methods."""
 
-    # 1. Check pre-set session env vars (fastest — no subprocess needed)
+    # 1. Check pre-set session env vars (fastest, no subprocess needed)
     for var in session_vars:
         val = os.environ.get(var, "").strip()
         if val:
@@ -128,7 +128,7 @@ def _bw_session(exe, session_vars):
         if session:
             return session
 
-        # Not logged in — attempt API key login first, then unlock
+        # Not logged in, attempt API key login first, then unlock
         client_id = os.environ.get("BW_CLIENTID", "").strip()
         client_secret = os.environ.get("BW_CLIENTSECRET", "").strip()
         if client_id and client_secret:

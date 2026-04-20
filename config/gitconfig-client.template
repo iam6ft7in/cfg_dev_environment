@@ -1,4 +1,4 @@
-# Git Identity Override — Client Work Account
+# Git Identity Override, Client Work Account
 # Included by ~/.gitconfig via:
 #   [includeIf "gitdir:~/repos/client/"]
 #       path = ~/.gitconfig-client
@@ -26,5 +26,5 @@
 #   export GIT_COMMITTER_DATE="${GIT_AUTHOR_DATE}"
 #
 # Or use a shell alias that wraps `git commit` to inject UTC timestamps.
-# There is no native gitconfig setting to force UTC — it must be done via
+# There is no native gitconfig setting to force UTC, it must be done via
 # environment variables.

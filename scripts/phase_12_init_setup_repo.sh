@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Phase 12 — Initialize cfg_dev_environment as First Gold Standard Repo
+# Phase 12: Initialize cfg_dev_environment as First Gold Standard Repo
 #
 # Script Name : phase_12_init_setup_repo.sh
 # Purpose     : Prompt for license, get gh username, create GitHub repo,
@@ -47,13 +47,13 @@ SCAFFOLD_SRC="$HOME/.claude/templates/project"
 # Banner
 # ------------------------------------------------------------------------------
 echo -e "\n${C_CYAN}========================================"
-echo      "  Phase 12 — Initialize cfg_dev_environment Repo"
+echo      "  Phase 12, Initialize cfg_dev_environment Repo"
 echo      "  Repo name  : $REPO_NAME"
 echo      "  Local dir  : $LOCAL_DIR"
 echo -e   "========================================${C_RESET}\n"
 
 # ==============================================================================
-# Step 1 — Prompt for license
+# Step 1: Prompt for license
 # ==============================================================================
 log_section "Step 1: Choose a license"
 
@@ -79,7 +79,7 @@ done
 log_pass "License selected: $license_display"
 
 # ==============================================================================
-# Step 2 — Get GitHub username
+# Step 2: Get GitHub username
 # ==============================================================================
 log_section "Step 2: Get GitHub username"
 
@@ -91,7 +91,7 @@ GH_USER=$(gh api user --jq '.login' 2>/dev/null) || abort "Failed to get GitHub 
 log_pass "GitHub user: $GH_USER"
 
 # ==============================================================================
-# Step 3 — Create GitHub repository
+# Step 3: Create GitHub repository
 # ==============================================================================
 log_section "Step 3: Create GitHub repository"
 
@@ -121,14 +121,14 @@ else
 fi
 
 # ==============================================================================
-# Step 4 — Create local directory and copy files
+# Step 4: Create local directory and copy files
 # ==============================================================================
 log_section "Step 4: Create local directory"
 
 if [ -d "$LOCAL_DIR" ]; then
     log_warn "Local directory already exists: $LOCAL_DIR"
     if [ -d "$LOCAL_DIR/.git" ]; then
-        log_warn "Already a git repo — skipping copy and init steps."
+        log_warn "Already a git repo, skipping copy and init steps."
         SKIP_INIT=true
     else
         SKIP_INIT=false
@@ -192,7 +192,7 @@ if [ "$SKIP_INIT" = false ]; then
 fi
 
 # ==============================================================================
-# Step 5 — Git init and remote setup
+# Step 5: Git init and remote setup
 # ==============================================================================
 log_section "Step 5: Git init and remote setup"
 
@@ -214,19 +214,19 @@ else
 fi
 
 # ==============================================================================
-# Step 6 — First signed commit
+# Step 6: First signed commit
 # ==============================================================================
 log_section "Step 6: First signed commit"
 
 # Check if there are any commits
 if git rev-parse HEAD &>/dev/null 2>&1; then
-    log_warn "Repository already has commits — skipping initial commit."
+    log_warn "Repository already has commits, skipping initial commit."
 else
     git add -A
 
     # Verify there is something to commit
     if git diff --cached --quiet; then
-        log_warn "Nothing staged — creating a minimal README to commit"
+        log_warn "Nothing staged, creating a minimal README to commit"
         cat > README.md <<EOF
 # cfg_dev_environment
 
@@ -240,10 +240,10 @@ professional GitHub development environment on Windows with Git Bash.
 ## Structure
 
 \`\`\`
-scripts/     — Phase scripts (PS7 primary, bash fallback)
-config/      — Tool configuration files (gitleaks, etc.)
-claude-rules/ — Claude AI rules for each project type
-templates/   — Project scaffold and VS Code templates
+scripts/    : Phase scripts (PS7 primary, bash fallback)
+config/     : Tool configuration files (gitleaks, etc.)
+claude-rules/, Claude AI rules for each project type
+templates/  : Project scaffold and VS Code templates
 \`\`\`
 
 ## Usage
@@ -265,7 +265,7 @@ scaffold templates."; then
 fi
 
 # ==============================================================================
-# Step 7 — Push to GitHub
+# Step 7: Push to GitHub
 # ==============================================================================
 log_section "Step 7: Push to GitHub"
 
@@ -279,7 +279,7 @@ else
 fi
 
 # ==============================================================================
-# Step 8 — Apply branch protection
+# Step 8: Apply branch protection
 # ==============================================================================
 log_section "Step 8: Apply branch protection on main"
 
@@ -311,7 +311,7 @@ else
 fi
 
 # ==============================================================================
-# Step 9 — Apply repository topics
+# Step 9: Apply repository topics
 # ==============================================================================
 log_section "Step 9: Apply repository topics"
 
@@ -323,7 +323,7 @@ if gh api \
     --input - <<< "$TOPICS_JSON" &>/dev/null; then
     log_pass "Repository topics applied"
 else
-    log_warn "Failed to apply topics — apply manually on GitHub if desired"
+    log_warn "Failed to apply topics, apply manually on GitHub if desired"
 fi
 
 # ==============================================================================

@@ -2,7 +2,7 @@ Option Explicit
 ' Helper functions for {{REPO_NAME}}
 ' Platform: VBScript
 ' Note: This file is intended to be included via ExecuteFile or
-' concatenated at build time — VBScript has no native module system.
+' concatenated at build time, VBScript has no native module system.
 
 ' Log an informational message to the console.
 ' Uses WScript.Echo which outputs to stdout when run with cscript.exe.

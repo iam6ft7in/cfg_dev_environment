@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Phase 4 — Project Directory Structure
+# Phase 4: Project Directory Structure
 #
 # Script Name : phase_04_directories.sh
 # Purpose     : Create all required project and tool directories.
@@ -34,7 +34,7 @@ log_section() { echo -e "\n${C_WHITE}=== $* ===${C_RESET}"; }
 # Banner
 # ------------------------------------------------------------------------------
 echo -e "\n${C_CYAN}========================================"
-echo      "  Phase 4 — Directory Structure"
+echo      "  Phase 4, Directory Structure"
 echo -e   "========================================${C_RESET}\n"
 
 # ------------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Phase 5 — Global .gitignore
+# Phase 5: Global .gitignore
 #
 # Script Name : phase_05_gitignore.sh
 # Purpose     : Write ~/.gitignore_global and register it in ~/.gitconfig.
@@ -36,23 +36,23 @@ GITIGNORE_GLOBAL="$HOME/.gitignore_global"
 # Banner
 # ------------------------------------------------------------------------------
 echo -e "\n${C_CYAN}========================================"
-echo      "  Phase 5 — Global .gitignore"
+echo      "  Phase 5, Global .gitignore"
 echo      "  File: $GITIGNORE_GLOBAL"
 echo -e   "========================================${C_RESET}\n"
 
 # ==============================================================================
-# Step 1 — Write ~/.gitignore_global
+# Step 1: Write ~/.gitignore_global
 # ==============================================================================
 log_section "Step 1: Write ~/.gitignore_global"
 
 if [ -f "$GITIGNORE_GLOBAL" ]; then
-    log_warn "$GITIGNORE_GLOBAL already exists — backing up to ${GITIGNORE_GLOBAL}.bak"
+    log_warn "$GITIGNORE_GLOBAL already exists, backing up to ${GITIGNORE_GLOBAL}.bak"
     cp "$GITIGNORE_GLOBAL" "${GITIGNORE_GLOBAL}.bak"
 fi
 
 cat > "$GITIGNORE_GLOBAL" <<'EOF'
 # ===========================================================================
-# Global .gitignore — applies to all repositories
+# Global .gitignore, applies to all repositories
 # Managed by: phase_05_gitignore.sh
 # ===========================================================================
 
@@ -241,7 +241,7 @@ EOF
 log_pass "~/.gitignore_global written"
 
 # ==============================================================================
-# Step 2 — Register in ~/.gitconfig
+# Step 2: Register in ~/.gitconfig
 # ==============================================================================
 log_section "Step 2: Register core.excludesFile in git config"
 
@@ -249,7 +249,7 @@ git config --global core.excludesFile "$GITIGNORE_GLOBAL"
 log_pass "core.excludesFile = $GITIGNORE_GLOBAL"
 
 # ==============================================================================
-# Step 3 — Verify
+# Step 3: Verify
 # ==============================================================================
 log_section "Step 3: Verify"
 

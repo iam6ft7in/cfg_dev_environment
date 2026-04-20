@@ -1,9 +1,9 @@
 ---
 name: migrate-repo
-description: Interactively migrate an existing project from outside GitHub into the gold standard environment — prompts for all parameters, runs migrate_to_github.ps1, and confirms the result.
+description: Interactively migrate an existing project from outside GitHub into the gold standard environment, prompts for all parameters, runs migrate_to_github.ps1, and confirms the result.
 ---
 
-# /migrate-repo — Migrate a Project to GitHub
+# /migrate-repo, Migrate a Project to GitHub
 
 You are migrating an existing project into the gold standard GitHub environment.
 Gather all required information interactively, preview the migration, confirm with
@@ -18,7 +18,7 @@ Ask the user for each of the following. Validate each answer before moving on.
 ### 1a. Source Path
 The full path to the existing project directory on disk.
 - Must exist on the local filesystem.
-- Verify with: `Test-Path "{source_path}"` — if false, ask the user to correct it.
+- Verify with: `Test-Path "{source_path}"`, if false, ask the user to correct it.
 - Example: `%USERPROFILE%\OneDrive\AI\Projects\my_project`
 
 ### 1b. Repository Name
@@ -36,15 +36,15 @@ A one-sentence description of what the project does.
 ### 1d. Topics
 GitHub topics for discoverability. Comma-separated, lowercase, no spaces.
 - Examples: `powershell,automation,windows` or `python,data-analysis`
-- Optional — press Enter to skip.
+- Optional, press Enter to skip.
 
 ### 1e. Identity
 Present a numbered list:
-1. personal/public — migrates to `{projects_root}\personal\public\{repo_name}`
-2. personal/private — migrates to `{projects_root}\personal\private\{repo_name}`
-3. personal/collaborative — migrates to `{projects_root}\personal\collaborative\{repo_name}`
-4. client — migrates to `{projects_root}\client\{repo_name}`
-5. arduino — migrates to `{projects_root}\arduino\custom\{repo_name}`
+1. personal/public, migrates to `{projects_root}\personal\public\{repo_name}`
+2. personal/private, migrates to `{projects_root}\personal\private\{repo_name}`
+3. personal/collaborative, migrates to `{projects_root}\personal\collaborative\{repo_name}`
+4. client, migrates to `{projects_root}\client\{repo_name}`
+5. arduino, migrates to `{projects_root}\arduino\custom\{repo_name}`
 
 Read `{projects_root}` from `~/.claude/config.json` (key: `projects_root`).
 Fall back to `%USERPROFILE%\projects` if absent.
@@ -56,7 +56,7 @@ Determine the GitHub SSH alias based on identity:
 
 ### 1f. Dry Run?
 Ask: "Preview all actions without making any changes? (yes/no, default: yes)"
-Default to yes — always show a dry run first.
+Default to yes, always show a dry run first.
 
 ---
 
@@ -123,7 +123,7 @@ pwsh -File scripts\migrate_to_github.ps1 `
 ```
 
 If the script exits with a non-zero code, report the error and stop. Do not
-attempt to retry automatically — describe what failed and what the user should do.
+attempt to retry automatically, describe what failed and what the user should do.
 
 ---
 
@@ -140,7 +140,7 @@ pwsh -File "$HOME\.claude\scripts\setup_project_board.ps1" `
 ```
 
 If it fails with an auth/scope error, run `gh auth refresh -s project` and
-retry. If the helper script is missing, report it and continue — do not fail
+retry. If the helper script is missing, report it and continue, do not fail
 the migration.
 
 This step runs unconditionally because `/apply-standard` (next step) is

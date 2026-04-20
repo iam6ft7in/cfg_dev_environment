@@ -3,7 +3,7 @@ name: verify-backup
 description: Check all local repos across ~/projects/ for unpushed commits, uncommitted changes, and stashes. Returns CLEAN or NEEDS ATTENTION.
 ---
 
-# /verify-backup — Verify All Repos Are Backed Up
+# /verify-backup, Verify All Repos Are Backed Up
 
 You are checking every Git repository under the user's projects directories to ensure nothing is at risk of being lost. This skill is also called by /pr-create and /merge-complete. Follow every step in order.
 
@@ -120,7 +120,7 @@ Overall status: CLEAN
 ```
 or
 ```
-Overall status: NEEDS ATTENTION — {count} repo(s) require action
+Overall status: NEEDS ATTENTION, {count} repo(s) require action
 ```
 
 This return value is used by other skills (/pr-create, /merge-complete) to decide whether to proceed. When called from another skill, if the status is NEEDS ATTENTION, those skills should stop and direct the user here first.

@@ -22,5 +22,5 @@ Description: {{DESCRIPTION}}
 <!-- Examples:
 - Must remain compatible with Windows 7 (no PS7+ features)
 - ArduPilot firmware version locked to 4.3.x for this vehicle
-- Do not upgrade {library} past 2.x — breaking API change in 3.0
+- Do not upgrade {library} past 2.x, breaking API change in 3.0
 -->

@@ -3,7 +3,7 @@ name: cleanup-branches
 description: Remove local branches that have been merged into main and prune stale remote-tracking refs.
 ---
 
-# /cleanup-branches — Clean Up Merged Branches
+# /cleanup-branches, Clean Up Merged Branches
 
 You are removing local branches that have already been merged into main. This is a safe, non-destructive cleanup. Follow every step in order. Show each command before running it.
 
@@ -16,13 +16,13 @@ Run:
 git branch --merged main
 ```
 
-This shows all local branches whose commits are fully contained in main — meaning they are safe to delete.
+This shows all local branches whose commits are fully contained in main, meaning they are safe to delete.
 
 ---
 
 ## Step 2: Filter the List
 
-From the output of Step 1, remove the following branches — these must never be deleted:
+From the output of Step 1, remove the following branches, these must never be deleted:
 - `main`
 - `master`
 - Any branch the user explicitly tells you to keep (ask: "Are there any branches from this list you want to keep? Enter names separated by commas, or press Enter to skip.")

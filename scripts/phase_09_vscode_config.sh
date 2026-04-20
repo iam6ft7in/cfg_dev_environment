@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Phase 9 — VS Code Configuration Templates
+# Phase 9: VS Code Configuration Templates
 #
 # Script Name : phase_09_vscode_config.sh
 # Purpose     : Write VS Code user settings (merge via Python/node if available,
@@ -34,7 +34,7 @@ log_fail()    { echo -e "${C_RED}  [FAIL]  $*${C_RESET}"; }
 log_section() { echo -e "\n${C_WHITE}=== $* ===${C_RESET}"; }
 
 # ------------------------------------------------------------------------------
-# Paths — Windows Git Bash paths for VS Code AppData
+# Paths, Windows Git Bash paths for VS Code AppData
 # ------------------------------------------------------------------------------
 APPDATA_CODE="$HOME/AppData/Roaming/Code/User"
 VSCODE_SETTINGS="$APPDATA_CODE/settings.json"
@@ -47,12 +47,12 @@ VSCODE_TMPL_DEST="$HOME/.claude/templates/vscode"
 # Banner
 # ------------------------------------------------------------------------------
 echo -e "\n${C_CYAN}========================================"
-echo      "  Phase 9 — VS Code Configuration"
+echo      "  Phase 9, VS Code Configuration"
 echo      "  Settings : $VSCODE_SETTINGS"
 echo -e   "========================================${C_RESET}\n"
 
 # ==============================================================================
-# Step 1 — VS Code settings.json
+# Step 1: VS Code settings.json
 # ==============================================================================
 log_section "Step 1: VS Code user settings"
 
@@ -141,7 +141,7 @@ PYEOF
         log_pass "VS Code settings merged via Python: $VSCODE_SETTINGS"
         settings_written=true
     else
-        log_warn "Python merge failed: $result — trying node"
+        log_warn "Python merge failed: $result, trying node"
     fi
 fi
 
@@ -170,7 +170,7 @@ JSEOF
 fi
 
 if [ "$settings_written" = false ]; then
-    log_warn "Neither Python nor node available — printing settings to apply manually."
+    log_warn "Neither Python nor node available, printing settings to apply manually."
     echo ""
     echo -e "${C_WHITE}Add the following to your VS Code settings.json${C_RESET}"
     echo -e "${C_WHITE}  File: $VSCODE_SETTINGS${C_RESET}"
@@ -182,7 +182,7 @@ if [ "$settings_written" = false ]; then
 fi
 
 # ==============================================================================
-# Step 2 — Copy templates/vscode/ to ~/.claude/templates/vscode/
+# Step 2: Copy templates/vscode/ to ~/.claude/templates/vscode/
 # ==============================================================================
 log_section "Step 2: Copy VS Code templates"
 
@@ -202,18 +202,18 @@ if [ -d "$VSCODE_TMPL_SRC" ]; then
     fi
 else
     log_warn "No templates/vscode/ directory found in repo: $VSCODE_TMPL_SRC"
-    log_info "This is optional — skipping."
+    log_info "This is optional, skipping."
 fi
 
 # ==============================================================================
-# Step 3 — Write ~/.cspell/custom-words.txt
+# Step 3: Write ~/.cspell/custom-words.txt
 # ==============================================================================
 log_section "Step 3: Write ~/.cspell/custom-words.txt"
 
 mkdir -p "$CSPELL_DIR"
 
 if [ -f "$CSPELL_DICT" ]; then
-    log_warn "$CSPELL_DICT already exists — skipping (preserve existing custom words)"
+    log_warn "$CSPELL_DICT already exists, skipping (preserve existing custom words)"
 else
     cat > "$CSPELL_DICT" <<'EOF'
 # CSpell custom dictionary

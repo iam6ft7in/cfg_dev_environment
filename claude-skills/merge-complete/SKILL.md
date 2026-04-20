@@ -1,9 +1,9 @@
 ---
 name: merge-complete
-description: Full post-merge cleanup after a PR has been merged on GitHub — switch to main, pull, clean branches, close linked issue, and verify backup.
+description: Full post-merge cleanup after a PR has been merged on GitHub, switch to main, pull, clean branches, close linked issue, and verify backup.
 ---
 
-# /merge-complete — Post-Merge Cleanup
+# /merge-complete, Post-Merge Cleanup
 
 You are performing post-merge cleanup after a PR has been merged on GitHub. Follow every step in order. Show each command before running it.
 
@@ -27,7 +27,7 @@ Ask the user: "Has your PR been merged on GitHub? (yes/no)"
 Check the current branch name for a type prefix pattern (e.g., `feat/add_login`).
 
 Look for a linked issue:
-1. Check the current branch name — if it was created with /new-feature, the issue may be trackable.
+1. Check the current branch name, if it was created with /new-feature, the issue may be trackable.
 2. Run:
    ```
    git log --oneline -10
@@ -129,7 +129,7 @@ Print a clean summary:
 Merge complete.
 
   Merged PR:    {pr_title}
-  Issue closed: #{issue_number} — moved to Done
+  Issue closed: #{issue_number}, moved to Done
   Current HEAD: {output of git log -1 --oneline}
   Backup:       CLEAN
 

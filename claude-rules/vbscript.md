@@ -24,12 +24,12 @@ paths: ["**/*.vbs", "**/*.vba", "**/*.bas"]
 
 ## COM Object Documentation
 - Every COM object instantiation must have a comment:
-  `Set objShell = CreateObject("WScript.Shell")  ' Windows shell — run commands, read registry`
+  `Set objShell = CreateObject("WScript.Shell")  ' Windows shell, run commands, read registry`
 - Document required Office versions in docs/dependencies.md
 - Use early binding (CreateObject) and document the object's capabilities
 
 ## Error Handling
-- Use `On Error Resume Next` sparingly — only when you explicitly handle the error
+- Use `On Error Resume Next` sparingly, only when you explicitly handle the error
 - Always check `Err.Number` after risky operations
 - Use `On Error GoTo 0` to re-enable error propagation after handling
 

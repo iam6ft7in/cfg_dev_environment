@@ -1,9 +1,9 @@
 ---
 name: pr-create
-description: Create a pull request with full automation — pre-flight checks, linting, PR template population, issue linking, and Projects board update.
+description: Create a pull request with full automation, pre-flight checks, linting, PR template population, issue linking, and Projects board update.
 ---
 
-# /pr-create — Create a Pull Request
+# /pr-create, Create a Pull Request
 
 You are creating a pull request for the current branch. Follow every step in order. Do not skip pre-flight checks. Show each command before running it.
 
@@ -187,7 +187,7 @@ Pull request created.
 
   PR:     {pr_url}
   Branch: {branch_name}
-  Issue:  #{issue_number} — now In Review
+  Issue:  #{issue_number}, now In Review
 ```
 
 If no issue was linked:

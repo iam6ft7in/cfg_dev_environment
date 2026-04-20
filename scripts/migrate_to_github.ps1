@@ -15,7 +15,7 @@
                   Designed to be reusable for any project migration.
 
     -WhatIf     : Preview every action without making any changes.
-    -Validate   : Run all prerequisite checks and exit — no migration.
+    -Validate   : Run all prerequisite checks and exit, no migration.
 
 .PARAMETER SourcePath
     Full path to the existing project directory.
@@ -115,7 +115,7 @@ function Abort {
 # ---------------------------------------------------------------------------
 
 # Resolve TargetRoot from ~/.claude/config.json when not supplied explicitly.
-# This keeps the script portable — no hardcoded username in the default.
+# This keeps the script portable, no hardcoded username in the default.
 if ([string]::IsNullOrEmpty(${TargetRoot})) {
     ${ClaudeConfig} = Join-Path $HOME '.claude\config.json'
     if (Test-Path ${ClaudeConfig}) {
@@ -128,7 +128,7 @@ if ([string]::IsNullOrEmpty(${TargetRoot})) {
 }
 
 ${TargetPath} = Join-Path ${TargetRoot} ${RepoName}
-${ModeLabel}  = if (${WhatIf}) { ' [DRY RUN — no changes will be made]' } elseif (${Validate}) { ' [VALIDATE ONLY]' } else { '' }
+${ModeLabel}  = if (${WhatIf}) { ' [DRY RUN, no changes will be made]' } elseif (${Validate}) { ' [VALIDATE ONLY]' } else { '' }
 
 Write-Host "`n=============================================" -ForegroundColor Cyan
 Write-Host "  migrate_to_github.ps1${ModeLabel}"           -ForegroundColor Cyan
@@ -140,7 +140,7 @@ Write-Host "=============================================`n" -ForegroundColor Cy
 ${ValidationResults} = [ordered]@{}
 
 # ===========================================================================
-# SECTION 1 — Prerequisites and Validation
+# SECTION 1, Prerequisites and Validation
 # ===========================================================================
 
 Write-Section "Section 1: Prerequisite and pre-flight checks"
@@ -225,7 +225,7 @@ if (-not (Test-Path ${sourceGitDir})) {
     Write-Pass "Source is not a git repository (clean for migration)"
     ${ValidationResults}['Source not git'] = 'PASS'
 } else {
-    Write-Warn "Source already has a .git directory — will migrate as-is (remote will be added/updated)"
+    Write-Warn "Source already has a .git directory, will migrate as-is (remote will be added/updated)"
     ${ValidationResults}['Source not git'] = 'WARN'
 }
 
@@ -252,7 +252,7 @@ if (${githubUser} -ne 'UNKNOWN') {
         ${ValidationResults}['GitHub repo free'] = 'WARN'
     }
 } else {
-    Write-Warn "Cannot check GitHub repo — gh not authenticated"
+    Write-Warn "Cannot check GitHub repo, gh not authenticated"
     ${ValidationResults}['GitHub repo free'] = 'WARN'
 }
 
@@ -315,7 +315,7 @@ ${FilesToSkip} = [System.Collections.Generic.List[string]]::new()
 foreach (${file} in ${ScaffoldFiles}.Keys) {
     ${full} = Join-Path ${SourcePath} ${file}
     if (Test-Path ${full}) {
-        Write-Skip "${file} (already exists — will not overwrite)"
+        Write-Skip "${file} (already exists, will not overwrite)"
         ${FilesToSkip}.Add(${file})
     } else {
         Write-Info "${file} → will add: $(${ScaffoldFiles}[${file}])"
@@ -388,7 +388,7 @@ if (${Validate}) {
 }
 
 if (${WhatIf}) {
-    Write-Section "WhatIf Preview — actions that WOULD run"
+    Write-Section "WhatIf Preview, actions that WOULD run"
     Write-WhatIf "Copy '${SourcePath}' -> '${TargetPath}'"
     Write-WhatIf "cd '${TargetPath}'"
     Write-WhatIf "git init --initial-branch=main"
@@ -410,7 +410,7 @@ if (${WhatIf}) {
 }
 
 # ===========================================================================
-# SECTION 2 — Copy source to target
+# SECTION 2, Copy source to target
 # ===========================================================================
 
 Write-Section "Section 2: Copy project to target location"
@@ -425,7 +425,7 @@ Get-ChildItem ${SourcePath} -Force | Where-Object { $_.Name -ne '.git' } | ForEa
 Write-Pass "Copied: ${SourcePath} -> ${TargetPath}"
 
 # ===========================================================================
-# SECTION 3 — Initialize git
+# SECTION 3, Initialize git
 # ===========================================================================
 
 Write-Section "Section 3: Initialize git repository"
@@ -436,7 +436,7 @@ try {
         git init --initial-branch=main 2>&1 | Out-Null
         Write-Pass "git init (branch: main)"
     } else {
-        Write-Info "git already initialized (source had .git) — skipping init"
+        Write-Info "git already initialized (source had .git), skipping init"
     }
 } catch {
     Abort "git init failed: $_"
@@ -445,7 +445,7 @@ try {
 }
 
 # ===========================================================================
-# SECTION 4 — Clean stale paths in .claude/settings.local.json
+# SECTION 4, Clean stale paths in .claude/settings.local.json
 # ===========================================================================
 
 Write-Section "Section 4: Clean .claude/settings.local.json"
@@ -487,22 +487,22 @@ if (Test-Path ${settingsPath}) {
         Write-Warn "Could not parse settings.local.json: $_ (leaving unchanged)"
     }
 } else {
-    Write-Info "No .claude/settings.local.json found — skipping"
+    Write-Info "No .claude/settings.local.json found, skipping"
 }
 
 # ===========================================================================
-# SECTION 5 — Generate .gitignore
+# SECTION 5, Generate .gitignore
 # ===========================================================================
 
 Write-Section "Section 5: Generate .gitignore"
 
 ${gitignorePath} = Join-Path ${TargetPath} '.gitignore'
 if (Test-Path ${gitignorePath}) {
-    Write-Skip ".gitignore already exists — not overwriting"
+    Write-Skip ".gitignore already exists, not overwriting"
 } else {
     ${gitignoreContent} = @"
 # =============================================================================
-# .gitignore — PowerShell Project
+# .gitignore, PowerShell Project
 # Generated by migrate_to_github.ps1
 # =============================================================================
 
@@ -545,7 +545,7 @@ secrets.*
 }
 
 # ===========================================================================
-# SECTION 6 — Add missing scaffold files
+# SECTION 6, Add missing scaffold files
 # ===========================================================================
 
 Write-Section "Section 6: Add missing scaffold files"
@@ -567,11 +567,11 @@ function Add-ScaffoldFile {
 }
 
 Add-ScaffoldFile '.gitattributes' @"
-# .gitattributes — Normalize line endings to LF in the repository.
+# .gitattributes, Normalize line endings to LF in the repository.
 # Windows checkouts remain LF (autocrlf=input in .gitconfig).
 * text=auto eol=lf
 
-# Binary files — do not attempt line ending conversion
+# Binary files, do not attempt line ending conversion
 *.pdf  binary
 *.docx binary
 *.xlsx binary
@@ -584,7 +584,7 @@ Add-ScaffoldFile '.gitattributes' @"
 "@
 
 Add-ScaffoldFile '.editorconfig' @"
-# .editorconfig — Editor configuration for consistent formatting.
+# .editorconfig, Editor configuration for consistent formatting.
 # See https://editorconfig.org
 
 root = true
@@ -680,14 +680,14 @@ Add-ScaffoldFile '.github/pull_request_template.md' @"
 "@
 
 # ===========================================================================
-# SECTION 7 — Create GitHub repo
+# SECTION 7, Create GitHub repo
 # ===========================================================================
 
 Write-Section "Section 7: Create GitHub repository"
 
 ${repoExists} = gh repo view "${githubUser}/${RepoName}" 2>&1
 if ($LASTEXITCODE -eq 0) {
-    Write-Info "GitHub repo ${githubUser}/${RepoName} already exists — skipping creation"
+    Write-Info "GitHub repo ${githubUser}/${RepoName} already exists, skipping creation"
 } else {
     ${createOutput} = gh repo create ${RepoName} `
         --private `
@@ -699,7 +699,7 @@ if ($LASTEXITCODE -eq 0) {
 }
 
 # ===========================================================================
-# SECTION 8 — Set git remote
+# SECTION 8, Set git remote
 # ===========================================================================
 
 Write-Section "Section 8: Configure git remote"
@@ -727,7 +727,7 @@ try {
 }
 
 # ===========================================================================
-# SECTION 9 — Stage and commit
+# SECTION 9, Stage and commit
 # ===========================================================================
 
 Write-Section "Section 9: Stage and commit"
@@ -753,7 +753,7 @@ try {
 }
 
 # ===========================================================================
-# SECTION 10 — Push
+# SECTION 10, Push
 # ===========================================================================
 
 Write-Section "Section 10: Push to GitHub"
@@ -772,7 +772,7 @@ try {
 }
 
 # ===========================================================================
-# SECTION 11 — Branch ruleset
+# SECTION 11, Branch ruleset
 # ===========================================================================
 
 Write-Section "Section 11: Apply branch ruleset"
@@ -803,7 +803,7 @@ try {
 }
 
 # ===========================================================================
-# SECTION 12 — Apply GitHub topics
+# SECTION 12, Apply GitHub topics
 # ===========================================================================
 
 Write-Section "Section 12: Apply GitHub topics"
@@ -821,11 +821,11 @@ if (${Topics}.Count -gt 0) {
         Write-Warn "Topic application failed: $_"
     }
 } else {
-    Write-Info "No topics specified — skipping"
+    Write-Info "No topics specified, skipping"
 }
 
 # ===========================================================================
-# SECTION 13 — Final summary
+# SECTION 13, Final summary
 # ===========================================================================
 
 Write-Host "`n=============================================" -ForegroundColor Green
@@ -840,9 +840,9 @@ Write-Host "  Verification reminders:" -ForegroundColor Yellow
 Write-Host "    1. Open https://github.com/${githubUser}/${RepoName} in your browser." -ForegroundColor Yellow
 Write-Host "    2. Click the initial commit and confirm the 'Verified' badge."         -ForegroundColor Yellow
 Write-Host "    3. Go to Settings -> Rules -> Rulesets and confirm main-protection."   -ForegroundColor Yellow
-Write-Host "    4. Review the generated .gitignore — adjust if any files were"         -ForegroundColor Yellow
+Write-Host "    4. Review the generated .gitignore, adjust if any files were"         -ForegroundColor Yellow
 Write-Host "       incorrectly excluded or included."                                  -ForegroundColor Yellow
-Write-Host "    5. The source directory still exists — delete it once you have"        -ForegroundColor Yellow
+Write-Host "    5. The source directory still exists, delete it once you have"        -ForegroundColor Yellow
 Write-Host "       confirmed the GitHub repo looks correct."                           -ForegroundColor Yellow
 Write-Host ""
 Write-Host "[RESULT] ${RepoName} migrated successfully.`n" -ForegroundColor Green

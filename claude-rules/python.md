@@ -1,5 +1,5 @@
 ---
-description: Python rules — uv, ruff, pytest, src layout, Python 3.12+
+description: Python rules, uv, ruff, pytest, src layout, Python 3.12+
 paths: ["**/*.py", "**/pyproject.toml", "**/requirements*.txt"]
 ---
 
@@ -8,7 +8,7 @@ paths: ["**/*.py", "**/pyproject.toml", "**/requirements*.txt"]
 ## Environment Management
 - Always use uv for virtual environments: `uv venv`, `uv add`, `uv run`
 - Virtual environment lives at .venv/ in project root (gitignored)
-- Python minimum version: 3.12 — use 3.12+ features freely
+- Python minimum version: 3.12, use 3.12+ features freely
 - Dependencies declared in pyproject.toml, not requirements.txt
 
 ## Code Quality
@@ -39,5 +39,5 @@ paths: ["**/*.py", "**/pyproject.toml", "**/requirements*.txt"]
 - Never hardcode credentials, API keys, or passwords
 
 ## Variable Syntax Note
-- Python uses f-strings: f"{variable}" — this is the standard
+- Python uses f-strings: f"{variable}", this is the standard
 - The ${variable} curly brace rule does NOT apply to Python (different syntax)

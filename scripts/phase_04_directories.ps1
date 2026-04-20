@@ -1,7 +1,7 @@
 #Requires -Version 7.0
 <#
 .SYNOPSIS
-    Phase 4 — Project Directory Structure
+    Phase 4: Project Directory Structure
 
 .DESCRIPTION
     Script Name : phase_04_directories.ps1
@@ -58,7 +58,7 @@ function Ensure-Directory {
 # ---------------------------------------------------------------------------
 
 Write-Host "`n========================================" -ForegroundColor Cyan
-Write-Host "  Phase 4 — Project Directory Structure"  -ForegroundColor Cyan
+Write-Host "  Phase 4, Project Directory Structure"  -ForegroundColor Cyan
 Write-Host "  Repo root: $RepoRoot"                   -ForegroundColor Cyan
 Write-Host "========================================`n" -ForegroundColor Cyan
 
@@ -85,7 +85,7 @@ Write-Info "Projects root set to: ${ProjectsRoot}"
 # ---------------------------------------------------------------------------
 
 $Directories = [ordered]@{
-    # Project roots — derived from the user-chosen projects root
+    # Project roots, derived from the user-chosen projects root
     "${ProjectsRoot}\personal"          = 'Personal GitHub projects'
     "${ProjectsRoot}\client"           = 'Client GitHub projects'
     "${ProjectsRoot}\arduino\upstream"  = 'Arduino/ArduPilot upstream forks'
@@ -184,7 +184,7 @@ try {
 # ---------------------------------------------------------------------------
 
 Write-Host "`n========================================" -ForegroundColor Cyan
-Write-Host "  Phase 4 — Summary"                       -ForegroundColor Cyan
+Write-Host "  Phase 4, Summary"                       -ForegroundColor Cyan
 Write-Host "========================================`n" -ForegroundColor Cyan
 
 $created = @($Results.Values | Where-Object { $_ -eq 'Created' }).Count

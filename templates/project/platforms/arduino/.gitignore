@@ -1,4 +1,4 @@
-# ArduPilot flight logs — often large binary files
+# ArduPilot flight logs, often large binary files
 logs/
 *.log
 *.tlog

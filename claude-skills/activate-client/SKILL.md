@@ -1,9 +1,9 @@
 ---
 name: activate-client
-description: Step-by-step activation of the client GitHub account identity — SSH key generation, key upload, gitconfig setup, signing, and identity verification.
+description: Step-by-step activation of the client GitHub account identity, SSH key generation, key upload, gitconfig setup, signing, and identity verification.
 ---
 
-# /activate-client — Activate Client GitHub Identity
+# /activate-client, Activate Client GitHub Identity
 
 You are walking the user through a complete setup of the client GitHub account identity. This is a guided, interactive process. At each step, pause for user confirmation where indicated. Show every command before running it. Do not proceed to the next step until the current step is confirmed complete.
 
@@ -47,19 +47,19 @@ Get-Content "$HOME\.ssh\id_ed25519_github_client.pub"
 Display the full key output to the user, then instruct:
 
 ```
-ACTION REQUIRED — Add this key to your client GitHub account:
+ACTION REQUIRED, Add this key to your client GitHub account:
 
 1. Go to: https://github.com/settings/keys
    (Make sure you are signed in as the CLIENT account, not your personal account.)
 
 2. Click "New SSH key"
-   Title:  {your_name} Client — Authentication
+   Title:  {your_name} Client, Authentication
    Type:   Authentication Key
    Key:    {paste the key above}
    Click "Add SSH key"
 
 3. Click "New SSH key" again
-   Title:  {your_name} Client — Signing
+   Title:  {your_name} Client, Signing
    Type:   Signing Key
    Key:    {paste the same key again}
    Click "Add SSH key"
@@ -74,11 +74,11 @@ Pause and ask: "Have you added both the Authentication Key and the Signing Key t
 
 Instruct the user:
 ```
-ACTION REQUIRED — Find your client noreply email address:
+ACTION REQUIRED, Find your client noreply email address:
 
 1. Sign in to GitHub as the client account.
 2. Go to: https://github.com/settings/emails
-3. Find the noreply address — it looks like:
+3. Find the noreply address, it looks like:
    {number}+{username}@users.noreply.github.com
 
 Paste it here:
@@ -202,10 +202,10 @@ gh auth login --hostname github.com
 Instruct the user:
 ```
 Follow the prompts in the terminal:
-  1. "What account do you want to log into?" — choose GitHub.com
-  2. "What is your preferred protocol?" — choose SSH
-  3. "Upload your SSH public key to your GitHub account?" — choose the client key if prompted, or skip if already uploaded
-  4. "How would you like to authenticate?" — choose "Login with a web browser"
+  1. "What account do you want to log into?", choose GitHub.com
+  2. "What is your preferred protocol?", choose SSH
+  3. "Upload your SSH public key to your GitHub account?", choose the client key if prompted, or skip if already uploaded
+  4. "How would you like to authenticate?", choose "Login with a web browser"
   5. Copy the one-time code shown, open the URL, and authenticate as the CLIENT account.
 ```
 

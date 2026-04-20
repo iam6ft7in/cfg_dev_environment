@@ -1,9 +1,9 @@
 ---
 name: apply-standard
-description: Audit an existing GitHub repository against the gold standard and apply all missing pieces — scaffold files, CLAUDE.md rule imports, issue templates, linter config, branch ruleset, labels, topics, and Projects v2 board.
+description: Audit an existing GitHub repository against the gold standard and apply all missing pieces, scaffold files, CLAUDE.md rule imports, issue templates, linter config, branch ruleset, labels, topics, and Projects v2 board.
 ---
 
-# /apply-standard — Apply Gold Standard to an Existing Repository
+# /apply-standard, Apply Gold Standard to an Existing Repository
 
 You are retrofitting an existing GitHub repository to meet the gold standard. Audit
 first, then apply only what is missing or incorrect. Never overwrite files that already
@@ -42,9 +42,9 @@ Report the detected platform and ask the user to confirm or correct it.
 
 ### 1c. Confirm Identity
 Present a numbered list:
-1. personal/public — maps to ~/projects/personal/public/ (public GitHub repos)
-2. personal/private — maps to ~/projects/personal/private/ (private GitHub repos)
-3. personal/collaborative — maps to ~/projects/personal/collaborative/
+1. personal/public, maps to ~/projects/personal/public/ (public GitHub repos)
+2. personal/private, maps to ~/projects/personal/private/ (private GitHub repos)
+3. personal/collaborative, maps to ~/projects/personal/collaborative/
 4. client
 5. arduino (custom)
 
@@ -69,7 +69,7 @@ Determine the GitHub username based on identity:
 
 ---
 
-## Step 2: Audit — Check Each Gold Standard Item
+## Step 2: Audit, Check Each Gold Standard Item
 
 Run all checks silently, then print a single audit table before making any changes.
 For each item, report status as one of: PRESENT, MISSING, or NEEDS UPDATE.
@@ -97,10 +97,10 @@ For each item, report status as one of: PRESENT, MISSING, or NEEDS UPDATE.
 
 | Item | Check |
 |------|-------|
-| Branch ruleset on `main` | `gh api repos/{username}/{repo}/rulesets` — look for a ruleset targeting `main` |
-| Standard labels present | `gh label list --repo {username}/{repo}` — check for: feat, fix, docs, chore, refactor, test, ci, breaking |
-| Topics applied | `gh repo view {username}/{repo} --json repositoryTopics` — check for platform topic |
-| Projects v2 board | `gh project list --owner {username} --format json --limit 100` — look for a project titled `{repo_name} Board`. Also verify its Status field has the 5 standardized options in order: Backlog, Todo, In Progress, In Review, Done |
+| Branch ruleset on `main` | `gh api repos/{username}/{repo}/rulesets`, look for a ruleset targeting `main` |
+| Standard labels present | `gh label list --repo {username}/{repo}`, check for: feat, fix, docs, chore, refactor, test, ci, breaking |
+| Topics applied | `gh repo view {username}/{repo} --json repositoryTopics`, check for platform topic |
+| Projects v2 board | `gh project list --owner {username} --format json --limit 100`, look for a project titled `{repo_name} Board`. Also verify its Status field has the 5 standardized options in order: Backlog, Todo, In Progress, In Review, Done |
 
 ### CLAUDE.md Rule Import Check
 
@@ -122,7 +122,7 @@ If any import is missing, mark CLAUDE.md as NEEDS UPDATE.
 Print the audit table in this format:
 
 ```
-Gold Standard Audit — {repo_name}
+Gold Standard Audit, {repo_name}
 ──────────────────────────────────────────────────────
   .gitattributes                         PRESENT
   .gitignore                             PRESENT
@@ -156,7 +156,7 @@ If the user says no, stop.
 ## Step 4: Apply Fixes
 
 Work through every MISSING or NEEDS UPDATE item. Show each action before taking it.
-If a step fails, report the error and continue to the next item — do not abort.
+If a step fails, report the error and continue to the next item, do not abort.
 
 ### 4a. .gitattributes
 If missing, copy from `~/.claude/templates/project/.gitattributes`.
@@ -194,7 +194,7 @@ If missing, copy from `~/.claude/templates/project/CONTRIBUTING.md` and replace
 ### 4g. SECURITY.md
 If missing, copy from `~/.claude/templates/project/SECURITY.md`.
 
-### 4h. CLAUDE.md — Rule Imports
+### 4h. CLAUDE.md, Rule Imports
 If CLAUDE.md exists but is missing rule import lines, add them at the top of the file
 (before any existing content), inserting only the lines that are absent:
 
@@ -208,7 +208,7 @@ Only add `@~/.claude/rules/{platform}.md` if:
 - The platform is not `other`
 - The file `~/.claude/rules/{platform}.md` actually exists
 
-Do NOT replace or reformat any existing content in CLAUDE.md — append imports only
+Do NOT replace or reformat any existing content in CLAUDE.md, append imports only
 at the top.
 
 If CLAUDE.md does not exist at all, copy from
@@ -220,7 +220,7 @@ If no file exists under `.claude/rules/`, copy from
 `~/.claude/templates/project/.claude/rules/project.md` and replace placeholders.
 
 If `.claude/rules/` already has files (e.g., powershell.md, security.md), it is
-already serving the project.md role — mark as PRESENT and skip.
+already serving the project.md role, mark as PRESENT and skip.
 
 ### 4j. .github/pull_request_template.md
 If missing, copy from
@@ -238,10 +238,10 @@ Copy the appropriate file from the platform template if missing:
 |----------|------|--------|
 | powershell | `.ps-scriptanalyzer.psd1` | `~/.claude/templates/project/platforms/powershell/.ps-scriptanalyzer.psd1` |
 | bash | `.shellcheckrc` | `~/.claude/templates/project/platforms/bash/.shellcheckrc` |
-| python | n/a — ruff config lives in `pyproject.toml` | Remind user to add `[tool.ruff]` section if absent |
+| python | n/a, ruff config lives in `pyproject.toml` | Remind user to add `[tool.ruff]` section if absent |
 | perl | `cpanfile` | `~/.claude/templates/project/platforms/perl/cpanfile` |
 | asm | `.gitignore` additions | Apply asm `.gitignore` from platform template |
-| other | skip | — |
+| other | skip |, |
 
 ### 4m. Git Hooks
 If `.git/hooks/commit-msg` or `.git/hooks/pre-commit` is missing or not executable:
@@ -304,7 +304,7 @@ user to verify in the browser under Settings → Rules → Rulesets that:
 - Automatically delete head branches: enabled
 
 These settings require GitHub Pro or higher and are not fully configurable via the
-REST API — they must be set through the UI or GitHub's GraphQL API.
+REST API, they must be set through the UI or GitHub's GraphQL API.
 
 ### 4q. Standard Issue Labels
 First check which labels already exist:
@@ -347,7 +347,7 @@ pwsh -File "$HOME\.claude\scripts\setup_project_board.ps1" `
 If the helper fails with a scope error (`INSUFFICIENT_SCOPES` or similar),
 run `gh auth refresh -s project` and re-run the helper. If the helper script
 is missing, note it in the final report and instruct the user to create the
-board manually — do not fail the rest of /apply-standard.
+board manually, do not fail the rest of /apply-standard.
 
 ---
 
@@ -384,7 +384,7 @@ If the script is missing, note it in the final report but do not fail the run.
 Print a summary of what was done:
 
 ```
-Gold Standard Applied — {repo_name}
+Gold Standard Applied, {repo_name}
 ──────────────────────────────────────────────────
 Files added/updated:
   + .editorconfig
@@ -422,15 +422,15 @@ If any step failed, list them clearly with the error and recovery instructions.
 
 ---
 
-## Normal Workflow — Skills to Use From Here
+## Normal Workflow, Skills to Use From Here
 
 Now that the repo meets the gold standard, these skills support day-to-day work:
 
 | When | Skill |
 |------|-------|
-| Starting a new feature or bug fix | `/new-feature` — creates a linked GitHub issue and feature branch |
-| Ready to open a pull request | `/pr-create` — pre-flight checks, template population, issue linking |
-| PR has been merged on GitHub | `/merge-complete` — pulls main, cleans branches, closes issue |
-| Ending a work session | `/session-save` — writes `SESSION_STATE.md` with accomplishments, blockers, and next steps |
-| Starting a new session | `/session-resume` — reads `SESSION_STATE.md` and tells you exactly what is next |
-| Checking repo backup health | `/verify-backup` — scans all repos for unpushed commits or uncommitted changes |
+| Starting a new feature or bug fix | `/new-feature`, creates a linked GitHub issue and feature branch |
+| Ready to open a pull request | `/pr-create`, pre-flight checks, template population, issue linking |
+| PR has been merged on GitHub | `/merge-complete`, pulls main, cleans branches, closes issue |
+| Ending a work session | `/session-save`, writes `SESSION_STATE.md` with accomplishments, blockers, and next steps |
+| Starting a new session | `/session-resume`, reads `SESSION_STATE.md` and tells you exactly what is next |
+| Checking repo backup health | `/verify-backup`, scans all repos for unpushed commits or uncommitted changes |

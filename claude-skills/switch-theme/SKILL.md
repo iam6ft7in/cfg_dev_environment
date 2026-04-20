@@ -3,7 +3,7 @@ name: switch-theme
 description: Toggle VS Code between Solarized Dark and a yellow-on-black theme by editing settings.json.
 ---
 
-# /switch-theme — Toggle VS Code Theme
+# /switch-theme, Toggle VS Code Theme
 
 You are toggling VS Code's color theme between Solarized Dark and a yellow-on-black theme. Follow every step in order. Show each file path you are reading or writing.
 
@@ -155,7 +155,7 @@ install it from the Extensions marketplace (search "Solarized Dark").
 
 ## Implementation Note
 
-When editing settings.json, parse it as JSON, make the targeted changes, and write it back with 2-space indentation. Do not use regex substitution on the raw text — parse and re-serialize to avoid corrupting the file.
+When editing settings.json, parse it as JSON, make the targeted changes, and write it back with 2-space indentation. Do not use regex substitution on the raw text, parse and re-serialize to avoid corrupting the file.
 
 In PowerShell:
 ```powershell

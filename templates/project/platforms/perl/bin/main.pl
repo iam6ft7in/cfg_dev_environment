@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# {{REPO_NAME}} — {{DESCRIPTION}}
+# {{REPO_NAME}}, {{DESCRIPTION}}
 # Platform: Perl
 
 use strict;

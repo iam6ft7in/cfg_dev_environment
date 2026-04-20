@@ -1,9 +1,9 @@
 ---
 name: weekly-review
-description: Comprehensive weekly digest of all projects — repo health, open issues and PRs, recent activity, milestones, backup status, and last gitleaks scan.
+description: Comprehensive weekly digest of all projects, repo health, open issues and PRs, recent activity, milestones, backup status, and last gitleaks scan.
 ---
 
-# /weekly-review — Weekly Project Digest
+# /weekly-review, Weekly Project Digest
 
 You are generating a comprehensive weekly review of all projects. Run each section in sequence and compile everything into a single clean markdown report. Show progress as you go ("Running Section 1: Repo Health...").
 
@@ -79,7 +79,7 @@ For each open PR, show: title, branch, how many days it has been open, and revie
 
 ```
 ### personal/tool_deploy_helper
-  #5 feat: add retry logic (feat/add_retry_logic) — 2 days open — Pending review
+  #5 feat: add retry logic (feat/add_retry_logic), 2 days open, Pending review
 ```
 
 Flag any PR open for more than 7 days as STALE.
@@ -98,7 +98,7 @@ Format as:
 | Repo | Commits (7d) | Last Author | Latest Message |
 |------|-------------|-------------|----------------|
 | personal/lib_sensor_utils | 5 | you | feat: add temp cal |
-| personal/tool_deploy_helper | 0 | — | — |
+| personal/tool_deploy_helper | 0 |, |, |
 ```
 
 Highlight any repo with 0 commits in the last 7 days if it has open issues or PRs (it may be stalled).
@@ -115,7 +115,7 @@ gh api repos/{owner}/{repo}/milestones --jq '.[] | {title, due_on, open_issues, 
 Show milestones due within the next 14 days:
 ```
 ### personal/lib_sensor_utils
-  "v1.0 Release" — due in 5 days — 3 open issues remaining
+  "v1.0 Release", due in 5 days, 3 open issues remaining
 ```
 
 If no milestones are due within 14 days, show: "(no milestones due within 14 days)"

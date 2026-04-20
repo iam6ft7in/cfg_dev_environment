@@ -1,7 +1,7 @@
 #Requires -Version 7.0
 <#
 .SYNOPSIS
-    Phase 6 — Git Hooks and Secret Scanning
+    Phase 6: Git Hooks and Secret Scanning
 
 .DESCRIPTION
     Script Name : phase_06_hooks_and_scanning.ps1
@@ -40,7 +40,7 @@ function Abort {
     exit 1
 }
 
-# Write a text file with Unix line endings (LF) — hooks must use LF
+# Write a text file with Unix line endings (LF), hooks must use LF
 function Write-UnixFile {
     param([string]$Path, [string]$Content)
     # Normalize to LF
@@ -54,7 +54,7 @@ function Write-UnixFile {
 # ---------------------------------------------------------------------------
 
 Write-Host "`n========================================" -ForegroundColor Cyan
-Write-Host "  Phase 6 — Hooks and Secret Scanning"   -ForegroundColor Cyan
+Write-Host "  Phase 6, Hooks and Secret Scanning"   -ForegroundColor Cyan
 Write-Host "  Repo root: $RepoRoot"                  -ForegroundColor Cyan
 Write-Host "========================================`n" -ForegroundColor Cyan
 
@@ -69,10 +69,10 @@ $configSrc    = Join-Path $RepoRoot 'config\gitleaks.toml'
 $Results = [ordered]@{}
 
 # ---------------------------------------------------------------------------
-# Step 1 — Ensure ~/.git-templates/hooks/ exists
+# Step 1: Ensure ~/.git-templates/hooks/ exists
 # ---------------------------------------------------------------------------
 
-Write-Section "Step 1 — Ensure ~/.git-templates/hooks/ exists"
+Write-Section "Step 1, Ensure ~/.git-templates/hooks/ exists"
 
 foreach ($dir in @($templateDir, $hooksDir)) {
     if (-not (Test-Path $dir)) {
@@ -85,19 +85,19 @@ foreach ($dir in @($templateDir, $hooksDir)) {
 $Results['Template Hooks Dir'] = 'PASS'
 
 # ---------------------------------------------------------------------------
-# Step 2 — Write pre-commit hook
+# Step 2: Write pre-commit hook
 # ---------------------------------------------------------------------------
 
-Write-Section "Step 2 — Write pre-commit hook (gitleaks staged scan)"
+Write-Section "Step 2, Write pre-commit hook (gitleaks staged scan)"
 
 $preCommitContent = @'
 #!/bin/sh
-# pre-commit — gitleaks secret scan on staged files
+# pre-commit, gitleaks secret scan on staged files
 # Installed by phase_06_hooks_and_scanning.ps1
 #
 # Runs gitleaks against staged changes before every commit.
 # If secrets are detected, the commit is aborted.
-# Set SKIP_GITLEAKS=1 to bypass (for test fixtures only — use sparingly).
+# Set SKIP_GITLEAKS=1 to bypass (for test fixtures only, use sparingly).
 
 if [ "${SKIP_GITLEAKS:-0}" = "1" ]; then
     echo "[pre-commit] WARNING: gitleaks scan skipped (SKIP_GITLEAKS=1)" >&2
@@ -106,7 +106,7 @@ fi
 
 # Check if gitleaks is on PATH
 if ! command -v gitleaks >/dev/null 2>&1; then
-    echo "[pre-commit] WARNING: gitleaks is not installed — skipping secret scan." >&2
+    echo "[pre-commit] WARNING: gitleaks is not installed, skipping secret scan." >&2
     echo "[pre-commit] Install gitleaks and re-run Phase 1 to enable scanning." >&2
     exit 0
 fi
@@ -149,14 +149,14 @@ try {
 }
 
 # ---------------------------------------------------------------------------
-# Step 3 — Write commit-msg hook
+# Step 3: Write commit-msg hook
 # ---------------------------------------------------------------------------
 
-Write-Section "Step 3 — Write commit-msg hook (Conventional Commits)"
+Write-Section "Step 3, Write commit-msg hook (Conventional Commits)"
 
 $commitMsgContent = @'
 #!/bin/sh
-# commit-msg — Conventional Commits format validation
+# commit-msg, Conventional Commits format validation
 # Installed by phase_06_hooks_and_scanning.ps1
 #
 # Validates the commit message against the Conventional Commits specification.
@@ -192,7 +192,7 @@ if [ -z "$STRIPPED" ]; then
 fi
 
 # Conventional Commits pattern
-# type(scope): description  — total subject line max 88 chars
+# type(scope): description , total subject line max 88 chars
 CC_PATTERN='^(feat|fix|docs|style|refactor|perf|test|chore|ci|revert)(\(.+\))?: .{1,88}$'
 
 # Extract subject line (first non-empty, non-comment line)
@@ -200,7 +200,7 @@ SUBJECT=$(echo "$MSG" | sed '/^#/d' | sed '/^[[:space:]]*$/d' | head -1)
 
 if ! echo "$SUBJECT" | grep -qE "$CC_PATTERN"; then
     echo "" >&2
-    echo "  COMMIT REJECTED — message does not follow Conventional Commits format." >&2
+    echo "  COMMIT REJECTED, message does not follow Conventional Commits format." >&2
     echo "" >&2
     echo "  Your message:" >&2
     echo "    $SUBJECT" >&2
@@ -233,24 +233,24 @@ try {
 }
 
 # ---------------------------------------------------------------------------
-# Step 4 — Note on hook executability (Windows)
+# Step 4: Note on hook executability (Windows)
 # ---------------------------------------------------------------------------
 
-Write-Section "Step 4 — Hook executability (Windows note)"
+Write-Section "Step 4, Hook executability (Windows note)"
 
 Write-Info "On Windows, git executes hook files directly via sh.exe bundled with Git."
 Write-Info "The #!/bin/sh shebang and LF line endings (enforced above) are sufficient."
-Write-Info "No chmod +x required on Windows — git handles this automatically."
-$Results['Hook Executability'] = 'PASS (Windows — no chmod needed)'
+Write-Info "No chmod +x required on Windows, git handles this automatically."
+$Results['Hook Executability'] = 'PASS (Windows, no chmod needed)'
 
 # ---------------------------------------------------------------------------
-# Step 5 — Write ~/.gitleaks.toml
+# Step 5: Write ~/.gitleaks.toml
 # ---------------------------------------------------------------------------
 
-Write-Section "Step 5 — Install ~/.gitleaks.toml"
+Write-Section "Step 5, Install ~/.gitleaks.toml"
 
 $gitleaksTomlContent = @'
-# ~/.gitleaks.toml — Custom gitleaks configuration
+# ~/.gitleaks.toml, Custom gitleaks configuration
 # Generated by phase_06_hooks_and_scanning.ps1
 #
 # Extends the default gitleaks ruleset with project-specific allowlists.
@@ -263,7 +263,7 @@ title = "Custom Gitleaks Config"
 useDefault = true
 
 # ---------------------------------------------------------------------------
-# Global allowlist — patterns that are NEVER secrets regardless of context
+# Global allowlist, patterns that are NEVER secrets regardless of context
 # ---------------------------------------------------------------------------
 [allowlist]
 description = "Global allowlist for known safe patterns"
@@ -328,7 +328,7 @@ severity    = "HIGH"
 
 [rules.allowlist]
 regexes = [
-    # Allow .env.example files — they contain placeholders
+    # Allow .env.example files, they contain placeholders
     '''\.env\.example''',
     # Allow lines that are clearly placeholder values
     '''(?i)(your[-_]?|example[-_]?|replace[-_]?|placeholder|<.*>|CHANGEME)''',
@@ -348,17 +348,17 @@ if (Test-Path $configSrc) {
         $Results['gitleaks.toml'] = 'PASS (inline default)'
     }
 } else {
-    Write-Info "config\gitleaks.toml not found in repo root — writing inline default"
+    Write-Info "config\gitleaks.toml not found in repo root, writing inline default"
     Set-Content -Path $gitleaksToml -Value $gitleaksTomlContent -Encoding UTF8
     Write-Pass "Written: $gitleaksToml"
     $Results['gitleaks.toml'] = 'PASS (inline default)'
 }
 
 # ---------------------------------------------------------------------------
-# Step 6 — Set init.templateDir in gitconfig
+# Step 6: Set init.templateDir in gitconfig
 # ---------------------------------------------------------------------------
 
-Write-Section "Step 6 — Set init.templateDir in ~/.gitconfig"
+Write-Section "Step 6, Set init.templateDir in ~/.gitconfig"
 
 try {
     # git config stores paths with forward slashes
@@ -373,12 +373,12 @@ try {
 }
 
 # ---------------------------------------------------------------------------
-# Step 7 — Write weekly scan script and create Task Scheduler task
+# Step 7: Write weekly scan script and create Task Scheduler task
 # ---------------------------------------------------------------------------
 
-Write-Section "Step 7 — Weekly gitleaks scan (Task Scheduler)"
+Write-Section "Step 7, Weekly gitleaks scan (Task Scheduler)"
 
-# 7a — Write the scan script
+# 7a, Write the scan script
 $weeklyScanContent = @"
 #Requires -Version 7.0
 # gitleaks-weekly-scan.ps1
@@ -393,7 +393,7 @@ $weeklyScanContent = @"
 Add-Content -Path `$logFile -Value "`n[`$timestamp] Starting weekly gitleaks scan of `$scanRoot"
 
 if (-not (Test-Path `$scanRoot)) {
-    Add-Content -Path `$logFile -Value "[`$timestamp] Scan root does not exist: `$scanRoot — skipping."
+    Add-Content -Path `$logFile -Value "[`$timestamp] Scan root does not exist: `$scanRoot, skipping."
     exit 0
 }
 
@@ -431,7 +431,7 @@ foreach (`$repo in `$repos) {
 }
 
 if (`$failed.Count -gt 0) {
-    Add-Content -Path `$logFile -Value "[`$timestamp] SCAN COMPLETE — `$(`$failed.Count) repo(s) had findings:"
+    Add-Content -Path `$logFile -Value "[`$timestamp] SCAN COMPLETE, `$(`$failed.Count) repo(s) had findings:"
     foreach (`$f in `$failed) {
         Add-Content -Path `$logFile -Value "  - `$f"
     }
@@ -444,7 +444,7 @@ if (`$failed.Count -gt 0) {
     }
     exit 1
 } else {
-    Add-Content -Path `$logFile -Value "[`$timestamp] SCAN COMPLETE — all repositories clean."
+    Add-Content -Path `$logFile -Value "[`$timestamp] SCAN COMPLETE, all repositories clean."
     exit 0
 }
 "@
@@ -456,7 +456,7 @@ try {
     Write-Warn "Could not write weekly scan script: $_"
 }
 
-# 7b — Register / update Task Scheduler task
+# 7b, Register / update Task Scheduler task
 $taskName   = 'GitLeaks Weekly Security Scan'
 $taskAction = New-ScheduledTaskAction `
     -Execute 'pwsh.exe' `
@@ -476,7 +476,7 @@ $taskSettings = New-ScheduledTaskSettingsSet `
 try {
     $existingTask = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
     if ($existingTask) {
-        Write-Warn "Task '$taskName' already exists — updating"
+        Write-Warn "Task '$taskName' already exists, updating"
         Set-ScheduledTask `
             -TaskName $taskName `
             -Action   $taskAction `
@@ -504,10 +504,10 @@ try {
 }
 
 # ---------------------------------------------------------------------------
-# Step 8 — Self-test the commit-msg regex pattern
+# Step 8: Self-test the commit-msg regex pattern
 # ---------------------------------------------------------------------------
 
-Write-Section "Step 8 — Self-test commit-msg regex pattern"
+Write-Section "Step 8, Self-test commit-msg regex pattern"
 
 # Mirror the POSIX ERE pattern in PowerShell (.NET regex)
 $pattern = '^(feat|fix|docs|style|refactor|perf|test|chore|ci|revert)(\(.+\))?: .{1,88}$'
@@ -567,7 +567,7 @@ $Results['Regex Self-Test'] = if ($allPass) { 'PASS' } else { 'FAIL' }
 # ---------------------------------------------------------------------------
 
 Write-Host "`n========================================" -ForegroundColor Cyan
-Write-Host "  Phase 6 — Summary"                      -ForegroundColor Cyan
+Write-Host "  Phase 6, Summary"                      -ForegroundColor Cyan
 Write-Host "========================================`n" -ForegroundColor Cyan
 
 $colW = 35
