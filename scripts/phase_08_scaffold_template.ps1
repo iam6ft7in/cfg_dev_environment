@@ -1,143 +1,252 @@
 #Requires -Version 7.0
 <#
 .SYNOPSIS
-    Phase 08 - Copy Per-Project Scaffold Templates
+    Phase 08 - Copy Per-Project Scaffold Templates (diff-before-copy)
 
 .DESCRIPTION
     Script Name : phase_08_scaffold_template.ps1
-    Purpose     : Copy per-project scaffold templates from $RepoRoot\templates\project\
-                  to ~/.claude/templates\project\
+    Purpose     : Deploy the per-project scaffold from
+                  $RepoRoot\templates\project\ to ~/.claude/templates/project/
+                  while preserving any personalizations the user has made to
+                  the deployed copy.
+
+    For every file under the source tree, compare repo source against the
+    deployed counterpart:
+      - Missing on deployed side: CREATED (no drift risk).
+      - Byte-identical: IN-SYNC, no action.
+      - Differs: show unified diff and prompt per file with
+        [o]verwrite / [s]kip (default) / [A]ll / [N]one / [q]uit.
+        Skipping preserves the deployed personalization.
+
+    Deployed-only files (user customizations added under
+    ~/.claude/templates/project/) are left alone and reported as KEPT.
+
+    Non-interactive runs (piped stdin, scheduled tasks) skip every drifted
+    file and warn on stderr. Re-run with -Force to overwrite every drifted
+    file without prompting.
+
     Phase       : 08
-    Exit Criteria:
-        - $RepoRoot\templates\project\ exists and is non-empty
-        - ~/.claude/templates\project\ exists and contains all copied items
-        - File count and top-level listing are reported
+
+.PARAMETER Force
+    Overwrite every drifted file without prompting.
 
 .NOTES
-    Run from any location; $RepoRoot is derived from $PSScriptRoot.
+    Run with: pwsh -File scripts\phase_08_scaffold_template.ps1
+    Force:    pwsh -File scripts\phase_08_scaffold_template.ps1 -Force
 #>
 
+[CmdletBinding()]
+param(
+    [switch]${Force}
+)
+
 Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
+${ErrorActionPreference} = 'Stop'
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-function Write-Info    { param([string]$Msg) Write-Host "  [INFO]  $Msg" -ForegroundColor Cyan    }
-function Write-Pass    { param([string]$Msg) Write-Host "  [PASS]  $Msg" -ForegroundColor Green   }
-function Write-Warn    { param([string]$Msg) Write-Host "  [WARN]  $Msg" -ForegroundColor Yellow  }
-function Write-Fail    { param([string]$Msg) Write-Host "  [FAIL]  $Msg" -ForegroundColor Red     }
-function Write-Section { param([string]$Msg) Write-Host "`n=== $Msg ===" -ForegroundColor Cyan    }
+function Write-Info    { param([string]${Msg}) Write-Host "  [INFO]  ${Msg}" -ForegroundColor Cyan   }
+function Write-Pass    { param([string]${Msg}) Write-Host "  [PASS]  ${Msg}" -ForegroundColor Green  }
+function Write-Warn    { param([string]${Msg}) Write-Host "  [WARN]  ${Msg}" -ForegroundColor Yellow }
+function Write-Fail    { param([string]${Msg}) Write-Host "  [FAIL]  ${Msg}" -ForegroundColor Red    }
+function Write-Section { param([string]${Msg}) Write-Host "`n=== ${Msg} ===" -ForegroundColor Cyan   }
 
 function Exit-WithError {
-    param([string]$Msg)
-    Write-Fail $Msg
+    param([string]${Msg})
+    Write-Fail ${Msg}
     Write-Host "`n[ABORTED] Phase 08 did not complete successfully." -ForegroundColor Red
     exit 1
+}
+
+function Show-FileDiff {
+    param([string]${Src}, [string]${Dest})
+    Write-Host "--- deployed: ${Dest}" -ForegroundColor DarkGray
+    Write-Host "+++ repo:     ${Src}"  -ForegroundColor DarkGray
+    & git --no-pager diff --no-index --color=auto -u -- ${Dest} ${Src}
+}
+
+function Read-FileAction {
+    while ($true) {
+        ${answer} = Read-Host "[o]verwrite / [s]kip (default) / [A]ll / [N]one / [q]uit"
+        ${trim}   = ${answer}.Trim()
+        switch -CaseSensitive (${trim}) {
+            ''  { return 'skip' }
+            's' { return 'skip' }
+            'S' { return 'skip' }
+            'o' { return 'overwrite' }
+            'O' { return 'overwrite' }
+            'A' { return 'all-overwrite' }
+            'N' { return 'all-skip' }
+            'q' { return 'quit' }
+            'Q' { return 'quit' }
+            default { Write-Warn "Invalid choice: '${trim}'. Try again." }
+        }
+    }
 }
 
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
-$RepoRoot        = Split-Path -Parent $PSScriptRoot
-$SourceTemplDir  = Join-Path $RepoRoot 'templates\project'
-$DestTemplDir    = Join-Path $HOME '.claude\templates\project'
-
-# Track results
-$Results = [ordered]@{}
+${RepoRoot}       = Split-Path -Parent ${PSScriptRoot}
+${SourceTemplDir} = Join-Path ${RepoRoot} 'templates\project'
+${DestTemplDir}   = Join-Path ${HOME}     '.claude\templates\project'
 
 # ---------------------------------------------------------------------------
 # Banner
 # ---------------------------------------------------------------------------
 Write-Host "`n=======================================" -ForegroundColor Cyan
-Write-Host "  Phase 08 - Scaffold Templates"          -ForegroundColor Cyan
-Write-Host "  Repo Root : $RepoRoot"                  -ForegroundColor Cyan
-Write-Host "  Source    : $SourceTemplDir"            -ForegroundColor Cyan
-Write-Host "  Dest      : $DestTemplDir"              -ForegroundColor Cyan
-Write-Host "=======================================`n" -ForegroundColor Cyan
+Write-Host "  Phase 08 - Scaffold Templates"           -ForegroundColor Cyan
+Write-Host "  Repo Root : ${RepoRoot}"                 -ForegroundColor Cyan
+Write-Host "  Source    : ${SourceTemplDir}"           -ForegroundColor Cyan
+Write-Host "  Dest      : ${DestTemplDir}"             -ForegroundColor Cyan
+Write-Host "  Mode      : $(if (${Force}) { 'Force (overwrite all)' } else { 'Prompt on drift' })" -ForegroundColor Cyan
+Write-Host "=======================================`n"  -ForegroundColor Cyan
 
 # ---------------------------------------------------------------------------
-# Step 1 - Verify source directory exists and is non-empty
+# Step 1 - Verify source
 # ---------------------------------------------------------------------------
 Write-Section "Step 1: Verify source directory"
 
-if (-not (Test-Path $SourceTemplDir -PathType Container)) {
-    Exit-WithError "Source directory not found: $SourceTemplDir"
+if (-not (Test-Path ${SourceTemplDir} -PathType Container)) {
+    Exit-WithError "Source directory not found: ${SourceTemplDir}"
 }
-Write-Pass "Source directory exists: $SourceTemplDir"
-
-$SourceItems = Get-ChildItem -Path $SourceTemplDir -Recurse -File
-if ($SourceItems.Count -eq 0) {
-    Exit-WithError "Source directory is empty. Nothing to copy: $SourceTemplDir"
+${SourceItems} = @(Get-ChildItem -Path ${SourceTemplDir} -Recurse -File -Force)
+if (${SourceItems}.Count -eq 0) {
+    Exit-WithError "Source directory is empty. Nothing to copy: ${SourceTemplDir}"
 }
-Write-Pass "Source contains $($SourceItems.Count) file(s)."
-$Results['VerifySource'] = 'PASS'
+Write-Pass "Source contains $(${SourceItems}.Count) file(s)."
 
 # ---------------------------------------------------------------------------
-# Step 2 - Create destination directory if needed
+# Step 2 - Create destination
 # ---------------------------------------------------------------------------
 Write-Section "Step 2: Create destination directory"
 
-if (Test-Path $DestTemplDir -PathType Container) {
-    Write-Info "Destination already exists: $DestTemplDir"
+if (Test-Path ${DestTemplDir} -PathType Container) {
+    Write-Info "Exists: ${DestTemplDir}"
 } else {
     try {
-        New-Item -ItemType Directory -Path $DestTemplDir -Force | Out-Null
-        Write-Pass "Created: $DestTemplDir"
+        New-Item -ItemType Directory -Path ${DestTemplDir} -Force | Out-Null
+        Write-Pass "Created: ${DestTemplDir}"
     } catch {
-        Exit-WithError "Failed to create destination directory '$DestTemplDir': $_"
+        Exit-WithError "Failed to create destination directory '${DestTemplDir}': ${_}"
     }
 }
-$Results['CreateDestDir'] = 'PASS'
 
 # ---------------------------------------------------------------------------
-# Step 3 - Copy entire templates\project\ directory recursively
+# Step 3 - Per-file deploy decision
 # ---------------------------------------------------------------------------
-Write-Section "Step 3: Copy template directory (recurse)"
+Write-Section "Step 3: Deploy scaffold (diff-before-copy)"
 
-try {
-    Copy-Item -Path "$SourceTemplDir\*" -Destination $DestTemplDir -Recurse -Force
-    Write-Pass "Copy-Item completed without errors."
-    $Results['CopyTemplates'] = 'PASS'
-} catch {
-    Write-Fail "Copy failed: $_"
-    $Results['CopyTemplates'] = 'FAIL'
-    Exit-WithError "Failed to copy templates to '$DestTemplDir'."
-}
+${Results} = [ordered]@{}
+${autoOverwrite} = [bool]${Force}
+${autoSkip}      = $false
+${aborted}       = $false
+${isTty}         = -not [Console]::IsInputRedirected
 
-# ---------------------------------------------------------------------------
-# Step 4 - Report count of files copied
-# ---------------------------------------------------------------------------
-Write-Section "Step 4: File count verification"
+foreach (${f} in ${SourceItems}) {
+    ${rel}   = [System.IO.Path]::GetRelativePath(${SourceTemplDir}, ${f}.FullName)
+    ${label} = ${rel} -replace '\\','/'
+    ${src}   = ${f}.FullName
+    ${dest}  = Join-Path ${DestTemplDir} ${rel}
 
-$DestFiles = Get-ChildItem -Path $DestTemplDir -Recurse -File
-$SourceCount = $SourceItems.Count
-$DestCount   = $DestFiles.Count
-
-Write-Info "Source file count : $SourceCount"
-Write-Info "Dest file count   : $DestCount"
-
-if ($DestCount -ge $SourceCount) {
-    Write-Pass "All $SourceCount source file(s) accounted for in destination."
-    $Results['FileCount'] = 'PASS'
-} else {
-    Write-Warn "Destination has fewer files ($DestCount) than source ($SourceCount). Some files may not have copied."
-    $Results['FileCount'] = 'WARN'
-}
-
-# ---------------------------------------------------------------------------
-# Step 5 - List top-level files/dirs in destination
-# ---------------------------------------------------------------------------
-Write-Section "Step 5: Top-level contents of $DestTemplDir"
-
-$TopLevel = Get-ChildItem -Path $DestTemplDir | Sort-Object Name
-if ($TopLevel.Count -eq 0) {
-    Write-Warn "Destination appears empty after copy - something went wrong."
-} else {
-    foreach ($Item in $TopLevel) {
-        $TypeTag = if ($Item.PSIsContainer) { '[DIR] ' } else { '[FILE]' }
-        Write-Info "$TypeTag $($Item.Name)"
+    if (${aborted}) {
+        ${Results}[${label}] = 'SKIP (quit)'
+        continue
     }
+
+    ${destParent} = Split-Path -Parent ${dest}
+    if (-not (Test-Path ${destParent} -PathType Container)) {
+        New-Item -ItemType Directory -Path ${destParent} -Force | Out-Null
+    }
+
+    if (-not (Test-Path ${dest} -PathType Leaf)) {
+        Copy-Item -Path ${src} -Destination ${dest} -Force
+        Write-Pass "CREATED: ${label}"
+        ${Results}[${label}] = 'CREATED'
+        continue
+    }
+
+    ${srcHash}  = (Get-FileHash -Algorithm SHA256 -Path ${src}).Hash
+    ${destHash} = (Get-FileHash -Algorithm SHA256 -Path ${dest}).Hash
+    if (${srcHash} -eq ${destHash}) {
+        Write-Info "IN-SYNC: ${label}"
+        ${Results}[${label}] = 'IN-SYNC'
+        continue
+    }
+
+    if (${autoOverwrite}) {
+        Copy-Item -Path ${src} -Destination ${dest} -Force
+        Write-Pass "OVERWRITE: ${label} (forced)"
+        ${Results}[${label}] = 'OVERWRITE'
+        continue
+    }
+    if (${autoSkip}) {
+        Write-Info "SKIP: ${label} (batch-skip)"
+        ${Results}[${label}] = 'SKIP'
+        continue
+    }
+    if (-not ${isTty}) {
+        Write-Warn "SKIP: ${label} (drift, stdin is not a TTY; -Force to overwrite)"
+        ${Results}[${label}] = 'SKIP (non-TTY)'
+        continue
+    }
+
+    Write-Host ""
+    Write-Host "DRIFT: ${label}" -ForegroundColor Yellow
+    Show-FileDiff -Src ${src} -Dest ${dest}
+    ${action} = Read-FileAction
+
+    switch (${action}) {
+        'overwrite' {
+            Copy-Item -Path ${src} -Destination ${dest} -Force
+            Write-Pass "OVERWRITE: ${label}"
+            ${Results}[${label}] = 'OVERWRITE'
+        }
+        'skip' {
+            Write-Info "SKIP: ${label}"
+            ${Results}[${label}] = 'SKIP'
+        }
+        'all-overwrite' {
+            Copy-Item -Path ${src} -Destination ${dest} -Force
+            Write-Pass "OVERWRITE: ${label} (All)"
+            ${Results}[${label}] = 'OVERWRITE'
+            ${autoOverwrite} = $true
+        }
+        'all-skip' {
+            Write-Info "SKIP: ${label} (None)"
+            ${Results}[${label}] = 'SKIP'
+            ${autoSkip} = $true
+        }
+        'quit' {
+            Write-Warn "QUIT: ${label} (user aborted; remaining files will be marked skipped)"
+            ${Results}[${label}] = 'SKIP (quit)'
+            ${aborted} = $true
+        }
+    }
+}
+
+# ---------------------------------------------------------------------------
+# Step 4 - Report deployed-only files (KEPT)
+# ---------------------------------------------------------------------------
+Write-Section "Step 4: Deployed-only files (preserved)"
+
+${srcSet} = @{}
+foreach (${s} in ${SourceItems}) {
+    ${rel} = [System.IO.Path]::GetRelativePath(${SourceTemplDir}, ${s}.FullName)
+    ${srcSet}[${rel}] = $true
+}
+
+${keptCount} = 0
+foreach (${d} in @(Get-ChildItem -Path ${DestTemplDir} -Recurse -File -Force)) {
+    ${rel} = [System.IO.Path]::GetRelativePath(${DestTemplDir}, ${d}.FullName)
+    if (-not ${srcSet}.ContainsKey(${rel})) {
+        Write-Info "KEPT: $(${rel} -replace '\\','/')"
+        ${keptCount}++
+    }
+}
+if (${keptCount} -eq 0) {
+    Write-Info "No deployed-only files."
 }
 
 # ---------------------------------------------------------------------------
@@ -145,23 +254,34 @@ if ($TopLevel.Count -eq 0) {
 # ---------------------------------------------------------------------------
 Write-Section "Summary"
 
-$PassCount = @($Results.Values | Where-Object { $_ -eq 'PASS' }).Count
-$WarnCount = @($Results.Values | Where-Object { $_ -eq 'WARN' }).Count
-$FailCount = @($Results.Values | Where-Object { $_ -eq 'FAIL' }).Count
-
-Write-Host "`n  Source files    : $SourceCount"       -ForegroundColor Cyan
-Write-Host "  Dest files      : $DestCount"           -ForegroundColor Cyan
-Write-Host "  Checks passed   : $PassCount"           -ForegroundColor Green
-Write-Host "  Warnings        : $WarnCount"           -ForegroundColor $(if ($WarnCount -gt 0) { 'Yellow' } else { 'Green' })
-Write-Host "  Checks failed   : $FailCount"           -ForegroundColor $(if ($FailCount -gt 0) { 'Red' } else { 'Green' })
-
-if ($FailCount -gt 0) {
-    Write-Host "`n[RESULT] Phase 08 completed with errors. Review failures above." -ForegroundColor Red
-    exit 1
-} elseif ($WarnCount -gt 0) {
-    Write-Host "`n[RESULT] Phase 08 completed with warnings. Verify destination manually." -ForegroundColor Yellow
-    exit 0
-} else {
-    Write-Host "`n[RESULT] Phase 08 completed successfully. Scaffold templates are in place." -ForegroundColor Green
-    exit 0
+${counts} = @{
+    'IN-SYNC'        = 0
+    'CREATED'        = 0
+    'OVERWRITE'      = 0
+    'SKIP'           = 0
+    'SKIP (non-TTY)' = 0
+    'SKIP (quit)'    = 0
 }
+foreach (${kv} in ${Results}.GetEnumerator()) {
+    ${key} = ${kv}.Value
+    if (${counts}.ContainsKey(${key})) {
+        ${counts}[${key}]++
+    }
+}
+
+Write-Host ""
+Write-Host "  Files processed : $(${SourceItems}.Count)" -ForegroundColor Cyan
+Write-Host "  In-sync         : $(${counts}['IN-SYNC'])"   -ForegroundColor Cyan
+Write-Host "  Created         : $(${counts}['CREATED'])"   -ForegroundColor Green
+Write-Host "  Overwritten     : $(${counts}['OVERWRITE'])" -ForegroundColor Green
+${totalSkipped} = ${counts}['SKIP'] + ${counts}['SKIP (non-TTY)'] + ${counts}['SKIP (quit)']
+Write-Host "  Skipped         : ${totalSkipped}" -ForegroundColor $(if (${totalSkipped} -gt 0) { 'Yellow' } else { 'Green' })
+Write-Host "  Kept (untracked): ${keptCount}" -ForegroundColor Cyan
+
+if (${aborted}) {
+    Write-Host "`n[RESULT] Phase 08 aborted by user. Re-run to continue." -ForegroundColor Yellow
+    exit 2
+}
+
+Write-Host "`n[RESULT] Phase 08 completed. Drifted files were preserved unless overwritten." -ForegroundColor Green
+exit 0
