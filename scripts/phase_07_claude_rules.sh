@@ -165,10 +165,14 @@ fi
 # Portable sha256 helper: prefer sha256sum (coreutils, Git Bash ships it),
 # fall back to shasum -a 256 (macOS default).
 file_hash() {
+    # sha256sum prepends '\' to the hash when the filename contains backslashes
+    # or newlines (escaped-name form). Strip any leading backslash so the
+    # compared hashes match regardless of path style. ~/.claude/rules/ paths
+    # never contain backslashes, but keep the guard for parity with phase_07b.
     if command -v sha256sum >/dev/null 2>&1; then
-        sha256sum "$1" | awk '{print $1}'
+        sha256sum "$1" | awk '{h=$1; sub(/^\\/, "", h); print h}'
     else
-        shasum -a 256 "$1" | awk '{print $1}'
+        shasum -a 256 "$1" | awk '{h=$1; sub(/^\\/, "", h); print h}'
     fi
 }
 
