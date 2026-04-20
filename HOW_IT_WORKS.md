@@ -140,10 +140,9 @@ warn on stderr; pass `-Force` (PS) or `--force` (bash) to overwrite without
 prompting.
 
 ### Phase 7b — Claude Skills and Helper Scripts
-Copies every skill directory from `claude-skills/` to `~/.claude/skills/`
-(so the `/new-repo`, `/migrate-repo`, `/apply-standard`, and other slash
-commands become available) and deploys the two helper scripts the skills
-shell out to:
+Deploys every file under `claude-skills/` to `~/.claude/skills/` (so the
+`/new-repo`, `/migrate-repo`, `/apply-standard`, and other slash commands
+become available) and the two helper scripts the skills shell out to:
 - `claude-scripts/setup_project_board.ps1` → `~/.claude/scripts/setup_project_board.ps1`
   (creates and standardizes the GitHub Projects v2 board; called by
   `/new-repo` step 3m, `/migrate-repo` step 5, `/apply-standard` step 4s)
@@ -152,11 +151,17 @@ shell out to:
   same three skills at the end of their runs)
 
 The projects root is read from `~/.claude/config.json` (written by Phase 4).
-Re-run Phase 7b any time `claude-skills/` or `claude-scripts/` changes to
-push the updates to disk.
+
+On re-run, each file is compared to its deployed counterpart. Identical
+files report `IN-SYNC`. Drifted files trigger a per-file prompt
+(`overwrite / skip / All / None / quit`) so hand-edits survive subsequent
+runs. Deployed-only files under a skill directory (user customizations)
+are preserved and reported as `KEPT`, never deleted. Non-interactive runs
+skip drifted files; pass `-Force` / `--force` to overwrite without
+prompting.
 
 ### Phase 8 — Project Scaffold Template
-Copies `templates/project/` to `~/.claude/templates/project/` so that the
+Deploys `templates/project/` to `~/.claude/templates/project/` so that the
 `/new-repo` skill can stamp out a fully-formed repo structure.
 
 Platform starters available:
@@ -167,6 +172,11 @@ Platform starters available:
 - VBScript (main script, helpers library)
 - Assembly/NASM (main.asm, macros.inc, Makefile)
 - Arduino/ArduPilot (base.param, vehicle.param, wiring diagram)
+
+Uses the same diff-before-copy flow as Phase 7 and Phase 7b: identical
+files report `IN-SYNC`, drifted files prompt per file, deployed-only
+additions are reported as `KEPT` and preserved. `-Force` / `--force`
+retains the old always-overwrite behavior.
 
 ### Phase 9 — VS Code Configuration
 Writes VS Code user settings (`settings.json`):
