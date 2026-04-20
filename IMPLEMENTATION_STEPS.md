@@ -296,8 +296,12 @@ reported as one of IN-SYNC, CREATED, OVERWRITE, or SKIP.
    pwsh -File scripts\phase_07b_claude_skills_and_scripts.ps1
 
 ### What the script does:
-Copies every skill directory under claude-skills/ to ~/.claude/skills/,
-then deploys the two helper scripts the skills call out to:
+Walks every file under claude-skills/ and under claude-scripts/ and
+deploys each one against its counterpart in either ~/.claude/skills/,
+~/.claude/scripts/, or {projects_root}\shortcuts\ (for the shortcut
+regenerator). Path mapping:
+- claude-skills/{skill}/*
+    -> ~/.claude/skills/{skill}/*
 - claude-scripts\setup_project_board.ps1
     -> ~/.claude/scripts/setup_project_board.ps1
 - claude-scripts\regenerate_shortcuts.ps1
@@ -306,24 +310,36 @@ then deploys the two helper scripts the skills call out to:
 The projects root is read from ~/.claude/config.json (written by Phase 4);
 falls back to %USERPROFILE%\projects if the config is missing.
 
-This phase is idempotent — re-run it any time claude-skills/ or
-claude-scripts/ changes to push updates to disk.
+### Behavior on re-run (diff-before-copy):
+Each file is compared to its deployed counterpart:
+- IN-SYNC files are left alone.
+- Drifted files trigger a per-file prompt
+  `[o]verwrite / [s]kip (default) / [A]ll / [N]one / [q]uit`.
+- Non-interactive runs skip drifted files and warn on stderr.
+- Deployed-only files (user customizations added to a skill dir) are
+  preserved and reported as KEPT, never deleted.
 
-EXIT CRITERIA: Every SKILL.md in claude-skills/ has a copy at
-~/.claude/skills/<skill>/SKILL.md; setup_project_board.ps1 exists in
-~/.claude/scripts/; regenerate.ps1 exists in {projects_root}\shortcuts\.
+Force mode:
+   pwsh -File scripts\phase_07b_claude_skills_and_scripts.ps1 -Force
+
+EXIT CRITERIA: Every SKILL.md in claude-skills/ has a deployed copy,
+setup_project_board.ps1 exists in ~/.claude/scripts/, and regenerate.ps1
+exists in {projects_root}\shortcuts\. Each file resolves to one of
+IN-SYNC, CREATED, OVERWRITE, or SKIP.
 
 ---
 
 ## PHASE 8 — Per-Project Scaffold Template
 **Type:** Script (you start it, script does the work)
 **Script file:** scripts\phase_08_scaffold_template.ps1
+**Bash fallback:** scripts\phase_08_scaffold_template.sh
 
 ### How to start it:
    pwsh -File scripts\phase_08_scaffold_template.ps1
 
-The script creates ~/.claude/templates/project/ containing all files
-that are copied into every new repository:
+### What the script does:
+Deploys ~/.claude/templates/project/ from templates/project/ so
+/new-repo has something to stamp out. The tree contains:
 - AGENTS.md, CLAUDE.md, README.md skeleton
 - .gitignore, .gitattributes, .editorconfig templates
 - SECURITY.md, CONTRIBUTING.md, CHANGELOG.md templates
@@ -334,7 +350,16 @@ that are copied into every new repository:
 - Platform-specific sub-templates (python, powershell, bash, perl,
   vbscript, asm, arduino)
 
-EXIT CRITERIA: ~/.claude/templates/project/ directory is fully populated.
+### Behavior on re-run (diff-before-copy):
+Same pattern as Phase 7 and Phase 7b. Every file under the source tree is
+compared to its deployed counterpart. Identical files report IN-SYNC,
+drifted files trigger a per-file prompt, new files are CREATED, and
+deployed-only files (personalizations) are preserved and reported as KEPT.
+Non-interactive runs skip drifted files. Pass -Force (PS) or --force
+(bash) to overwrite every drifted file without prompting.
+
+EXIT CRITERIA: ~/.claude/templates/project/ exists. Every source file
+resolves to one of IN-SYNC, CREATED, OVERWRITE, or SKIP.
 
 ---
 
