@@ -334,7 +334,6 @@ foreach (${f} in ${allSourceFiles}) {
     ${ext}  = ${f}.Extension.ToLower()
     ${name} = ${f}.Name.ToLower()
     if (${ext} -in @('.log', '.pdf', '.docx', '.xlsx') -or
-        ${name} -match '^resume_claude.*\.bat$' -or
         ${name} -match '^old_.*\.bat$' -or
         ${name} -match '^\d{4}-\d{2}-\d{2}-\d{6}-.*\.txt$') {
         Write-Info "Will gitignore candidate: $(${f}.Name) (${ext})"
@@ -517,8 +516,7 @@ if (Test-Path ${gitignorePath}) {
 *.docx
 *.xlsx
 
-# --- Claude session launcher shortcuts (machine-local, not source code) ---
-resume_claude*.bat
+# --- Archived/old batch files (machine-local, not source code) ---
 OLD_*.bat
 
 # --- Windows OS artifacts ---
