@@ -32,11 +32,11 @@
     lists the at-risk items.
 
 .EXAMPLE
-    pwsh -File setup_project_board.ps1 -Owner iam6ft7in -RepoName tool_cv_resume
+    pwsh -File setup_project_board.ps1 -Owner {github_username} -RepoName tool_cv_resume
 
 .EXAMPLE
     # Apply standardization to an existing board that has items assigned:
-    pwsh -File setup_project_board.ps1 -Owner iam6ft7in -RepoName foo -Force
+    pwsh -File setup_project_board.ps1 -Owner {github_username} -RepoName foo -Force
 #>
 
 [CmdletBinding()]
