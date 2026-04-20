@@ -1,5 +1,5 @@
 ---
-description: Core rules applied to all projects — commits, security, branching, general Claude behavior
+description: Core rules applied to all projects, commits, security, branching, general Claude behavior
 ---
 
 # Core Rules (Global)
@@ -10,7 +10,7 @@ description: Core rules applied to all projects — commits, security, branching
 - Scope: optional, in snake_case
 - Description: imperative mood, max 88 characters, no trailing period
 - SSH signing on all commits and tags (commit.gpgsign=true is set globally)
-- Never amend published commits — create new commits instead
+- Never amend published commits, create new commits instead
 
 ## Branch Standards
 - Never commit directly to main
@@ -31,10 +31,10 @@ description: Core rules applied to all projects — commits, security, branching
 
 ## Security Rules
 - NEVER commit secrets, credentials, API keys, tokens, passwords, or private keys
-- Use .env files for secrets — .env is gitignored, .env.example is committed
+- Use .env files for secrets, .env is gitignored, .env.example is committed
 - If you detect a potential secret in code, flag it immediately as Critical
 - All repos are private by default
-- Explicit license choice required at repo creation — never add a license silently
+- Explicit license choice required at repo creation, never add a license silently
 
 ## File Handling
 - Always read a file before editing it
@@ -47,7 +47,7 @@ description: Core rules applied to all projects — commits, security, branching
 ## Repository Conventions
 - Repo names: snake_case with type prefix (e.g., python_telemetry_parser)
 - Keep repos private by default
-- Explicit license choice required — never add a default silently
+- Explicit license choice required, never add a default silently
 
 ## Comment Style
 - Teaching style: explain WHY the code works this way, not just WHAT it does
@@ -73,7 +73,7 @@ description: Core rules applied to all projects — commits, security, branching
 
 ## Code Review Format
 When reviewing code or responding to review requests, use this format:
-- **Critical:** [issue] — Must fix before merge. [explanation of why]
-- **Warning:** [issue] — Should fix. [explanation]. Can skip if [condition].
-- **Suggestion:** [improvement] — Optional. [rationale for improvement].
+- **Critical:** [issue], Must fix before merge. [explanation of why]
+- **Warning:** [issue], Should fix. [explanation]. Can skip if [condition].
+- **Suggestion:** [improvement], Optional. [rationale for improvement].
 Each comment explains WHY it matters, not just what to change.

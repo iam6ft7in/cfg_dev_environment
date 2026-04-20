@@ -3,7 +3,7 @@ name: sync-upstream
 description: Sync an ArduPilot fork with the upstream ArduPilot repository by fetching upstream commits and rebasing the local branch.
 ---
 
-# /sync-upstream — Sync ArduPilot Fork With Upstream
+# /sync-upstream, Sync ArduPilot Fork With Upstream
 
 You are syncing a forked ArduPilot repository with the canonical upstream source. This operation rewrites history via rebase. Follow every step carefully. Show each command before running it.
 
@@ -143,7 +143,7 @@ git rebase upstream/master
 
 ## Step 8: Push Updated Branch
 
-Use `--force-with-lease` (safer than `--force` — it will refuse to push if someone else has pushed in the meantime):
+Use `--force-with-lease` (safer than `--force`, it will refuse to push if someone else has pushed in the meantime):
 ```
 git push --force-with-lease origin main
 ```

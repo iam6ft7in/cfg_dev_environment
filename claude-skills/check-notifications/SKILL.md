@@ -1,9 +1,9 @@
 ---
 name: check-notifications
-description: Terminal digest of GitHub notifications — unread notifications grouped by type, plus assigned PRs/issues and review requests.
+description: Terminal digest of GitHub notifications, unread notifications grouped by type, plus assigned PRs/issues and review requests.
 ---
 
-# /check-notifications — GitHub Notification Digest
+# /check-notifications, GitHub Notification Digest
 
 You are fetching and presenting a structured digest of the user's GitHub activity. Run all data-fetching commands, then format and display the results grouped by priority. Show progress as you fetch ("Fetching notifications...", "Fetching assigned items...").
 
@@ -17,11 +17,11 @@ gh api notifications
 ```
 
 This returns a JSON array of notification objects. Each has:
-- `subject.title` — the title
-- `subject.type` — PullRequest, Issue, Release, CheckSuite, etc.
-- `repository.full_name` — the repo (e.g., `{username}/lib_sensor_utils`)
-- `updated_at` — ISO timestamp of last update
-- `reason` — why you were notified (assign, mention, review_requested, subscribed, etc.)
+- `subject.title`, the title
+- `subject.type`, PullRequest, Issue, Release, CheckSuite, etc.
+- `repository.full_name`, the repo (e.g., `{username}/lib_sensor_utils`)
+- `updated_at`, ISO timestamp of last update
+- `reason`, why you were notified (assign, mention, review_requested, subscribed, etc.)
 
 Parse the JSON and group by `subject.type`.
 
@@ -115,7 +115,7 @@ FYI NOTIFICATIONS
 Print a one-line summary at the top of the output (before the sections):
 
 ```
-GitHub Notifications — {current date/time}
+GitHub Notifications, {current date/time}
 {total unread} unread  |  {assigned PRs} assigned PRs  |  {assigned issues} assigned issues  |  {review requests} review requests
 ```
 

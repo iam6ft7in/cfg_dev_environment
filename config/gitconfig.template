@@ -1,12 +1,12 @@
-# Git Global Configuration Template — {your_name}
-# Reference copy only — not applied directly by git.
+# Git Global Configuration Template, {your_name}
+# Reference copy only, not applied directly by git.
 # Applied by phase_03_git_config.ps1, which writes ~/.gitconfig.
 #
 # This file documents every setting with explanatory comments so the
 # rationale is preserved even when the live ~/.gitconfig is terse.
 
 # =============================================================================
-# [user] — Identity
+# [user], Identity
 # =============================================================================
 [user]
     # Default identity for personal repos.
@@ -14,13 +14,13 @@
     name  = {your_name}
     email = UPDATE_WITH_PERSONAL_EMAIL
 
-    # SSH signing key — points to the public key file on disk. The matching
+    # SSH signing key, points to the public key file on disk. The matching
     # private key is stored in the Bitwarden vault (never on disk). Git passes
     # this public key to Bitwarden's SSH agent to perform the signing operation.
     signingkey = ~/.ssh/id_ed25519_github_personal.pub
 
 # =============================================================================
-# [commit] — Commit behavior
+# [commit], Commit behavior
 # =============================================================================
 [commit]
     # Sign every commit with the SSH key defined in [user].signingkey.
@@ -33,15 +33,15 @@
     template = ~/.gitmessage
 
 # =============================================================================
-# [tag] — Tag signing
+# [tag], Tag signing
 # =============================================================================
 [tag]
-    # Sign all annotated tags. Consistent with commit signing — any artifact
+    # Sign all annotated tags. Consistent with commit signing, any artifact
     # that leaves the repo should be attributable.
     gpgsign = true
 
 # =============================================================================
-# [gpg] — Signing method
+# [gpg], Signing method
 # =============================================================================
 [gpg]
     # Use SSH for signing instead of GPG. SSH keys are already managed for
@@ -62,7 +62,7 @@
     program = C:/Windows/System32/OpenSSH/ssh-keygen.exe
 
 # =============================================================================
-# [core] — Core behavior
+# [core], Core behavior
 # =============================================================================
 [core]
     # Force git to use the Windows OpenSSH client instead of Git's bundled ssh.
@@ -86,7 +86,7 @@
     # tab is closed. Change to 'nvim' or 'nano' if preferred.
     editor = code --wait
 
-    # Path to global .gitignore — applies to all repos without cluttering
+    # Path to global .gitignore, applies to all repos without cluttering
     # each repo's own .gitignore with machine-specific patterns (OS files,
     # editor artifacts, build outputs).
     excludesfile = ~/.gitignore_global
@@ -96,13 +96,13 @@
     # changes via OS events instead of stat-ing every file.
     fsmonitor = true
 
-    # Use untracked cache — pairs with fsmonitor to further accelerate status.
+    # Use untracked cache, pairs with fsmonitor to further accelerate status.
     # The cache persists across git invocations so untracked file scanning is
     # skipped when the directory mtime hasn't changed.
     untrackedcache = true
 
 # =============================================================================
-# [init] — Repository initialization
+# [init], Repository initialization
 # =============================================================================
 [init]
     # Default branch name for new repositories.
@@ -110,7 +110,7 @@
     defaultBranch = main
 
 # =============================================================================
-# [pull] — Pull behavior
+# [pull], Pull behavior
 # =============================================================================
 [pull]
     # Rebase local commits on top of fetched commits instead of creating a
@@ -119,7 +119,7 @@
     rebase = true
 
 # =============================================================================
-# [rebase] — Rebase behavior
+# [rebase], Rebase behavior
 # =============================================================================
 [rebase]
     # Automatically stash uncommitted changes before a rebase and pop them
@@ -127,7 +127,7 @@
     autostash = true
 
 # =============================================================================
-# [fetch] — Fetch behavior
+# [fetch], Fetch behavior
 # =============================================================================
 [fetch]
     # Delete remote-tracking branches that no longer exist on the remote.
@@ -136,7 +136,7 @@
     prune = true
 
 # =============================================================================
-# [push] — Push behavior
+# [push], Push behavior
 # =============================================================================
 [push]
     # Only push the current branch, and only if it has a tracking branch with
@@ -148,7 +148,7 @@
     autoSetupRemote = true
 
 # =============================================================================
-# [merge] — Merge behavior
+# [merge], Merge behavior
 # =============================================================================
 [merge]
     # Show the common ancestor (base) in conflict markers in addition to
@@ -157,7 +157,7 @@
     conflictstyle = diff3
 
 # =============================================================================
-# [diff] — Diff behavior
+# [diff], Diff behavior
 # =============================================================================
 [diff]
     # Use the 'histogram' diff algorithm instead of the default Myers.
@@ -170,7 +170,7 @@
     colorMoved = default
 
 # =============================================================================
-# [alias] — Shortcuts
+# [alias], Shortcuts
 # =============================================================================
 [alias]
     # Compact, decorated one-line log with graph. Useful for a quick visual
@@ -180,7 +180,7 @@
     # Show the last commit in a human-friendly format.
     last = log -1 HEAD --stat
 
-    # List all aliases — useful when you've forgotten what you set up.
+    # List all aliases, useful when you've forgotten what you set up.
     aliases = config --get-regexp alias
 
     # Undo the last commit but keep the changes staged. Safe alternative to
@@ -191,7 +191,7 @@
     root = rev-parse --show-toplevel
 
 # =============================================================================
-# [includeIf] — Conditional identity overrides
+# [includeIf], Conditional identity overrides
 # =============================================================================
 # includeIf lets us override [user] identity based on the repo's location.
 # Git reads the included file and its settings take precedence over globals.
@@ -205,7 +205,7 @@
     path = ~/.gitconfig-arduino
 
 # =============================================================================
-# [url] — URL rewriting
+# [url], URL rewriting
 # =============================================================================
 [url "git@github-personal:"]
     # Rewrite HTTPS GitHub URLs to use the SSH alias defined in ~/.ssh/config.
@@ -214,7 +214,7 @@
     insteadOf = https://github.com/
 
 # =============================================================================
-# [credential] — Credential helper (fallback for HTTPS, if ever needed)
+# [credential], Credential helper (fallback for HTTPS, if ever needed)
 # =============================================================================
 [credential]
     # Use the Windows Credential Manager as a fallback for any HTTPS remotes

@@ -3,7 +3,7 @@ name: new-repo
 description: Create a complete gold standard GitHub repository from scratch, including scaffold, branch protection, GitHub Projects board, topics, and labels.
 ---
 
-# /new-repo — Create a Gold Standard GitHub Repository
+# /new-repo, Create a Gold Standard GitHub Repository
 
 You are setting up a new GitHub repository for the user. Follow every step in order. Do not skip steps. Show each shell command before running it.
 
@@ -33,11 +33,11 @@ Present a numbered list and ask the user to choose:
 
 ### 1c. Identity
 Present a numbered list:
-1. personal/public — maps to ~/projects/personal/public/ (public GitHub repos)
-2. personal/private — maps to ~/projects/personal/private/ (private GitHub repos)
-3. personal/collaborative — maps to ~/projects/personal/collaborative/
-4. client — maps to ~/projects/client/
-5. arduino — maps to ~/projects/arduino/custom/
+1. personal/public, maps to ~/projects/personal/public/ (public GitHub repos)
+2. personal/private, maps to ~/projects/personal/private/ (private GitHub repos)
+3. personal/collaborative, maps to ~/projects/personal/collaborative/
+4. client, maps to ~/projects/client/
+5. arduino, maps to ~/projects/arduino/custom/
 
 ### 1d. Short Description
 - One sentence describing what the repository does.
@@ -68,7 +68,7 @@ $config = Get-Content "$HOME\.claude\config.json" -Raw | ConvertFrom-Json
 $projectsRoot = $config.projects_root
 ```
 If the file does not exist or the key is absent, fall back to `$HOME\projects` and
-warn: "~/.claude/config.json not found — run phase_04_directories.ps1 to configure
+warn: "~/.claude/config.json not found, run phase_04_directories.ps1 to configure
 your projects root. Falling back to %USERPROFILE%\projects."
 
 Based on identity, construct the local path from `{projects_root}`:
@@ -92,7 +92,7 @@ Determine the SSH host alias based on identity:
 
 ## Step 3: Execute Commands in Sequence
 
-Show each command to the user before running it. If a command fails, stop and report the error — do not continue to the next step.
+Show each command to the user before running it. If a command fails, stop and report the error, do not continue to the next step.
 
 ### 3a. Create GitHub Repository
 ```
@@ -192,7 +192,7 @@ Create a Projects (v2) board titled `{repo_name} Board` and standardize its
 Status field to the 5 columns: Backlog (GRAY), Todo (GREEN), In Progress
 (YELLOW), In Review (ORANGE), Done (PURPLE).
 
-The helper script does both in one call — idempotent, safe to re-run:
+The helper script does both in one call, idempotent, safe to re-run:
 ```powershell
 pwsh -File "$HOME\.claude\scripts\setup_project_board.ps1" `
     -Owner {username} -RepoName {repo_name}
@@ -280,15 +280,15 @@ If any step failed, report which step failed, what the error was, and what the u
 
 ---
 
-## Normal Workflow — Skills to Use From Here
+## Normal Workflow, Skills to Use From Here
 
 Now that the repo exists, these skills support day-to-day work:
 
 | When | Skill |
 |------|-------|
-| Starting a new feature or bug fix | `/new-feature` — creates a linked GitHub issue and feature branch |
-| Ready to open a pull request | `/pr-create` — pre-flight checks, template population, issue linking |
-| PR has been merged on GitHub | `/merge-complete` — pulls main, cleans branches, closes issue |
-| Ending a work session | `/session-save` — writes `SESSION_STATE.md` with accomplishments, blockers, and next steps |
-| Starting a new session | `/session-resume` — reads `SESSION_STATE.md` and tells you exactly what is next |
-| Checking repo backup health | `/verify-backup` — scans all repos for unpushed commits or uncommitted changes |
+| Starting a new feature or bug fix | `/new-feature`, creates a linked GitHub issue and feature branch |
+| Ready to open a pull request | `/pr-create`, pre-flight checks, template population, issue linking |
+| PR has been merged on GitHub | `/merge-complete`, pulls main, cleans branches, closes issue |
+| Ending a work session | `/session-save`, writes `SESSION_STATE.md` with accomplishments, blockers, and next steps |
+| Starting a new session | `/session-resume`, reads `SESSION_STATE.md` and tells you exactly what is next |
+| Checking repo backup health | `/verify-backup`, scans all repos for unpushed commits or uncommitted changes |

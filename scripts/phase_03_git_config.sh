@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Phase 3 — Git Configuration Files
+# Phase 3: Git Configuration Files
 #
 # Script Name : phase_03_git_config.sh
 # Purpose     : Prompt for noreply email, then write ~/.gitconfig,
@@ -41,11 +41,11 @@ abort() {
 # Banner
 # ------------------------------------------------------------------------------
 echo -e "\n${C_CYAN}========================================"
-echo      "  Phase 3 — Git Configuration"
+echo      "  Phase 3, Git Configuration"
 echo -e   "========================================${C_RESET}\n"
 
 # ==============================================================================
-# Step 1 — Prompt for noreply email
+# Step 1: Prompt for noreply email
 # ==============================================================================
 log_section "Step 1: GitHub noreply email"
 
@@ -68,7 +68,7 @@ fi
 log_pass "Using noreply email: $NOREPLY_EMAIL"
 
 # ==============================================================================
-# Step 1b — Prompt for git user name
+# Step 1b: Prompt for git user name
 # ==============================================================================
 log_section "Step 1b: Git user name"
 
@@ -93,12 +93,12 @@ GIT_TEMPLATES="$HOME/.git-templates"
 GITIGNORE_GLOBAL="$HOME/.gitignore_global"
 
 # ==============================================================================
-# Step 2 — Write ~/.gitconfig
+# Step 2: Write ~/.gitconfig
 # ==============================================================================
 log_section "Step 2: Write ~/.gitconfig"
 
 if [ -f "$GITCONFIG" ]; then
-    log_warn "$GITCONFIG already exists — backing up to ${GITCONFIG}.bak"
+    log_warn "$GITCONFIG already exists, backing up to ${GITCONFIG}.bak"
     cp "$GITCONFIG" "${GITCONFIG}.bak"
 fi
 
@@ -189,12 +189,12 @@ EOF
 log_pass "~/.gitconfig written"
 
 # ==============================================================================
-# Step 3 — Write ~/.gitconfig-client
+# Step 3: Write ~/.gitconfig-client
 # ==============================================================================
 log_section "Step 3: Write ~/.gitconfig-client"
 
 cat > "$GITCONFIG_CLIENT" <<EOF
-# Client identity — placeholder until client GitHub account is created.
+# Client identity, placeholder until client GitHub account is created.
 # Activated for all repos under ~/projects/client/
 [user]
     name       = ${GIT_USER_NAME} (client)
@@ -209,7 +209,7 @@ EOF
 log_pass "~/.gitconfig-client written"
 
 # ==============================================================================
-# Step 4 — Write ~/.gitconfig-arduino
+# Step 4: Write ~/.gitconfig-arduino
 # ==============================================================================
 log_section "Step 4: Write ~/.gitconfig-arduino"
 
@@ -222,7 +222,7 @@ cat > "$GITCONFIG_ARDUINO" <<EOF
     signingKey = $SSH_KEY
 
 [core]
-    # ArduPilot style — LF line endings
+    # ArduPilot style, LF line endings
     autocrlf = input
     eol      = lf
 EOF
@@ -230,7 +230,7 @@ EOF
 log_pass "~/.gitconfig-arduino written"
 
 # ==============================================================================
-# Step 5 — Write ~/.gitmessage
+# Step 5: Write ~/.gitmessage
 # ==============================================================================
 log_section "Step 5: Write ~/.gitmessage"
 
@@ -242,17 +242,17 @@ cat > "$GITMESSAGE" <<'EOF'
 # Format:  <type>(<scope>): <short summary>
 #
 # Types:
-#   feat     — new feature
-#   fix      — bug fix
-#   docs     — documentation only
-#   style    — formatting, whitespace (no logic change)
-#   refactor — code change that neither fixes a bug nor adds a feature
-#   perf     — performance improvement
-#   test     — add or fix tests
-#   build    — build system or external dependency change
-#   ci       — CI configuration
-#   chore    — maintenance tasks, tooling, config updates
-#   revert   — revert a previous commit
+#   feat    : new feature
+#   fix     : bug fix
+#   docs    : documentation only
+#   style   : formatting, whitespace (no logic change)
+#   refactor, code change that neither fixes a bug nor adds a feature
+#   perf    : performance improvement
+#   test    : add or fix tests
+#   build   : build system or external dependency change
+#   ci      : CI configuration
+#   chore   : maintenance tasks, tooling, config updates
+#   revert  : revert a previous commit
 #
 # Scope (optional): affected module/component in parentheses
 #   Example: feat(auth): add OAuth2 support
@@ -272,7 +272,7 @@ EOF
 log_pass "~/.gitmessage written"
 
 # ==============================================================================
-# Step 6 — Verify
+# Step 6: Verify
 # ==============================================================================
 log_section "Step 6: Verify git config"
 

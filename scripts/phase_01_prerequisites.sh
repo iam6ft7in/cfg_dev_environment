@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Phase 1 — Verify and Install Prerequisites
+# Phase 1: Verify and Install Prerequisites
 #
 # Script Name : phase_01_prerequisites.sh
 # Purpose     : Check all required development tools at minimum versions.
-#               winget is not available in Git Bash — prints manual install
+#               winget is not available in Git Bash, prints manual install
 #               instructions for any missing tool.
 # Phase       : 1 of 12
 # Exit Criteria: All tools report PASS in the summary table. No FAIL entries
@@ -76,7 +76,7 @@ record_result() {
 # Banner
 # ------------------------------------------------------------------------------
 echo -e "\n${C_CYAN}========================================"
-echo      "  Phase 1 — Prerequisites Check"
+echo      "  Phase 1, Prerequisites Check"
 echo      "  Repo root: $REPO_ROOT"
 echo -e   "========================================${C_RESET}\n"
 
@@ -89,7 +89,7 @@ git_ok=false
 if raw=$(git --version 2>&1); then
     ver=$(extract_version "$raw")
     if [ -n "$ver" ] && version_ge "$ver" "2.42"; then
-        log_pass "Git $ver — meets minimum 2.42"
+        log_pass "Git $ver, meets minimum 2.42"
         git_ok=true
     else
         log_fail "Git $ver found but minimum is 2.42"
@@ -113,7 +113,7 @@ gh_ok=false
 if raw=$(gh --version 2>&1); then
     ver=$(extract_version "$raw")
     if [ -n "$ver" ] && version_ge "$ver" "2.40"; then
-        log_pass "gh $ver — meets minimum 2.40"
+        log_pass "gh $ver, meets minimum 2.40"
         gh_ok=true
     else
         log_fail "gh $ver found but minimum is 2.40"
@@ -157,7 +157,7 @@ gitleaks_ok=false
 if raw=$(gitleaks version 2>&1); then
     ver=$(extract_version "$raw")
     if [ -n "$ver" ] && version_ge "$ver" "8.18"; then
-        log_pass "gitleaks $ver — meets minimum 8.18"
+        log_pass "gitleaks $ver, meets minimum 8.18"
         gitleaks_ok=true
     else
         log_fail "gitleaks $ver found but minimum is 8.18"
@@ -183,7 +183,7 @@ nasm_ok=false
 if raw=$(nasm --version 2>&1); then
     ver=$(extract_version "$raw")
     if [ -n "$ver" ] && version_ge "$ver" "2.16"; then
-        log_pass "NASM $ver — meets minimum 2.16"
+        log_pass "NASM $ver, meets minimum 2.16"
         nasm_ok=true
     else
         log_fail "NASM $ver found but minimum is 2.16"
@@ -199,15 +199,15 @@ fi
 record_result "NASM" "$([ "$nasm_ok" = true ] && echo PASS || echo FAIL)"
 
 # ==============================================================================
-# 6. uv — Python environment manager (minimum 0.4)
+# 6. uv, Python environment manager (minimum 0.4)
 # ==============================================================================
-log_section "uv — Python environment manager (minimum 0.4)"
+log_section "uv, Python environment manager (minimum 0.4)"
 
 uv_ok=false
 if raw=$(uv --version 2>&1); then
     ver=$(extract_version "$raw")
     if [ -n "$ver" ] && version_ge "$ver" "0.4"; then
-        log_pass "uv $ver — meets minimum 0.4"
+        log_pass "uv $ver, meets minimum 0.4"
         uv_ok=true
     else
         log_fail "uv $ver found but minimum is 0.4"
@@ -224,15 +224,15 @@ fi
 record_result "uv" "$([ "$uv_ok" = true ] && echo PASS || echo FAIL)"
 
 # ==============================================================================
-# 7. ruff — Python linter/formatter (minimum 0.3)
+# 7. ruff, Python linter/formatter (minimum 0.3)
 # ==============================================================================
-log_section "ruff — Python linter/formatter (minimum 0.3)"
+log_section "ruff, Python linter/formatter (minimum 0.3)"
 
 ruff_ok=false
 if raw=$(ruff --version 2>&1); then
     ver=$(extract_version "$raw")
     if [ -n "$ver" ] && version_ge "$ver" "0.3"; then
-        log_pass "ruff $ver — meets minimum 0.3"
+        log_pass "ruff $ver, meets minimum 0.3"
         ruff_ok=true
     else
         log_fail "ruff $ver found but minimum is 0.3"
@@ -258,7 +258,7 @@ else
             log_info "Manual: uv tool install ruff  (then restart your shell)"
         fi
     else
-        log_fail "uv is not available — cannot install ruff automatically"
+        log_fail "uv is not available, cannot install ruff automatically"
         log_info "Manual: install uv first, then run: uv tool install ruff"
     fi
 fi
@@ -266,15 +266,15 @@ fi
 record_result "ruff" "$([ "$ruff_ok" = true ] && echo PASS || echo FAIL)"
 
 # ==============================================================================
-# 8. delta — git diff pager (minimum 0.17)
+# 8. delta, git diff pager (minimum 0.17)
 # ==============================================================================
-log_section "delta — git diff pager (minimum 0.17)"
+log_section "delta, git diff pager (minimum 0.17)"
 
 delta_ok=false
 if raw=$(delta --version 2>&1); then
     ver=$(extract_version "$raw")
     if [ -n "$ver" ] && version_ge "$ver" "0.17"; then
-        log_pass "delta $ver — meets minimum 0.17"
+        log_pass "delta $ver, meets minimum 0.17"
         delta_ok=true
     else
         log_fail "delta $ver found but minimum is 0.17"
@@ -292,13 +292,13 @@ record_result "delta" "$([ "$delta_ok" = true ] && echo PASS || echo FAIL)"
 # ==============================================================================
 # 9. Oh My Posh (minimum 23)
 # ==============================================================================
-log_section "Oh My Posh — terminal prompt engine (minimum version 23)"
+log_section "Oh My Posh, terminal prompt engine (minimum version 23)"
 
 omp_ok=false
 if raw=$(oh-my-posh --version 2>&1); then
     ver=$(extract_version "$raw")
     if [ -n "$ver" ] && version_ge "$ver" "23.0"; then
-        log_pass "Oh My Posh $ver — meets minimum 23"
+        log_pass "Oh My Posh $ver, meets minimum 23"
         omp_ok=true
     else
         log_fail "Oh My Posh $ver found but minimum is 23"
@@ -317,7 +317,7 @@ record_result "Oh My Posh" "$([ "$omp_ok" = true ] && echo PASS || echo FAIL)"
 # Summary table
 # ==============================================================================
 echo -e "\n${C_CYAN}========================================"
-echo      "  Phase 1 — Summary"
+echo      "  Phase 1, Summary"
 echo -e   "========================================${C_RESET}\n"
 
 col_w=30

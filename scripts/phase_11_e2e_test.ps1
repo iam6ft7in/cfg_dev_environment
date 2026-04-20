@@ -312,8 +312,8 @@ try {
         Write-Info $PROutput
         $TestResults['T7_CreatePR'] = 'PASS'
     } elseif ($PRString -match 'already exists') {
-        # PR from a previous run is still open — the branch and PR mechanism work.
-        Write-Pass "T7: PR already exists (leftover from previous run) — branch/PR mechanism verified."
+        # PR from a previous run is still open, the branch and PR mechanism work.
+        Write-Pass "T7: PR already exists (leftover from previous run), branch/PR mechanism verified."
         Write-Info ($PRString -replace '.*https://', 'https://' -split ' ' | Select-Object -First 1)
         $TestResults['T7_CreatePR'] = 'PASS'
     } else {
@@ -381,7 +381,7 @@ $FinalDelStr = $FinalDel -join ' '
 if ($LASTEXITCODE -eq 0) {
     Write-Pass "GitHub test repo deleted: $TestRepoName"
 } elseif ($FinalDelStr -match 'delete_repo') {
-    Write-Warn "Missing 'delete_repo' scope — repo not deleted automatically."
+    Write-Warn "Missing 'delete_repo' scope, repo not deleted automatically."
     Write-Warn "Run: gh auth refresh -h github.com -s delete_repo"
     Write-Warn "Then: gh repo delete $TestRepoName --yes"
 } else {

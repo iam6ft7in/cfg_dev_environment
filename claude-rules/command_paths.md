@@ -1,5 +1,5 @@
 ---
-description: Rules for resolving command paths — what to do when a command is not found, and how to keep the index current
+description: Rules for resolving command paths, what to do when a command is not found, and how to keep the index current
 paths: ["**"]
 ---
 
@@ -13,7 +13,7 @@ check whether that command requires a non-default path:
 1. Read `~/.claude/memory/reference_command_paths.md` for the index of known
    resolved paths on the local host and known remote hosts.
 2. If the command is listed, use the documented path.
-3. If the command is not listed, try it bare — if it fails with "command not
+3. If the command is not listed, try it bare, if it fails with "command not
    found" (exit code 127), locate it and update the index before retrying.
 
 ## When "Command Not Found" Occurs
@@ -39,10 +39,10 @@ the remote's PATH.
 
 Example:
 ```bash
-# WRONG — MSYS2 converts /usr/bin/pkill to C:/Program Files/.../pkill
+# WRONG, MSYS2 converts /usr/bin/pkill to C:/Program Files/.../pkill
 /c/WINDOWS/System32/OpenSSH/ssh.exe host "/usr/bin/pkill -f pytest"
 
-# CORRECT — bare name, MSYS2 leaves it alone
+# CORRECT, bare name, MSYS2 leaves it alone
 /c/WINDOWS/System32/OpenSSH/ssh.exe host "pkill -f pytest"
 ```
 

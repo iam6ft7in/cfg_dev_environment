@@ -17,7 +17,7 @@
 ### Secrets and Credentials
 - Never commit secrets, credentials, API keys, tokens, or passwords to the repository.
 - Use `.env` files (gitignored) or a secrets manager for sensitive values.
-- If a secret is accidentally committed, treat it as compromised immediately — rotate it.
+- If a secret is accidentally committed, treat it as compromised immediately, rotate it.
 
 ### File Editing
 - Always read a file before editing it.
@@ -76,7 +76,7 @@ type(scope): description
 | `feat` | A new feature |
 | `fix` | A bug fix |
 | `docs` | Documentation changes only |
-| `style` | Formatting, whitespace — no logic change |
+| `style` | Formatting, whitespace, no logic change |
 | `refactor` | Code restructuring without behavior change |
 | `perf` | Performance improvement |
 | `test` | Adding or correcting tests |
@@ -104,7 +104,7 @@ type(scope): description
 
 ### Licensing
 - Every repository must have an explicit license file.
-- No silent defaults — the license must be a conscious choice.
+- No silent defaults, the license must be a conscious choice.
 
 ---
 
@@ -116,7 +116,7 @@ Reviews use a three-tier severity system. Every comment explains WHY, not just W
 - Must be fixed before the PR can be merged.
 - Represents correctness bugs, security issues, or violations of core conventions.
 - Example: "Critical: This hardcodes the API key in the source file. Secrets must
-  never be committed — move this to `.env` and add `.env` to `.gitignore`."
+  never be committed, move this to `.env` and add `.env` to `.gitignore`."
 
 ### Warning
 - Should be fixed. If intentionally skipped, the author must explain why in the PR.
@@ -137,7 +137,7 @@ Comments are written in a teaching style: they explain the reasoning and context
 not just what the code does.
 
 - Bad: `# increment i`
-- Good: `# i must start at 1, not 0 — the protocol uses 1-based indexing`
+- Good: `# i must start at 1, not 0, the protocol uses 1-based indexing`
 
 Comments answer the question "why was this done this way?" not "what does this do?"
 (the code itself answers what; the comment answers why).
@@ -146,21 +146,21 @@ Comments answer the question "why was this done this way?" not "what does this d
 
 ## Uncertainty Handling
 
-### High-Impact Decisions — Ask Explicitly
+### High-Impact Decisions, Ask Explicitly
 Before proceeding with any of the following, stop and ask the user for confirmation:
 - Architecture decisions (choosing a library, restructuring modules)
 - Destructive operations (deleting files, dropping tables, force-pushing)
 - Security-relevant choices (authentication method, crypto algorithm, secret storage)
 - Anything that would be difficult or impossible to reverse
 
-### Low-Impact Decisions — State and Proceed
+### Low-Impact Decisions, State and Proceed
 For minor choices, state the assumption made and continue:
 - Variable and function names
 - Minor structural choices (where to put a helper function)
 - Formatting decisions within the established style
 
 Example: "Naming this helper `_parse_packet` to match the existing `_parse_header`
-convention — proceeding."
+convention, proceeding."
 
 ---
 
@@ -171,8 +171,8 @@ convention — proceeding."
 > language- and platform-specific rules that supplement the universal rules above.
 
 Platform imports live in `~/.claude/rules/` and cover:
-- `arduino.md` — ArduPilot/Arduino firmware conventions
-- `python.md` — Python (uv, ruff, pytest) conventions
-- `shell.md` — bash/zsh and PowerShell conventions
-- `assembly.md` — NASM x86-64 assembly conventions
-- `vbscript.md` — VBScript/WSH conventions
+- `arduino.md`, ArduPilot/Arduino firmware conventions
+- `python.md`, Python (uv, ruff, pytest) conventions
+- `shell.md`, bash/zsh and PowerShell conventions
+- `assembly.md`, NASM x86-64 assembly conventions
+- `vbscript.md`, VBScript/WSH conventions

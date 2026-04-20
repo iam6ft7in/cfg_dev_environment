@@ -1,4 +1,4 @@
-# {{REPO_NAME}} — Base ArduPilot Parameters
+# {{REPO_NAME}}, Base ArduPilot Parameters
 # Vehicle: Multirotor (Copter)
 # These are the baseline parameters common to all vehicles in this project.
 # Override in vehicle-specific .param files.

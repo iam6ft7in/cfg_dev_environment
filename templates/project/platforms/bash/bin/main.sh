@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# {{REPO_NAME}} — {{DESCRIPTION}}
+# {{REPO_NAME}}, {{DESCRIPTION}}
 # Platform: bash/zsh
 
 set -euo pipefail

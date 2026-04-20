@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Phase 10 — Windows Environment Configuration
+# Phase 10: Windows Environment Configuration
 #
 # Script Name : phase_10_windows_env.sh
 # Purpose     : Set Windows environment variables via reg.exe, write Oh My Posh
 #               theme, configure PowerShell profile.
-#               Windows Terminal settings require manual update — JSON is printed.
+#               Windows Terminal settings require manual update, JSON is printed.
 # Phase       : 10 of 12
 # Exit Criteria: GIT_SSH, LANG, LC_ALL set in user registry. Oh My Posh theme
 #                written. PowerShell profile updated.
@@ -46,12 +46,12 @@ WIN_OMP_THEME=$(cygpath -w "$OMP_THEME" 2>/dev/null || echo "%USERPROFILE%\\.oh-
 # Banner
 # ------------------------------------------------------------------------------
 echo -e "\n${C_CYAN}========================================"
-echo      "  Phase 10 — Windows Environment Setup"
+echo      "  Phase 10, Windows Environment Setup"
 echo      "  Repo root: $REPO_ROOT"
 echo -e   "========================================${C_RESET}\n"
 
 # ==============================================================================
-# Step 1 — Set environment variables via reg.exe
+# Step 1: Set environment variables via reg.exe
 # ==============================================================================
 log_section "Step 1: Set Windows user environment variables (reg.exe)"
 
@@ -64,7 +64,7 @@ set_env_var() {
     fi
 }
 
-# GIT_SSH — point to Windows OpenSSH (avoids Git Bash ssh conflicts)
+# GIT_SSH, point to Windows OpenSSH (avoids Git Bash ssh conflicts)
 set_env_var "GIT_SSH" "$WIN_SSH_PATH"
 
 # Locale
@@ -82,7 +82,7 @@ export LANG="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"
 
 # ==============================================================================
-# Step 2 — Verify required tools on PATH
+# Step 2: Verify required tools on PATH
 # ==============================================================================
 log_section "Step 2: Verify tools on PATH"
 
@@ -98,14 +98,14 @@ for tool in "${TOOLS[@]}"; do
 done
 
 # ==============================================================================
-# Step 3 — Write Oh My Posh theme
+# Step 3: Write Oh My Posh theme
 # ==============================================================================
 log_section "Step 3: Write Oh My Posh theme"
 
 mkdir -p "$OMP_DIR"
 
 if [ -f "$OMP_THEME" ]; then
-    log_warn "$OMP_THEME already exists — backing up to ${OMP_THEME}.bak"
+    log_warn "$OMP_THEME already exists, backing up to ${OMP_THEME}.bak"
     cp "$OMP_THEME" "${OMP_THEME}.bak"
 fi
 
@@ -114,7 +114,7 @@ cat > "$OMP_THEME" <<'EOF'
   "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
   "version": 2,
   "final_space": true,
-  "console_title_template": "{{ .Shell }} — {{ .Folder }}",
+  "console_title_template": "{{ .Shell }}, {{ .Folder }}",
   "blocks": [
     {
       "type": "prompt",
@@ -199,7 +199,7 @@ EOF
 log_pass "Oh My Posh theme written: $OMP_THEME"
 
 # ==============================================================================
-# Step 4 — Configure PowerShell profile
+# Step 4: Configure PowerShell profile
 # ==============================================================================
 log_section "Step 4: Configure PowerShell profile"
 
@@ -212,7 +212,7 @@ fi
 if [ -z "$PS_PROFILE" ]; then
     # Fallback to standard location
     PS_PROFILE="$HOME/Documents/PowerShell/Microsoft.PowerShell_profile.ps1"
-    log_warn "Could not query \$PROFILE from pwsh — using default: $PS_PROFILE"
+    log_warn "Could not query \$PROFILE from pwsh, using default: $PS_PROFILE"
 fi
 
 # Convert to Unix path for bash operations
@@ -221,10 +221,10 @@ PS_PROFILE_UNIX=$(cygpath "$PS_PROFILE" 2>/dev/null || echo "$PS_PROFILE")
 mkdir -p "$(dirname "$PS_PROFILE_UNIX")"
 
 OMP_INIT_LINE="oh-my-posh init pwsh --config \"\$HOME/.oh-my-posh/theme.json\" | Invoke-Expression"
-OMP_COMMENT="# Oh My Posh — initialised by phase_10_windows_env.sh"
+OMP_COMMENT="# Oh My Posh, initialised by phase_10_windows_env.sh"
 
 if [ -f "$PS_PROFILE_UNIX" ] && grep -qF "oh-my-posh init pwsh" "$PS_PROFILE_UNIX"; then
-    log_warn "Oh My Posh init already in PowerShell profile — skipping"
+    log_warn "Oh My Posh init already in PowerShell profile, skipping"
 else
     {
         echo ""
@@ -235,7 +235,7 @@ else
 fi
 
 # ==============================================================================
-# Step 5 — Windows Terminal settings (manual — print JSON)
+# Step 5: Windows Terminal settings (manual, print JSON)
 # ==============================================================================
 log_section "Step 5: Windows Terminal settings (manual)"
 

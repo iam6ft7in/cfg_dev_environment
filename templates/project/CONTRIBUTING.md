@@ -8,7 +8,7 @@ a pull request.
 ## Branch Naming
 
 All branches use one of six prefixes followed by a slash and a snake_case descriptor.
-Branch names are always lowercase with underscores — no hyphens in the descriptor.
+Branch names are always lowercase with underscores, no hyphens in the descriptor.
 
 | Prefix | Purpose | Example |
 |--------|---------|---------|
@@ -74,7 +74,7 @@ The "Verified" badge must appear on GitHub for every commit in a PR.
 3. **Commit** early and often. Each commit should be a logical unit of work with
    a Conventional Commits message.
 4. **Push** your branch and open a Pull Request against `main`.
-5. **Squash merge** is the standard merge strategy — the PR title becomes the
+5. **Squash merge** is the standard merge strategy, the PR title becomes the
    squash commit message, so make it a valid Conventional Commits line.
 
 Never commit directly to `main`.
@@ -109,14 +109,14 @@ returned for revision.
 - Minimum Python version: 3.11
 
 ### PowerShell
-- Linter: `Invoke-ScriptAnalyzer -Path . -Recurse` — zero warnings/errors
+- Linter: `Invoke-ScriptAnalyzer -Path . -Recurse`, zero warnings/errors
 - Tests: Pester (`Invoke-Pester`)
-- Target: PowerShell 7+ (pwsh) only — no Windows PowerShell 5.x compatibility
+- Target: PowerShell 7+ (pwsh) only, no Windows PowerShell 5.x compatibility
 - Use approved verbs; all functions must have comment-based help blocks
 - `${variable}` curly brace syntax required
 
 ### bash/zsh
-- Linter: `shellcheck` — zero warnings/errors
+- Linter: `shellcheck`, zero warnings/errors
 - Tests: BATS (`bats tests/`)
 - `#!/usr/bin/env bash` shebang on all scripts
 - `set -euo pipefail` at the top of every script
@@ -131,20 +131,20 @@ returned for revision.
 
 ### ArduPilot / Arduino
 - Follows ArduPilot coding conventions where applicable
-- No `delay()` in production code — use non-blocking state machines
+- No `delay()` in production code, use non-blocking state machines
 - All parameters must be documented (name, range, units, description)
 - Mission scripts tested in SITL before flight testing
 - Firmware must compile without warnings
 
 ### VBScript / WSH
 - Files encoded in UTF-8 with BOM (required for WSH compatibility)
-- `Option Explicit` at the top of every script — no exceptions
+- `Option Explicit` at the top of every script, no exceptions
 - Error handling with `On Error GoTo 0` / `On Error Resume Next` must be
   scoped and explicit, never left open
 - Constants in UPPER_SNAKE_CASE; variables in camelCase
 
 ### Makefile
-- Tab indentation (not spaces) — EditorConfig enforces this
+- Tab indentation (not spaces), EditorConfig enforces this
 - Each target must have a `.PHONY` declaration if it does not produce a file
 - Variables in UPPER_SNAKE_CASE
 - Include a `help` target as the default target
@@ -173,4 +173,4 @@ No explanation needed if skipped.
 
 - Open a [Discussion](../../discussions) for questions about design or approach.
 - Open an [Issue](../../issues/new/choose) for bugs or feature requests.
-- For security concerns, see [SECURITY.md](SECURITY.md) — do not open a public issue.
+- For security concerns, see [SECURITY.md](SECURITY.md), do not open a public issue.

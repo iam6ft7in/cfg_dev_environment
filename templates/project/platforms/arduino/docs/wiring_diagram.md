@@ -1,4 +1,4 @@
-# {{REPO_NAME}} — Wiring Diagram
+# {{REPO_NAME}}, Wiring Diagram
 
 ## Vehicle: (name here)
 

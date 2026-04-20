@@ -213,7 +213,7 @@ $OhMyPoshLine = "oh-my-posh init pwsh --config `"$HOME\.oh-my-posh\theme.json`" 
 $SSHAgentBlock = @'
 
 # SSH keys are managed by the Bitwarden desktop app (SSH Agent feature).
-# No ssh-add needed — Bitwarden serves keys via \\.\pipe\openssh-ssh-agent.
+# No ssh-add needed, Bitwarden serves keys via \\.\pipe\openssh-ssh-agent.
 # Ensure Bitwarden is open and your vault is unlocked before git operations.
 '@
 
@@ -301,7 +301,7 @@ ${ProjectsRoot} = if (Test-Path ${ClaudeConfig}) {
 } else {
     Join-Path $HOME 'projects'
 }
-# Convert backslashes to forward slashes — Windows Terminal requires forward slashes.
+# Convert backslashes to forward slashes, Windows Terminal requires forward slashes.
 ${ProjectsRoot} = ${ProjectsRoot}.Replace('\', '/')
 
 # Profile definitions

@@ -1,7 +1,7 @@
 #Requires -Version 7.0
 <#
 .SYNOPSIS
-    Phase 1 — Verify and Install Prerequisites
+    Phase 1: Verify and Install Prerequisites
 
 .DESCRIPTION
     Script Name : phase_01_prerequisites.ps1
@@ -68,7 +68,7 @@ $CriticalTools = @('Git', 'GitHub CLI (gh)', 'OpenSSH Client')
 # ---------------------------------------------------------------------------
 
 Write-Host "`n========================================" -ForegroundColor Cyan
-Write-Host "  Phase 1 — Prerequisites Check/Install" -ForegroundColor Cyan
+Write-Host "  Phase 1, Prerequisites Check/Install" -ForegroundColor Cyan
 Write-Host "  Repo root: $RepoRoot"                   -ForegroundColor Cyan
 Write-Host "========================================`n" -ForegroundColor Cyan
 
@@ -86,10 +86,10 @@ try {
         Write-Pass "Git $ver is installed and meets minimum version 2.42"
         $gitOk = $true
     } else {
-        Write-Warn "Git $ver found but minimum is 2.42 — attempting upgrade"
+        Write-Warn "Git $ver found but minimum is 2.42, attempting upgrade"
     }
 } catch {
-    Write-Warn "Git not found — attempting install via winget"
+    Write-Warn "Git not found, attempting install via winget"
 }
 
 if (-not $gitOk) {
@@ -128,10 +128,10 @@ try {
         Write-Pass "gh $ver is installed and meets minimum version 2.40"
         $ghOk = $true
     } else {
-        Write-Warn "gh $ver found but minimum is 2.40 — attempting upgrade"
+        Write-Warn "gh $ver found but minimum is 2.40, attempting upgrade"
     }
 } catch {
-    Write-Warn "gh not found — attempting install via winget"
+    Write-Warn "gh not found, attempting install via winget"
 }
 
 if (-not $ghOk) {
@@ -169,7 +169,7 @@ try {
         Write-Pass "OpenSSH Client Windows feature is installed"
         $sshOk = $true
     } else {
-        Write-Warn "OpenSSH Client feature not installed — attempting to add"
+        Write-Warn "OpenSSH Client feature not installed, attempting to add"
         try {
             Add-WindowsCapability -Online -Name 'OpenSSH.Client~~~~0.0.1.0' | Out-Null
             Write-Pass "OpenSSH Client feature installed successfully"
@@ -205,10 +205,10 @@ try {
         Write-Pass "gitleaks $ver is installed and meets minimum version 8.18"
         $gitleaksOk = $true
     } else {
-        Write-Warn "gitleaks $ver found but minimum is 8.18 — attempting upgrade"
+        Write-Warn "gitleaks $ver found but minimum is 8.18, attempting upgrade"
     }
 } catch {
-    Write-Warn "gitleaks not found — attempting install"
+    Write-Warn "gitleaks not found, attempting install"
 }
 
 if (-not $gitleaksOk) {
@@ -218,7 +218,7 @@ if (-not $gitleaksOk) {
         $gitleaksOk = $true
         Write-Pass "gitleaks installed via winget"
     } else {
-        Write-Warn "winget install failed — trying GitHub releases download"
+        Write-Warn "winget install failed, trying GitHub releases download"
         try {
             $release = Invoke-RestMethod 'https://api.github.com/repos/gitleaks/gitleaks/releases/latest'
             $asset   = $release.assets | Where-Object { $_.name -match 'windows.*x64.*zip' -or $_.name -match 'x64.*windows.*zip' } | Select-Object -First 1
@@ -274,10 +274,10 @@ try {
         Write-Pass "NASM $ver is installed and meets minimum version 2.16"
         $nasmOk = $true
     } else {
-        Write-Warn "NASM $ver found but minimum is 2.16 — attempting upgrade"
+        Write-Warn "NASM $ver found but minimum is 2.16, attempting upgrade"
     }
 } catch {
-    Write-Warn "NASM not found — attempting install via winget"
+    Write-Warn "NASM not found, attempting install via winget"
 }
 
 if (-not $nasmOk) {
@@ -289,7 +289,7 @@ if (-not $nasmOk) {
             Write-Pass "NASM $ver installed successfully"
             $nasmOk = $true
         } catch {
-            Write-Warn "NASM installed but not yet on PATH — may need to restart terminal"
+            Write-Warn "NASM installed but not yet on PATH, may need to restart terminal"
             $nasmOk = $true  # winget succeeded; PATH refresh may need a new shell
         }
     } else {
@@ -303,7 +303,7 @@ $Results['NASM'] = if ($nasmOk) { 'PASS' } else { 'FAIL' }
 # 6. uv
 # ---------------------------------------------------------------------------
 
-Write-Section "uv — Python environment manager (minimum 0.4)"
+Write-Section "uv, Python environment manager (minimum 0.4)"
 
 $uvOk = $false
 try {
@@ -313,10 +313,10 @@ try {
         Write-Pass "uv $ver is installed and meets minimum version 0.4"
         $uvOk = $true
     } else {
-        Write-Warn "uv $ver found but minimum is 0.4 — attempting upgrade"
+        Write-Warn "uv $ver found but minimum is 0.4, attempting upgrade"
     }
 } catch {
-    Write-Warn "uv not found — installing via official installer"
+    Write-Warn "uv not found, installing via official installer"
 }
 
 if (-not $uvOk) {
@@ -344,7 +344,7 @@ $Results['uv'] = if ($uvOk) { 'PASS' } else { 'FAIL' }
 # 7. ruff
 # ---------------------------------------------------------------------------
 
-Write-Section "ruff — Python linter/formatter (minimum 0.3)"
+Write-Section "ruff, Python linter/formatter (minimum 0.3)"
 
 $ruffOk = $false
 try {
@@ -354,10 +354,10 @@ try {
         Write-Pass "ruff $ver is installed and meets minimum version 0.3"
         $ruffOk = $true
     } else {
-        Write-Warn "ruff $ver found but minimum is 0.3 — attempting upgrade"
+        Write-Warn "ruff $ver found but minimum is 0.3, attempting upgrade"
     }
 } catch {
-    Write-Warn "ruff not found — attempting install via uv"
+    Write-Warn "ruff not found, attempting install via uv"
 }
 
 if (-not $ruffOk) {
@@ -378,7 +378,7 @@ if (-not $ruffOk) {
             Write-Fail "ruff install via uv failed: $_"
         }
     } else {
-        Write-Fail "uv is not available — cannot install ruff automatically"
+        Write-Fail "uv is not available, cannot install ruff automatically"
         Write-Info "Manual install: uv tool install ruff  (after installing uv)"
     }
 }
@@ -389,7 +389,7 @@ $Results['ruff'] = if ($ruffOk) { 'PASS' } else { 'FAIL' }
 # 8. delta
 # ---------------------------------------------------------------------------
 
-Write-Section "delta — git diff pager (minimum 0.17)"
+Write-Section "delta, git diff pager (minimum 0.17)"
 
 $deltaOk = $false
 try {
@@ -399,10 +399,10 @@ try {
         Write-Pass "delta $ver is installed and meets minimum version 0.17"
         $deltaOk = $true
     } else {
-        Write-Warn "delta $ver found but minimum is 0.17 — attempting upgrade"
+        Write-Warn "delta $ver found but minimum is 0.17, attempting upgrade"
     }
 } catch {
-    Write-Warn "delta not found — attempting install via winget"
+    Write-Warn "delta not found, attempting install via winget"
 }
 
 if (-not $deltaOk) {
@@ -414,7 +414,7 @@ if (-not $deltaOk) {
             Write-Pass "delta $ver installed successfully"
             $deltaOk = $true
         } catch {
-            Write-Warn "delta installed but not yet on PATH — may need to restart terminal"
+            Write-Warn "delta installed but not yet on PATH, may need to restart terminal"
             $deltaOk = $true
         }
     } else {
@@ -428,7 +428,7 @@ $Results['delta'] = if ($deltaOk) { 'PASS' } else { 'FAIL' }
 # 9. x64dbg
 # ---------------------------------------------------------------------------
 
-Write-Section "x64dbg — Assembly debugger (any recent version)"
+Write-Section "x64dbg, Assembly debugger (any recent version)"
 
 $x64dbgOk = $false
 
@@ -450,7 +450,7 @@ foreach ($p in $commonPaths) {
 }
 
 if (-not $x64dbgOk) {
-    Write-Warn "x64dbg not found in PATH or common locations — attempting download from GitHub releases"
+    Write-Warn "x64dbg not found in PATH or common locations, attempting download from GitHub releases"
     try {
         $release = Invoke-RestMethod 'https://api.github.com/repos/x64dbg/x64dbg/releases/latest'
         $asset   = $release.assets | Where-Object { $_.name -match '\.zip$' } | Select-Object -First 1
@@ -490,7 +490,7 @@ $Results['x64dbg'] = if ($x64dbgOk) { 'PASS' } else { 'FAIL' }
 # 10. Oh My Posh
 # ---------------------------------------------------------------------------
 
-Write-Section "Oh My Posh — terminal prompt engine (minimum version 23)"
+Write-Section "Oh My Posh, terminal prompt engine (minimum version 23)"
 
 $ompOk = $false
 try {
@@ -500,10 +500,10 @@ try {
         Write-Pass "Oh My Posh $ver is installed and meets minimum version 23"
         $ompOk = $true
     } else {
-        Write-Warn "Oh My Posh $ver found but minimum is 23 — attempting upgrade"
+        Write-Warn "Oh My Posh $ver found but minimum is 23, attempting upgrade"
     }
 } catch {
-    Write-Warn "Oh My Posh not found — attempting install via winget"
+    Write-Warn "Oh My Posh not found, attempting install via winget"
 }
 
 if (-not $ompOk) {
@@ -515,7 +515,7 @@ if (-not $ompOk) {
             Write-Pass "Oh My Posh $ver installed successfully"
             $ompOk = $true
         } catch {
-            Write-Warn "Oh My Posh installed but not yet on PATH — may need to restart terminal"
+            Write-Warn "Oh My Posh installed but not yet on PATH, may need to restart terminal"
             $ompOk = $true
         }
     } else {
@@ -546,7 +546,7 @@ if ($fontFiles) {
     Write-Pass "JetBrains Mono Nerd Font found in Windows fonts"
     $fontOk = $true
 } else {
-    Write-Warn "JetBrains Mono Nerd Font not found — attempting download from nerd-fonts GitHub releases"
+    Write-Warn "JetBrains Mono Nerd Font not found, attempting download from nerd-fonts GitHub releases"
     try {
         $release = Invoke-RestMethod 'https://api.github.com/repos/ryanoasis/nerd-fonts/releases/latest'
         $asset   = $release.assets | Where-Object { $_.name -eq 'JetBrainsMono.zip' } | Select-Object -First 1
@@ -586,7 +586,7 @@ $Results['JetBrains Mono Nerd Font'] = if ($fontOk) { 'PASS' } else { 'FAIL' }
 # ---------------------------------------------------------------------------
 
 Write-Host "`n========================================" -ForegroundColor Cyan
-Write-Host "  Phase 1 — Summary"                       -ForegroundColor Cyan
+Write-Host "  Phase 1, Summary"                       -ForegroundColor Cyan
 Write-Host "========================================`n" -ForegroundColor Cyan
 
 $colW = 30

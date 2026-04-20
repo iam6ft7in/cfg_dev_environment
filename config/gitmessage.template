@@ -16,7 +16,7 @@
 # Scope: optional, in snake_case (e.g., feat(altitude_hold): ...)
 # Description: imperative mood ("add" not "added"), no period at end
 #
-# Body (optional — explain WHY, not WHAT):
+# Body (optional, explain WHY, not WHAT):
 # Wrap at 72 characters.
 #
 #

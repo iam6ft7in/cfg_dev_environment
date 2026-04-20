@@ -3,7 +3,7 @@ name: send-email
 description: Send an email via SMTP using config.json settings. Use for notifications, alerts, and prompting the user to return to a waiting session.
 ---
 
-# /send-email — Send Email
+# /send-email, Send Email
 
 Send a message via SMTP using the settings in
 `~/.claude/skills/send-email/config.json`.
@@ -59,11 +59,11 @@ Execute the command via the Bash tool. The script writes status to stderr
 
 **If the command fails:**
 
-- `ERROR: Bitwarden vault is locked` — The Bitwarden desktop app is not
+- `ERROR: Bitwarden vault is locked`, The Bitwarden desktop app is not
   running or the vault is locked. Report this to the user; do not retry.
-- `ERROR: config.json not found` — The skill is not configured. Report the
+- `ERROR: config.json not found`, The skill is not configured. Report the
   missing file path to the user.
-- `ERROR: [SMTP error]` — A network or authentication failure. Report the
+- `ERROR: [SMTP error]`, A network or authentication failure. Report the
   full error to the user.
 
 Do not retry a failed send more than once.

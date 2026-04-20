@@ -23,7 +23,7 @@ paths: ["**/arduino/**", "**/ardupilot/**", "**/*.param", "**/*.waypoints"]
 
 ## Build Artifacts
 - Never commit: *.elf, *.hex, *.bin, *.apj, build/ directories, logs/
-- Flight logs (*.tlog, *.bin, *.log) are gitignored — they can be large
+- Flight logs (*.tlog, *.bin, *.log) are gitignored, they can be large
 
 ## Safety Rules
 - When suggesting parameter changes: always note the safety implications
@@ -33,4 +33,4 @@ paths: ["**/arduino/**", "**/ardupilot/**", "**/*.param", "**/*.waypoints"]
 
 ## Code Style (C++ for upstream contributions)
 - Follow ArduPilot's coding standards: https://ardupilot.org/dev/docs/style-guide.html
-- Use ArduPilot's HAL abstraction layer — avoid direct hardware access
+- Use ArduPilot's HAL abstraction layer, avoid direct hardware access

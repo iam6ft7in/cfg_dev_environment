@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Phase 6 — Secret Scanning and Git Hooks
+# Phase 6: Secret Scanning and Git Hooks
 #
 # Script Name : phase_06_hooks_and_scanning.sh
 # Purpose     : Write pre-commit (gitleaks) and commit-msg (Conventional
@@ -50,12 +50,12 @@ REPO_GITLEAKS_TOML="$REPO_ROOT/config/gitleaks.toml"
 # Banner
 # ------------------------------------------------------------------------------
 echo -e "\n${C_CYAN}========================================"
-echo      "  Phase 6 — Hooks and Secret Scanning"
+echo      "  Phase 6, Hooks and Secret Scanning"
 echo      "  Hooks dir : $HOOKS_DIR"
 echo -e   "========================================${C_RESET}\n"
 
 # ==============================================================================
-# Step 1 — Create hooks directory
+# Step 1: Create hooks directory
 # ==============================================================================
 log_section "Step 1: Create hooks directory"
 
@@ -63,7 +63,7 @@ mkdir -p "$HOOKS_DIR"
 log_pass "Directory exists: $HOOKS_DIR"
 
 # ==============================================================================
-# Step 2 — Write pre-commit hook (gitleaks staged-file scan)
+# Step 2: Write pre-commit hook (gitleaks staged-file scan)
 # ==============================================================================
 log_section "Step 2: Write pre-commit hook (gitleaks)"
 
@@ -76,7 +76,7 @@ set -euo pipefail
 
 # Locate gitleaks
 if ! command -v gitleaks &>/dev/null; then
-    echo "[WARN] gitleaks not found on PATH — skipping secret scan."
+    echo "[WARN] gitleaks not found on PATH, skipping secret scan."
     echo "       Install gitleaks to enable pre-commit secret scanning."
     exit 0
 fi
@@ -111,7 +111,7 @@ chmod +x "$PRE_COMMIT"
 log_pass "pre-commit hook written and made executable: $PRE_COMMIT"
 
 # ==============================================================================
-# Step 3 — Write commit-msg hook (Conventional Commits validation)
+# Step 3: Write commit-msg hook (Conventional Commits validation)
 # ==============================================================================
 log_section "Step 3: Write commit-msg hook (Conventional Commits)"
 
@@ -174,7 +174,7 @@ chmod +x "$COMMIT_MSG"
 log_pass "commit-msg hook written and made executable: $COMMIT_MSG"
 
 # ==============================================================================
-# Step 4 — Write ~/.gitleaks.toml
+# Step 4: Write ~/.gitleaks.toml
 # ==============================================================================
 log_section "Step 4: Write ~/.gitleaks.toml"
 
@@ -183,7 +183,7 @@ if [ -f "$REPO_GITLEAKS_TOML" ]; then
     cp "$REPO_GITLEAKS_TOML" "$GITLEAKS_TOML"
     log_pass "Copied $REPO_GITLEAKS_TOML -> $GITLEAKS_TOML"
 else
-    log_info "No config/gitleaks.toml in repo — writing default ~/.gitleaks.toml"
+    log_info "No config/gitleaks.toml in repo, writing default ~/.gitleaks.toml"
     cat > "$GITLEAKS_TOML" <<'EOF'
 # gitleaks configuration
 # Managed by: phase_06_hooks_and_scanning.sh
@@ -195,7 +195,7 @@ title = "Custom gitleaks config"
 useDefault = true
 
 # ---------------------------------------------------------------------------
-# Custom rules — ArduPilot / Arduino
+# Custom rules, ArduPilot / Arduino
 # ---------------------------------------------------------------------------
 
 [[rules]]
@@ -205,7 +205,7 @@ regex       = '''(?i)PARAM_KEY\s*=\s*["'][A-Za-z0-9+/]{20,}["']'''
 tags        = ["ardupilot", "key"]
 
 # ---------------------------------------------------------------------------
-# Allowlists — files that are permitted to contain patterns above
+# Allowlists, files that are permitted to contain patterns above
 # ---------------------------------------------------------------------------
 
 [allowlist]
@@ -226,7 +226,7 @@ EOF
 fi
 
 # ==============================================================================
-# Step 5 — Set init.templateDir
+# Step 5: Set init.templateDir
 # ==============================================================================
 log_section "Step 5: Set git init.templateDir"
 
@@ -235,9 +235,9 @@ registered=$(git config --global init.templateDir 2>/dev/null || true)
 log_pass "init.templateDir = $registered"
 
 # ==============================================================================
-# Step 6 — Task Scheduler (manual instructions)
+# Step 6: Task Scheduler (manual instructions)
 # ==============================================================================
-log_section "Step 6: Weekly gitleaks scan — Task Scheduler (manual)"
+log_section "Step 6: Weekly gitleaks scan, Task Scheduler (manual)"
 
 echo -e "${C_YELLOW}  Windows Task Scheduler is not available from Git Bash.${C_RESET}"
 echo    "  To set up a weekly full-repo scan (Sundays at 02:00 AM),"
@@ -252,7 +252,7 @@ echo    '  Register-ScheduledTask -TaskName "gitleaks-weekly-scan" \'
 echo    '      -Action $action -Trigger $trigger -Settings $settings \'
 echo    '      -Description "Weekly gitleaks secret scan" -Force'
 echo ""
-log_warn "Task Scheduler setup requires PowerShell — complete manually if needed."
+log_warn "Task Scheduler setup requires PowerShell, complete manually if needed."
 
 # ==============================================================================
 # Verify

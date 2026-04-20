@@ -7,7 +7,7 @@
 *.bat text eol=crlf
 *.cmd text eol=crlf
 
-# Binary files — no line ending conversion
+# Binary files, no line ending conversion
 *.png binary
 *.jpg binary
 *.jpeg binary

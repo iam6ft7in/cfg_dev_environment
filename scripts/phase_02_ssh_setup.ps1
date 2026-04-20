@@ -1,7 +1,7 @@
 #Requires -Version 7.0
 <#
 .SYNOPSIS
-    Phase 2 — SSH Key Setup via Bitwarden SSH Agent
+    Phase 2: SSH Key Setup via Bitwarden SSH Agent
 
 .DESCRIPTION
     Script Name : phase_02_ssh_setup.ps1
@@ -53,7 +53,7 @@ function Abort {
 # ---------------------------------------------------------------------------
 
 Write-Host "`n========================================" -ForegroundColor Cyan
-Write-Host "  Phase 2 — SSH Setup (Bitwarden Agent)"  -ForegroundColor Cyan
+Write-Host "  Phase 2, SSH Setup (Bitwarden Agent)"  -ForegroundColor Cyan
 Write-Host "  Repo root: $RepoRoot"                   -ForegroundColor Cyan
 Write-Host "========================================`n" -ForegroundColor Cyan
 
@@ -72,10 +72,10 @@ if (-not (Test-Path $sshDir)) {
 $Results = [ordered]@{}
 
 # ---------------------------------------------------------------------------
-# Step 1 — Verify Bitwarden desktop is installed
+# Step 1: Verify Bitwarden desktop is installed
 # ---------------------------------------------------------------------------
 
-Write-Section "Step 1 — Verify Bitwarden desktop is installed"
+Write-Section "Step 1, Verify Bitwarden desktop is installed"
 
 $bwPaths = @(
     "$env:LOCALAPPDATA\Programs\Bitwarden\Bitwarden.exe",
@@ -108,12 +108,12 @@ if (-not $bwFound) {
 $Results['Bitwarden Installed'] = 'PASS'
 
 # ---------------------------------------------------------------------------
-# Step 2 — Disable Windows OpenSSH Authentication Agent service
+# Step 2: Disable Windows OpenSSH Authentication Agent service
 #           Bitwarden replaces it by exposing its own agent on the same
 #           named pipe (\\.\pipe\openssh-ssh-agent). Both cannot coexist.
 # ---------------------------------------------------------------------------
 
-Write-Section "Step 2 — Disable Windows OpenSSH Authentication Agent service"
+Write-Section "Step 2, Disable Windows OpenSSH Authentication Agent service"
 
 try {
     $svc = Get-Service -Name 'ssh-agent' -ErrorAction Stop
@@ -141,14 +141,14 @@ try {
 }
 
 # ---------------------------------------------------------------------------
-# Step 3 — Manual: Enable Bitwarden SSH Agent and create SSH key in vault
+# Step 3: Manual: Enable Bitwarden SSH Agent and create SSH key in vault
 # ---------------------------------------------------------------------------
 
-Write-Section "Step 3 — Create SSH key in Bitwarden (manual)"
+Write-Section "Step 3, Create SSH key in Bitwarden (manual)"
 
 Write-Host @"
 
-  ACTION REQUIRED — complete these steps in the Bitwarden desktop app
+  ACTION REQUIRED, complete these steps in the Bitwarden desktop app
   before pressing Enter to continue:
 
   A. Open Bitwarden desktop.
@@ -164,7 +164,7 @@ Write-Host @"
   G. The key row now shows a fingerprint. Click the copy icon next to
      the PUBLIC KEY (the long string starting with ssh-ed25519 AAAA...).
 
-  Keep the public key copied to your clipboard — the next step will ask
+  Keep the public key copied to your clipboard, the next step will ask
   you to paste it.
 
 "@ -ForegroundColor Cyan
@@ -172,10 +172,10 @@ Write-Host @"
 Read-Host "  Press Enter when you have the public key copied to your clipboard"
 
 # ---------------------------------------------------------------------------
-# Step 4 — Capture public key
+# Step 4: Capture public key
 # ---------------------------------------------------------------------------
 
-Write-Section "Step 4 — Save public key from Bitwarden"
+Write-Section "Step 4, Save public key from Bitwarden"
 
 Write-Info "Paste the public key you just copied from Bitwarden."
 Write-Info "It starts with: ssh-ed25519 AAAA..."
@@ -197,10 +197,10 @@ Write-Pass "Public key saved: $personalKeyPub"
 $Results['Public Key Saved'] = 'PASS'
 
 # ---------------------------------------------------------------------------
-# Step 5 — Create client key placeholder
+# Step 5: Create client key placeholder
 # ---------------------------------------------------------------------------
 
-Write-Section "Step 5 — Create client key placeholder"
+Write-Section "Step 5, Create client key placeholder"
 
 $placeholderContent = @"
 # CLIENT KEY PLACEHOLDER
@@ -212,7 +212,7 @@ $placeholderContent = @"
 # creating a second key in Bitwarden named "GitHub Client" and wiring it
 # up to the client GitHub account.
 #
-# DO NOT delete this file — it documents the pending setup.
+# DO NOT delete this file, it documents the pending setup.
 "@
 
 Set-Content -Path $clientHolder -Value $placeholderContent -Encoding UTF8
@@ -220,7 +220,7 @@ Write-Pass "Created client placeholder: $clientHolder"
 $Results['Client Placeholder'] = 'PASS'
 
 # ---------------------------------------------------------------------------
-# Step 6 — Write ~/.ssh/config
+# Step 6: Write ~/.ssh/config
 #
 # IdentityFile points to the PUBLIC key file (.pub).
 # OpenSSH uses this as a hint to ask the agent for the matching private key.
@@ -229,10 +229,10 @@ $Results['Client Placeholder'] = 'PASS'
 # wrong-account errors when multiple keys are in the vault).
 # ---------------------------------------------------------------------------
 
-Write-Section "Step 6 — Write ~/.ssh/config"
+Write-Section "Step 6, Write ~/.ssh/config"
 
 $sshConfigContent = @"
-# SSH Configuration — GitHub Host Aliases
+# SSH Configuration, GitHub Host Aliases
 # Generated by phase_02_ssh_setup.ps1 (Bitwarden SSH Agent)
 #
 # How this works:
@@ -264,17 +264,17 @@ Write-Pass "Written: $sshConfig"
 $Results['SSH Config Written'] = 'PASS'
 
 # ---------------------------------------------------------------------------
-# Step 7 — Write ~/.ssh/allowed_signers
+# Step 7: Write ~/.ssh/allowed_signers
 # ---------------------------------------------------------------------------
 
-Write-Section "Step 7 — Initialize ~/.ssh/allowed_signers"
+Write-Section "Step 7, Initialize ~/.ssh/allowed_signers"
 
 $keyParts    = $publicKeyContent -split '\s+'
 $keyType     = $keyParts[0]
 $keyMaterial = $keyParts[1]
 
 $allowedSignersContent = @"
-# allowed_signers — SSH commit signature verification
+# allowed_signers, SSH commit signature verification
 # Updated by phase_02_ssh_setup.ps1
 #
 # NOTE: The email below uses a placeholder. Phase 3 will replace it
@@ -290,14 +290,14 @@ Write-Info "(Placeholder email will be replaced with your noreply address in Pha
 $Results['allowed_signers'] = 'PASS'
 
 # ---------------------------------------------------------------------------
-# Step 8 — Set GIT_SSH to Windows OpenSSH
+# Step 8: Set GIT_SSH to Windows OpenSSH
 #
 # Git must use C:\Windows\System32\OpenSSH\ssh.exe, not Git's bundled ssh.
 # Only the Windows OpenSSH client can connect to Bitwarden's named-pipe
 # agent (\\.\pipe\openssh-ssh-agent). Git's bundled ssh.exe cannot.
 # ---------------------------------------------------------------------------
 
-Write-Section "Step 8 — Set GIT_SSH environment variable"
+Write-Section "Step 8, Set GIT_SSH environment variable"
 
 $opensshExe = 'C:\Windows\System32\OpenSSH\ssh.exe'
 if (-not (Test-Path $opensshExe)) {
@@ -317,13 +317,13 @@ Write-Pass "GIT_SSH set to: $opensshExe (User scope)"
 $Results['GIT_SSH Variable'] = 'PASS'
 
 # ---------------------------------------------------------------------------
-# Step 9 — Display public key for GitHub upload
+# Step 9: Display public key for GitHub upload
 # ---------------------------------------------------------------------------
 
-Write-Section "Step 9 — Public key for GitHub upload"
+Write-Section "Step 9, Public key for GitHub upload"
 
 Write-Host ""
-Write-Host "  *** YOUR PUBLIC KEY — COPY EVERYTHING BELOW THIS LINE ***" -ForegroundColor Yellow
+Write-Host "  *** YOUR PUBLIC KEY, COPY EVERYTHING BELOW THIS LINE ***" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "  $publicKeyContent" -ForegroundColor Green
 Write-Host ""
@@ -331,38 +331,38 @@ Write-Host "  *** END OF PUBLIC KEY ***" -ForegroundColor Yellow
 Write-Host ""
 
 # ---------------------------------------------------------------------------
-# Step 10 — Print manual instructions for Steps 2B and 2C
+# Step 10: Print manual instructions for Steps 2B and 2C
 # ---------------------------------------------------------------------------
 
-Write-Section "Step 10 — Manual steps: Upload key and test connection (2B & 2C)"
+Write-Section "Step 10, Manual steps: Upload key and test connection (2B & 2C)"
 
 Write-Host @"
 
-  STEP 2B — Upload your public key to GitHub (Manual):
+  STEP 2B, Upload your public key to GitHub (Manual):
   ─────────────────────────────────────────────────────
   1. Copy the public key printed above.
   2. Open your browser and go to:
        https://github.com/settings/ssh/new
   3. Add it as an AUTHENTICATION key:
-       Title : {your_name} Personal — Authentication
+       Title : {your_name} Personal, Authentication
        Type  : Authentication Key
        Key   : (paste the public key)
        Click "Add SSH key"
   4. Go to https://github.com/settings/ssh/new again.
   5. Add it as a SIGNING key:
-       Title : {your_name} Personal — Signing
+       Title : {your_name} Personal, Signing
        Type  : Signing Key
        Key   : (paste the same public key)
        Click "Add SSH key"
 
-  STEP 2C — Test the SSH connection (Manual, after uploading):
+  STEP 2C, Test the SSH connection (Manual, after uploading):
   ─────────────────────────────────────────────────────────────
   Make sure the Bitwarden desktop app is open and your vault is unlocked,
   then open a new PowerShell 7+ window and run:
 
       ssh -T github-personal
 
-  Bitwarden will show an authorization prompt — click Allow (or set the
+  Bitwarden will show an authorization prompt, click Allow (or set the
   key's authorization to "Remember until vault is locked" to reduce prompts).
 
   Expected response:
@@ -378,7 +378,7 @@ Write-Host @"
 # ---------------------------------------------------------------------------
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  Phase 2 — Summary"                     -ForegroundColor Cyan
+Write-Host "  Phase 2, Summary"                     -ForegroundColor Cyan
 Write-Host "========================================`n" -ForegroundColor Cyan
 
 $colW = 30
