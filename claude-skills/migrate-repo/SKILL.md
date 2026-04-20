@@ -127,11 +127,34 @@ attempt to retry automatically — describe what failed and what the user should
 
 ---
 
-## Step 5: Apply Gold Standard
+## Step 5: Create GitHub Projects Board
 
-After a successful migration, run `/apply-standard` to ensure the migrated repo
+Ensure a Projects v2 board titled `{repo_name} Board` exists under
+`{github_username}` with the 5 standardized Status options: Backlog (GRAY),
+Todo (GREEN), In Progress (YELLOW), In Review (ORANGE), Done (PURPLE).
+
+The helper script is idempotent and safe to re-run:
+```powershell
+pwsh -File "$HOME\.claude\scripts\setup_project_board.ps1" `
+    -Owner {github_username} -RepoName {repo_name}
+```
+
+If it fails with an auth/scope error, run `gh auth refresh -s project` and
+retry. If the helper script is missing, report it and continue — do not fail
+the migration.
+
+This step runs unconditionally because `/apply-standard` (next step) is
+user-optional; the board should exist regardless of whether the user opts
+into the rest of the gold standard audit.
+
+---
+
+## Step 6: Apply Gold Standard
+
+After the board is in place, run `/apply-standard` to ensure the migrated repo
 has all gold standard files (issue templates, CLAUDE.md rule imports,
-linter config, branch ruleset, labels, topics).
+linter config, branch ruleset, labels, topics). `/apply-standard` will detect
+the board from Step 5 already exists and skip its creation.
 
 Prompt: "Run /apply-standard now to complete the gold standard setup? (yes/no)"
 
@@ -140,14 +163,27 @@ repo directory.
 
 ---
 
-## Step 6: Final Report
+## Step 7: Regenerate Project Shortcuts
+
+Re-run the launcher-shortcut generator so a `.lnk` for the migrated repo
+appears in `{projects_root}\shortcuts\` (auto-discovers repos via `.git` dirs
+and clears stale `.lnk`s):
+```powershell
+pwsh -File "{projects_root}\shortcuts\regenerate.ps1"
+```
+If the script is missing, note it in the final report but do not fail the run.
+
+---
+
+## Step 8: Final Report
 
 ```
 Migration Complete
 ─────────────────────────────────────────────────────
-  Repo:    {repo_name}
-  GitHub:  https://github.com/{github_username}/{repo_name}
-  Local:   {projects_root}\{identity_subpath}\{repo_name}
+  Repo:     {repo_name}
+  GitHub:   https://github.com/{github_username}/{repo_name}
+  Local:    {projects_root}\{identity_subpath}\{repo_name}
+  Shortcut: {projects_root}\shortcuts\{repo_name}.lnk
 
 Next steps:
   1. Open Claude in the new repo directory

@@ -1,6 +1,6 @@
 ---
 name: apply-standard
-description: Audit an existing GitHub repository against the gold standard and apply all missing pieces — scaffold files, CLAUDE.md rule imports, issue templates, linter config, branch ruleset, labels, and topics.
+description: Audit an existing GitHub repository against the gold standard and apply all missing pieces — scaffold files, CLAUDE.md rule imports, issue templates, linter config, branch ruleset, labels, topics, and Projects v2 board.
 ---
 
 # /apply-standard — Apply Gold Standard to an Existing Repository
@@ -100,6 +100,7 @@ For each item, report status as one of: PRESENT, MISSING, or NEEDS UPDATE.
 | Branch ruleset on `main` | `gh api repos/{username}/{repo}/rulesets` — look for a ruleset targeting `main` |
 | Standard labels present | `gh label list --repo {username}/{repo}` — check for: feat, fix, docs, chore, refactor, test, ci, breaking |
 | Topics applied | `gh repo view {username}/{repo} --json repositoryTopics` — check for platform topic |
+| Projects v2 board | `gh project list --owner {username} --format json --limit 100` — look for a project titled `{repo_name} Board`. Also verify its Status field has the 5 standardized options in order: Backlog, Todo, In Progress, In Review, Done |
 
 ### CLAUDE.md Rule Import Check
 
@@ -141,8 +142,9 @@ Gold Standard Audit — {repo_name}
   Branch ruleset (main)                  MISSING
   Standard labels                        MISSING
   Platform topic                         MISSING
+  Projects v2 board                      MISSING
 ──────────────────────────────────────────────────────
-  9 present   11 need action
+  9 present   12 need action
 ```
 
 Ask: "Apply all fixes now? (yes/no)"
@@ -330,6 +332,23 @@ gh repo edit {username}/{repo} --add-topic {platform}
 gh repo edit {username}/{repo} --add-topic automated-setup
 ```
 
+### 4s. GitHub Projects v2 Board
+Ensure a board titled `{repo_name} Board` exists under `{username}` and that
+its Status field has the 5 standardized options in order: Backlog (GRAY),
+Todo (GREEN), In Progress (YELLOW), In Review (ORANGE), Done (PURPLE).
+
+The helper script handles both creation and standardization, and is idempotent
+(skips the GraphQL mutation when options already match):
+```powershell
+pwsh -File "$HOME\.claude\scripts\setup_project_board.ps1" `
+    -Owner {username} -RepoName {repo_name}
+```
+
+If the helper fails with a scope error (`INSUFFICIENT_SCOPES` or similar),
+run `gh auth refresh -s project` and re-run the helper. If the helper script
+is missing, note it in the final report and instruct the user to create the
+board manually — do not fail the rest of /apply-standard.
+
 ---
 
 ## Step 5: Commit Changes
@@ -348,7 +367,19 @@ were not changed.
 
 ---
 
-## Step 6: Final Report
+## Step 6: Regenerate Project Shortcuts
+
+Re-run the launcher-shortcut generator so a `.lnk` for this repo appears in
+`{projects_root}\shortcuts\` (auto-discovers repos via `.git` dirs and clears
+stale `.lnk`s):
+```powershell
+pwsh -File "{projects_root}\shortcuts\regenerate.ps1"
+```
+If the script is missing, note it in the final report but do not fail the run.
+
+---
+
+## Step 7: Final Report
 
 Print a summary of what was done:
 
@@ -368,6 +399,10 @@ GitHub settings:
   + Branch ruleset applied to: main
   + Labels created: feat, fix, docs, chore, refactor, test, ci, breaking
   + Topics applied: powershell, automated-setup
+  + Projects board: {repo_name} Board (Backlog, Todo, In Progress, In Review, Done)
+
+Shortcut:
+  + {projects_root}\shortcuts\{repo_name}.lnk (regenerated)
 
 Already present (unchanged):
   .gitattributes, .gitignore, CHANGELOG.md, CONTRIBUTING.md,

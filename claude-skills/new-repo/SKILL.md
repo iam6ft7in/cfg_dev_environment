@@ -188,18 +188,21 @@ gh api repos/{username}/{repo_name}/branches/main/protection \
 ```
 
 ### 3m. Create GitHub Projects Kanban Board
-Create a Projects (v2) board with 5 columns:
-- Backlog
-- Todo
-- In Progress
-- In Review
-- Done
+Create a Projects (v2) board titled `{repo_name} Board` and standardize its
+Status field to the 5 columns: Backlog (GRAY), Todo (GREEN), In Progress
+(YELLOW), In Review (ORANGE), Done (PURPLE).
 
-Use the GitHub CLI Projects API. First create the project:
+The helper script does both in one call — idempotent, safe to re-run:
+```powershell
+pwsh -File "$HOME\.claude\scripts\setup_project_board.ps1" `
+    -Owner {username} -RepoName {repo_name}
 ```
-gh project create --owner {username} --title "{repo_name} Board"
-```
-Note the project number. Then add the status field options. If the Projects v2 API is not directly available via `gh project`, instruct the user to create the board manually at github.com/{username}/{repo_name}/projects and provide the column names.
+
+If the helper fails with an auth/scope error, run
+`gh auth refresh -s project` and retry. If the script is missing, fall back to
+`gh project create --owner {username} --title "{repo_name} Board"` and instruct
+the user to set the Status options manually at
+https://github.com/users/{username}/projects.
 
 ### 3n. Apply Platform Topics
 Add topics to the repository based on the platform:
@@ -238,6 +241,15 @@ gh label create ci       --repo {username}/{repo_name} --color "f9d0c4" --descri
 gh label create breaking --repo {username}/{repo_name} --color "b60205" --description "Breaking change"
 ```
 
+### 3q. Regenerate Project Shortcuts
+Re-run the launcher-shortcut generator so a `.lnk` for the new repo appears in
+`{projects_root}\shortcuts\` (auto-discovers repos via `.git` dirs and clears
+stale `.lnk`s):
+```powershell
+pwsh -File "{projects_root}\shortcuts\regenerate.ps1"
+```
+If the script is missing, note it in the final report but do not fail the run.
+
 ---
 
 ## Step 4: Final Report
@@ -259,6 +271,7 @@ Repository created successfully.
   Branch protection applied to: main
   Labels created: feat, fix, docs, chore, refactor, test, ci, breaking
   Topics applied: {platform}, automated-setup
+  Shortcut regenerated: {projects_root}\shortcuts\{repo_name}.lnk
 
 Next step: open Claude in this repo and run /rename {repo_name}
 ```
