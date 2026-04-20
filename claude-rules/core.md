@@ -42,6 +42,7 @@ description: Core rules applied to all projects — commits, security, branching
 - Prefer editing existing files over creating new ones
 - Never use sed/awk when Edit tool is available
 - Never use grep when Grep tool is available
+- No authorization is required to read any file or subfolder under `~/.claude`
 
 ## Repository Conventions
 - Repo names: snake_case with type prefix (e.g., python_telemetry_parser)
@@ -53,6 +54,15 @@ description: Core rules applied to all projects — commits, security, branching
 - Comments should answer "why was this done this way?"
 - Include context about alternatives considered when relevant
 - Avoid restating what the code clearly shows
+
+## Writing Style
+- No em dashes (—) anywhere: code, comments, documentation, commit messages,
+  PR and issue bodies, markdown tables, or chat responses. Use commas,
+  parentheses, colons, or periods instead.
+- Hyphens (-) for compound words are fine. En dashes (–) for numeric ranges
+  are allowed but rare. The ban is specifically on the em dash (—, U+2014).
+- Reason: em dashes read as AI-generated and clutter prose that other
+  punctuation handles cleanly.
 
 ## Uncertainty Handling
 - HIGH-IMPACT decisions (architecture changes, destructive operations, security implications,

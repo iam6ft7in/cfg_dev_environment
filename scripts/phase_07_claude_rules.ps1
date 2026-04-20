@@ -49,6 +49,9 @@ $ExpectedFiles = @(
     'shell.md'
     'assembly.md'
     'vbscript.md'
+    'command_paths.md'
+    'powershell.md'
+    'ssh.md'
 )
 
 # Track results for summary
