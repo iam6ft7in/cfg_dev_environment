@@ -268,6 +268,34 @@ EXIT CRITERIA: All six .md files exist under ~/.claude/rules/.
 
 ---
 
+## PHASE 7b — Claude Skills and Helper Scripts
+**Type:** Script (you start it, script does the work)
+**Script file:** scripts\phase_07b_claude_skills_and_scripts.ps1
+**Bash fallback:** scripts\phase_07b_claude_skills_and_scripts.sh
+
+### How to start it:
+   pwsh -File scripts\phase_07b_claude_skills_and_scripts.ps1
+
+### What the script does:
+Copies every skill directory under claude-skills/ to ~/.claude/skills/,
+then deploys the two helper scripts the skills call out to:
+- claude-scripts\setup_project_board.ps1
+    -> ~/.claude/scripts/setup_project_board.ps1
+- claude-scripts\regenerate_shortcuts.ps1
+    -> {projects_root}\shortcuts\regenerate.ps1
+
+The projects root is read from ~/.claude/config.json (written by Phase 4);
+falls back to %USERPROFILE%\projects if the config is missing.
+
+This phase is idempotent — re-run it any time claude-skills/ or
+claude-scripts/ changes to push updates to disk.
+
+EXIT CRITERIA: Every SKILL.md in claude-skills/ has a copy at
+~/.claude/skills/<skill>/SKILL.md; setup_project_board.ps1 exists in
+~/.claude/scripts/; regenerate.ps1 exists in {projects_root}\shortcuts\.
+
+---
+
 ## PHASE 8 — Per-Project Scaffold Template
 **Type:** Script (you start it, script does the work)
 **Script file:** scripts\phase_08_scaffold_template.ps1
@@ -440,6 +468,7 @@ environment. From this point forward, every new project starts with:
 | 5 | pwsh -File scripts\phase_05_gitignore.ps1 |
 | 6 | pwsh -File scripts\phase_06_hooks_and_scanning.ps1 |
 | 7 | pwsh -File scripts\phase_07_claude_rules.ps1 |
+| 7b | pwsh -File scripts\phase_07b_claude_skills_and_scripts.ps1 |
 | 8 | pwsh -File scripts\phase_08_scaffold_template.ps1 |
 | 9 | pwsh -File scripts\phase_09_vscode_config.ps1 |
 | 10 | pwsh -File scripts\phase_10_windows_env.ps1 (as Admin) |

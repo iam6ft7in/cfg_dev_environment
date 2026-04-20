@@ -30,14 +30,15 @@ once on a fresh machine. After all 12 phases complete, the machine has:
 
 ```
 cfg_dev_environment/
-├── scripts/              — 25 scripts (12 PS7 + 12 bash + 1 migration)
+├── scripts/              — 27 scripts (13 PS7 + 13 bash + 1 migration)
 ├── templates/
 │   ├── project/          — Scaffold files for every new repo
 │   │   ├── platforms/    — Platform-specific starters (Python, PS, bash, etc.)
 │   │   └── .github/      — Issue templates, PR template
 │   └── vscode/           — VS Code settings, extensions, launch configs
 ├── claude-rules/         — 6 global Claude rule files
-├── claude-skills/        — 11 Claude skill SKILL.md files
+├── claude-skills/        — Claude skill directories (deployed to ~/.claude/skills/)
+├── claude-scripts/       — Helper scripts the skills call (deployed by Phase 7b)
 ├── config/               — gitconfig templates, gitleaks, ssh_config, oh-my-posh
 ├── IMPLEMENTATION_STEPS.md  — Authoritative run order with exit criteria
 ├── IMPLEMENTATION_STEPS.txt — Plain text copy of the above
@@ -120,13 +121,32 @@ patterns, ArduPilot SYSID values, and generic API keys.
 Installs a weekly gitleaks scan as a Windows Task Scheduler task.
 
 ### Phase 7 — Claude Rules
-Copies 6 rule files from `claude-rules/` to `~/.claude/rules/`:
-- `core.md` — commit standards, branch standards, code standards, security
-- `shell.md` — bash/zsh, PowerShell 7, Perl scripting standards
-- `arduino.md` — ArduPilot/MAVLink conventions
-- `python.md` — uv, ruff, pytest, src layout conventions
-- `assembly.md` — NASM, x64 calling convention
-- `vbscript.md` — Windows automation and Office macro conventions
+Copies 9 rule files from `claude-rules/` to `~/.claude/rules/`:
+- `core.md`: commit standards, branch standards, code standards, security
+- `shell.md`: bash/zsh, PowerShell 7, Perl scripting standards
+- `arduino.md`: ArduPilot/MAVLink conventions
+- `python.md`: uv, ruff, pytest, src layout conventions
+- `assembly.md`: NASM, x64 calling convention
+- `vbscript.md`: Windows automation and Office macro conventions
+- `command_paths.md`: PATH resolution, MSYS2 path mangling, per-repo command path files
+- `powershell.md`: PS cmdlet limits, here-string gotchas, encoding hazards, executable selection
+- `ssh.md`: SSH binary selection, per-repo SSH documentation protocol, host alias maintenance
+
+### Phase 7b — Claude Skills and Helper Scripts
+Copies every skill directory from `claude-skills/` to `~/.claude/skills/`
+(so the `/new-repo`, `/migrate-repo`, `/apply-standard`, and other slash
+commands become available) and deploys the two helper scripts the skills
+shell out to:
+- `claude-scripts/setup_project_board.ps1` → `~/.claude/scripts/setup_project_board.ps1`
+  (creates and standardizes the GitHub Projects v2 board; called by
+  `/new-repo` step 3m, `/migrate-repo` step 5, `/apply-standard` step 4s)
+- `claude-scripts/regenerate_shortcuts.ps1` → `{projects_root}\shortcuts\regenerate.ps1`
+  (rebuilds `.lnk` files under the shortcuts directory; called by the
+  same three skills at the end of their runs)
+
+The projects root is read from `~/.claude/config.json` (written by Phase 4).
+Re-run Phase 7b any time `claude-skills/` or `claude-scripts/` changes to
+push the updates to disk.
 
 ### Phase 8 — Project Scaffold Template
 Copies `templates/project/` to `~/.claude/templates/project/` so that the
@@ -230,22 +250,38 @@ The `core.md` rule is the most important — it defines:
 
 ## Claude Skills (`claude-skills/`)
 
-Eleven skills installed to `~/.claude/skills/`. Each is a `SKILL.md` file
-invoked with a slash command:
+Each subdirectory under `claude-skills/` is a Claude skill — a `SKILL.md`
+file (sometimes with supporting assets like `aliases.json`) invoked via a
+slash command. Phase 7b deploys them to `~/.claude/skills/`.
 
 | Skill | Command | Purpose |
 |---|---|---|
-| new-repo | `/new-repo` | Scaffold a new repo from template |
-| new-feature | `/new-feature` | Start a feature branch with checklist |
-| pr-create | `/pr-create` | Create a PR with standard description |
-| merge-complete | `/merge-complete` | Merge PR and delete branch |
+| new-repo | `/new-repo` | Scaffold a new repo from template, incl. Projects board |
+| migrate-repo | `/migrate-repo` | Migrate an existing project into the gold standard |
+| apply-standard | `/apply-standard` | Audit a repo and apply missing gold standard pieces |
+| new-feature | `/new-feature` | Start a feature branch with a linked issue |
+| pr-create | `/pr-create` | Create a PR with pre-flight checks and template |
+| merge-complete | `/merge-complete` | Pull main, clean branches, close issue after merge |
 | cleanup-branches | `/cleanup-branches` | Delete stale local branches |
 | sync-upstream | `/sync-upstream` | Sync an ArduPilot fork with upstream |
 | verify-backup | `/verify-backup` | Verify GitHub has all local commits |
-| weekly-review | `/weekly-review` | Weekly repo health checklist |
-| check-notifications | `/check-notifications` | Review GitHub notifications |
+| weekly-review | `/weekly-review` | Weekly repo health digest |
+| check-notifications | `/check-notifications` | GitHub notifications digest |
 | switch-theme | `/switch-theme` | Toggle VS Code / Terminal theme |
-| activate-client | `/activate-client` | Switch to Client client context |
+| activate-client | `/activate-client` | Switch to client GitHub identity |
+| send-email | `/send-email` | Send SMTP notifications/alerts |
+| session-save | `/session-save` | Write SESSION_STATE.md at end of session |
+| session-resume | `/session-resume` | Read SESSION_STATE.md and re-orient |
+
+### Helper scripts used by the skills (`claude-scripts/`)
+
+A few skills shell out to scripts that must already be on disk. Phase 7b
+deploys these alongside the SKILL.md files:
+
+| Script | Destination | Called by |
+|---|---|---|
+| `setup_project_board.ps1` | `~/.claude/scripts/` | `/new-repo`, `/migrate-repo`, `/apply-standard` |
+| `regenerate_shortcuts.ps1` | `{projects_root}\shortcuts\regenerate.ps1` | `/new-repo`, `/migrate-repo`, `/apply-standard` |
 
 ---
 
