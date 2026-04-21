@@ -31,6 +31,12 @@ Present a numbered list and ask the user to choose:
 8. docs
 9. other
 
+Each choice must have a matching overlay at
+`~/.claude/templates/project/platforms/{platform}/` and a rules file at
+`~/.claude/rules/{platform}.md`. If either is missing, abort with a clear
+error so the gap is fixed here in `cfg_dev_environment` rather than papered
+over in a generated repo.
+
 ### 1c. Identity
 Present a numbered list:
 1. personal/public, maps to ~/projects/personal/public/ (public GitHub repos)
@@ -111,13 +117,48 @@ git -C {local_path} checkout -b main
 ```
 
 ### 3d. Copy Base Scaffold
-Copy all files from `~/.claude/templates/project/` into `{local_path}/`.
-This includes CLAUDE.md, .gitignore, .github/PULL_REQUEST_TEMPLATE.md, and other base files.
+Copy files from `~/.claude/templates/project/` into `{local_path}/`, excluding:
+- `platforms/` (platform overlays are handled by Step 3e; the directory itself must not land in the new repo)
+- `.code-workspace` (conditionally copied by Step 3d2 below based on user preference)
 
 Use PowerShell:
 ```powershell
-Copy-Item -Path "$HOME\.claude\templates\project\*" -Destination "{local_path}" -Recurse -Force
+Get-ChildItem -Path "$HOME\.claude\templates\project" -Force `
+    -Exclude 'platforms', '.code-workspace' |
+    Copy-Item -Destination "{local_path}" -Recurse -Force
 ```
+
+### 3d2. Conditionally Copy VS Code Workspace File
+The base template ships a `.code-workspace` for VS Code users. Copy it only
+when the user wants it. Decision order:
+
+1. If `~/.claude/config.json` has `include_vscode_workspace: true`, copy it.
+2. If `~/.claude/config.json` has `include_vscode_workspace: false`, skip it.
+3. If the key is absent, auto-detect: include the file when `code` is on
+   PATH, skip otherwise.
+
+```powershell
+${includeKey} = $null
+if (Test-Path "$HOME\.claude\config.json") {
+    ${cfg} = Get-Content "$HOME\.claude\config.json" -Raw | ConvertFrom-Json
+    if (${cfg}.PSObject.Properties.Name -contains 'include_vscode_workspace') {
+        ${includeKey} = [bool]${cfg}.include_vscode_workspace
+    }
+}
+if (${includeKey} -eq $null) {
+    ${includeKey} = [bool](Get-Command code -ErrorAction SilentlyContinue)
+}
+if (${includeKey}) {
+    Copy-Item -Path "$HOME\.claude\templates\project\.code-workspace" `
+        -Destination "{local_path}" -Force
+}
+```
+
+Report which branch fired so the choice is transparent:
+`VS Code workspace: included (config=true)` /
+`VS Code workspace: skipped (config=false)` /
+`VS Code workspace: included (auto-detect, code on PATH)` /
+`VS Code workspace: skipped (auto-detect, code not on PATH)`.
 
 ### 3e. Copy Platform-Specific Files
 Copy files from `~/.claude/templates/project/platforms/{platform}/` into `{local_path}/`, merging with the base scaffold. Platform files take precedence.
@@ -177,14 +218,38 @@ git -C {local_path} push -u origin main
 ```
 
 ### 3l. Apply Branch Protection
-Apply standard branch protection to `main` using the GitHub API:
+Apply standard branch protection to `main` using the GitHub API. The
+`required_pull_request_reviews` value is a nested JSON object, which
+`gh --field` cannot send (magic type conversion covers bool/null/integer
+only; objects become literal strings and the API rejects them). Pass the
+JSON body via `--input -` instead.
+
+PowerShell:
+```powershell
+@'
+{
+  "required_status_checks": null,
+  "enforce_admins": true,
+  "required_pull_request_reviews": {"required_approving_review_count": 1},
+  "restrictions": null
+}
+'@ | gh api --method PUT `
+    "repos/{username}/{repo_name}/branches/main/protection" `
+    --input -
 ```
-gh api repos/{username}/{repo_name}/branches/main/protection \
-  --method PUT \
-  --field required_status_checks=null \
-  --field enforce_admins=true \
-  --field required_pull_request_reviews='{"required_approving_review_count":1}' \
-  --field restrictions=null
+
+Bash fallback (for non-Windows contexts):
+```bash
+gh api --method PUT \
+    "repos/{username}/{repo_name}/branches/main/protection" \
+    --input - <<'JSON'
+{
+  "required_status_checks": null,
+  "enforce_admins": true,
+  "required_pull_request_reviews": {"required_approving_review_count": 1},
+  "restrictions": null
+}
+JSON
 ```
 
 ### 3m. Create GitHub Projects Kanban Board

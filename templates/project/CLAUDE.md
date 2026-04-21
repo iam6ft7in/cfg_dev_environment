@@ -11,6 +11,7 @@
 <!-- @~/.claude/rules/shell.md -->
 <!-- @~/.claude/rules/assembly.md -->
 <!-- @~/.claude/rules/vbscript.md -->
+<!-- @~/.claude/rules/docs.md -->
 
 <!-- Import project-specific rules -->
 @.claude/rules/project.md

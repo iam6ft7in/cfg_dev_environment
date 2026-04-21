@@ -1,0 +1,6 @@
+# Editor and OS cruft only. A docs repo has no build output.
+.DS_Store
+Thumbs.db
+*.bak
+*~
+.idea/

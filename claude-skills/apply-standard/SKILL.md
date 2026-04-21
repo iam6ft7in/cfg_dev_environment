@@ -315,14 +315,37 @@ chmod +x .git/hooks/pre-commit
 ```
 
 ### 4p. Branch Ruleset on main
-Apply via GitHub API:
+Apply via GitHub API. `required_pull_request_reviews` is a nested JSON object
+and `gh --field` cannot send it (magic type conversion covers bool/null/int
+only; objects become literal strings and the API rejects them). Pass the
+body via `--input -`.
+
+PowerShell:
+```powershell
+@'
+{
+  "required_status_checks": null,
+  "enforce_admins": true,
+  "required_pull_request_reviews": {"required_approving_review_count": 1},
+  "restrictions": null
+}
+'@ | gh api --method PUT `
+    "repos/{username}/{repo}/branches/main/protection" `
+    --input -
 ```
-gh api repos/{username}/{repo}/branches/main/protection \
-  --method PUT \
-  --field required_status_checks=null \
-  --field enforce_admins=true \
-  --field required_pull_request_reviews='{"required_approving_review_count":1}' \
-  --field restrictions=null
+
+Bash fallback:
+```bash
+gh api --method PUT \
+    "repos/{username}/{repo}/branches/main/protection" \
+    --input - <<'JSON'
+{
+  "required_status_checks": null,
+  "enforce_admins": true,
+  "required_pull_request_reviews": {"required_approving_review_count": 1},
+  "restrictions": null
+}
+JSON
 ```
 
 If this fails (e.g., the repo does not yet have a `main` branch on GitHub), report
