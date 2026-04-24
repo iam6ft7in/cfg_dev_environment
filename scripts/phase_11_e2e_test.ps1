@@ -55,7 +55,7 @@ $TestResults = [ordered]@{
 
 $RepoRoot    = Split-Path -Parent $PSScriptRoot
 $TestRepoName = 'test_e2e_delete_me'
-$TestLocalDir = "$HOME\projects\personal\_e2e_test_temp"
+$TestLocalDir = "$HOME\projects\iam6ft7in\_e2e_test_temp"
 
 # ---------------------------------------------------------------------------
 # Banner

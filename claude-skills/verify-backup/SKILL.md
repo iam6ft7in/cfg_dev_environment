@@ -12,7 +12,7 @@ You are checking every Git repository under the user's projects directories to e
 ## Step 1: Locate All Git Repositories
 
 Walk the following root directories and find every Git repository:
-- `~/projects/personal/`
+- `~/projects/iam6ft7in/`
 - `~/projects/client/`
 - `~/projects/arduino/upstream/`
 - `~/projects/arduino/custom/`
@@ -102,7 +102,7 @@ Issues found:
     - 3 files with uncommitted changes
     - 2 unpushed commits on current branch
     - 1 stash entry (may contain lost work)
-    Suggested action: git -C ~/projects/personal/tool_deploy_helper status
+    Suggested action: git -C ~/projects/iam6ft7in/tool_deploy_helper status
 
   arduino/custom/fw_flight_ctrl
     - 1 unpushed commit

@@ -171,7 +171,7 @@ HOW TO START IT:
    pwsh -File scripts\phase_04_directories.ps1
 
 The script creates:
-  - %USERPROFILE%\projects\personal\
+  - %USERPROFILE%\projects\iam6ft7in\
   - %USERPROFILE%\projects\client\
   - %USERPROFILE%\projects\arduino\upstream\
   - %USERPROFILE%\projects\arduino\custom\
@@ -381,7 +381,7 @@ STEP 12A -- Run the initialization script:
 
 The script:
   - Creates the repo on GitHub: cfg_dev_environment (private)
-  - Creates local directory at ~/projects/personal/cfg_dev_environment/
+  - Creates local directory at ~/projects/iam6ft7in/cfg_dev_environment/
   - Copies all scaffold template files
   - Copies all setup scripts organized by phase into scripts/
   - Copies all configuration file templates

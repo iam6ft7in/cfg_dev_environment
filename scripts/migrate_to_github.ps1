@@ -7,7 +7,7 @@
     Script Name : migrate_to_github.ps1
     Purpose     : Copies an existing project to the personal projects root
                   (read from ~/.claude/config.json, falls back to
-                  %USERPROFILE%\projects\personal), initializes git, adds missing
+                  %USERPROFILE%\projects\iam6ft7in), initializes git, adds missing
                   scaffold files, creates a private GitHub repo under the
                   github-personal SSH alias, makes an initial signed commit,
                   pushes, and applies a branch protection ruleset.
@@ -34,7 +34,7 @@
 
 .PARAMETER TargetRoot
     Parent directory for the migrated repo. Defaults to the personal projects root
-    from ~/.claude/config.json, or %USERPROFILE%\projects\personal if not configured.
+    from ~/.claude/config.json, or %USERPROFILE%\projects\iam6ft7in if not configured.
 
 .PARAMETER GitHubAlias
     SSH config host alias to use for the remote. Default: github-personal
@@ -123,7 +123,7 @@ if ([string]::IsNullOrEmpty(${TargetRoot})) {
                            ConvertFrom-Json).projects_root
         ${TargetRoot} = Join-Path ${ProjectsRoot} 'personal'
     } else {
-        ${TargetRoot} = Join-Path $HOME 'projects\personal'
+        ${TargetRoot} = Join-Path $HOME 'projects\iam6ft7in'
     }
 }
 
