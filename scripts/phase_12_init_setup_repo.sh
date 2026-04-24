@@ -40,7 +40,7 @@ abort() {
 }
 
 REPO_NAME="personal_cfg_dev_environment"
-LOCAL_DIR="$HOME/projects/personal/public/cfg_dev_environment"
+LOCAL_DIR="$HOME/projects/iam6ft7in/public/cfg_dev_environment"
 SCAFFOLD_SRC="$HOME/.claude/templates/project"
 
 # ------------------------------------------------------------------------------
@@ -175,6 +175,13 @@ if [ "$SKIP_INIT" = false ]; then
         log_pass "Copied claude-rules/"
     fi
 
+    # Copy claude-stacks (opt-in rule files @-imported per repo)
+    if [ -d "$REPO_ROOT/claude-stacks" ]; then
+        log_info "Copying claude-stacks/ directory"
+        cp -r "$REPO_ROOT/claude-stacks" "$LOCAL_DIR/"
+        log_pass "Copied claude-stacks/"
+    fi
+
     # Copy templates
     if [ -d "$REPO_ROOT/templates" ]; then
         log_info "Copying templates/ directory"
@@ -240,10 +247,11 @@ professional GitHub development environment on Windows with Git Bash.
 ## Structure
 
 \`\`\`
-scripts/    : Phase scripts (PS7 primary, bash fallback)
-config/     : Tool configuration files (gitleaks, etc.)
-claude-rules/, Claude AI rules for each project type
-templates/  : Project scaffold and VS Code templates
+scripts/      : Phase scripts (PS7 primary, bash fallback)
+config/       : Tool configuration files (gitleaks, etc.)
+claude-rules/ : Auto-loaded Claude rules (universal or extension-triggered)
+claude-stacks/: Opt-in Claude rules (@-imported per repo)
+templates/    : Project scaffold and VS Code templates
 \`\`\`
 
 ## Usage

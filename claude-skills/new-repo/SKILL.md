@@ -39,9 +39,9 @@ over in a generated repo.
 
 ### 1c. Identity
 Present a numbered list:
-1. personal/public, maps to ~/projects/personal/public/ (public GitHub repos)
-2. personal/private, maps to ~/projects/personal/private/ (private GitHub repos)
-3. personal/collaborative, maps to ~/projects/personal/collaborative/
+1. personal/public, maps to ~/projects/iam6ft7in/public/ (public GitHub repos)
+2. personal/private, maps to ~/projects/iam6ft7in/private/ (private GitHub repos)
+3. personal/collaborative, maps to ~/projects/iam6ft7in/collaborative/
 4. client, maps to ~/projects/client/
 5. arduino, maps to ~/projects/arduino/custom/
 
@@ -118,13 +118,27 @@ git -C {local_path} checkout -b main
 
 ### 3d. Copy Base Scaffold
 Copy files from `~/.claude/templates/project/` into `{local_path}/`, excluding:
-- `platforms/` (platform overlays are handled by Step 3e; the directory itself must not land in the new repo)
-- `.code-workspace` (conditionally copied by Step 3d2 below based on user preference)
+- `platforms/` (platform overlays are handled by Step 3e; the directory itself
+  must not land in the new repo)
+- `.code-workspace` (conditionally copied by Step 3d2 below based on user
+  preference)
+- `CLAUDE.md` (legacy old-schema template; Step 3g generates the new CLAUDE.md
+  from `CLAUDE.template.md`)
+- `CLAUDE.template.md` (template, not a per-repo file; Step 3g consumes it)
+- `MEMORY.template.md` (template; Step 3g scaffolds `memory/MEMORY.md` from it)
+- `settings.local.template.json` (template; Step 3g scaffolds
+  `.claude/settings.local.json` from it)
+
+`SESSION_STATE.template.md` is intentionally NOT in the exclusion list, it
+gets copied verbatim into the new repo root as a committed example of the
+session-state shape.
 
 Use PowerShell:
 ```powershell
 Get-ChildItem -Path "$HOME\.claude\templates\project" -Force `
-    -Exclude 'platforms', '.code-workspace' |
+    -Exclude 'platforms', '.code-workspace',
+              'CLAUDE.md', 'CLAUDE.template.md',
+              'MEMORY.template.md', 'settings.local.template.json' |
     Copy-Item -Destination "{local_path}" -Recurse -Force
 ```
 
@@ -167,13 +181,19 @@ Copy files from `~/.claude/templates/project/platforms/{platform}/` into `{local
 Copy-Item -Path "$HOME\.claude\templates\project\platforms\{platform}\*" -Destination "{local_path}" -Recurse -Force
 ```
 
-### 3f. Replace Placeholders
-In all files under `{local_path}`, replace these placeholders:
+### 3f. Replace Legacy Uppercase Placeholders
+Replace uppercase-schema placeholders in the bulk-copied files (README.md,
+CONTRIBUTING.md, AGENTS.md, etc.). This step does NOT apply to CLAUDE.md,
+memory/MEMORY.md, SESSION_STATE.md, or settings.local.json, those are
+generated in Step 3g with the new lowercase schema.
+
+Placeholders replaced here:
 - `{{REPO_NAME}}` → the repository name
 - `{{DESCRIPTION}}` → the short description
 - `{{PLATFORM}}` → the chosen platform
 - `{{YEAR}}` → the current year (4 digits)
-- `{{REPO_PATH}}` → the full local path resolved in Step 2 (e.g., `{projects_root}\personal\{repo_name}`)
+- `{{REPO_PATH}}` → the full local path resolved in Step 2 (e.g.,
+  `{projects_root}\personal\{repo_name}`)
 
 Use PowerShell to do this recursively:
 ```powershell
@@ -188,8 +208,72 @@ Get-ChildItem -Path "{local_path}" -Recurse -File | ForEach-Object {
 }
 ```
 
-### 3g. Activate Platform Rules in CLAUDE.md
-In `{local_path}/CLAUDE.md`, find the line that contains `@~/.claude/rules/{platform}.md` and uncomment it (remove the leading `# ` if present).
+### 3g. Scaffold From New-Schema Templates
+Generate four files from the new-schema templates. The template files live
+in `~/.claude/templates/project/` (deployed by `phase_08_scaffold_template`),
+with the `CLAUDE.template.md` canonical at `~/.claude/templates/` for
+cross-repo sync. Resolve each template path in this order, stopping at the
+first hit:
+
+1. `~/.claude/templates/CLAUDE.template.md` (canonical; CLAUDE template only)
+2. `~/.claude/templates/project/{Template file name}` (phase_08 deploy target)
+
+If neither is found, abort with a clear error, do not silently fall back to
+the legacy `CLAUDE.md` template, because the old schema produces a file the
+rest of this skill and `apply-standard` will mis-handle.
+
+**3g.i. Generate CLAUDE.md**
+
+Build the `{{rule_imports}}` value:
+- Always include `@.claude/rules/project.md`.
+- If `{platform}` is not `other` AND `~/.claude/rules/{platform}.md` exists,
+  append `@~/.claude/rules/{platform}.md`.
+- Stack imports (`@~/.claude/stacks/*.md`) are NOT added at creation time,
+  the user adds them later when a repo actually needs a stack.
+
+Read `CLAUDE.template.md`, substitute the new-schema tokens, and write the
+result to `{local_path}/CLAUDE.md`:
+
+| Token | Value |
+|-------|-------|
+| `{{repo_name}}` | `{repo_name}` |
+| `{{one_line_purpose}}` | `{description}` |
+| `{{owner}}` | `{username}` (resolved in Step 2) |
+| `{{visibility}}` | `{visibility}` |
+| `{{languages}}` | `{platform}` |
+| `{{session_name}}` | `{repo_name}` |
+| `{{rule_imports}}` | The import block built above, one `@`-line per row |
+| `{{key_paths}}` | `\| Item \| Path \|\n\|------\|------\|\n\| \| \|` (empty table the user fills in later) |
+| `{{credentials_note}}` | Leave the template's default "Bitwarden CLI for ambient secrets" line in place (the line *after* the placeholder), and replace the placeholder itself with an empty string |
+| `{{repo_specific}}` | Empty string |
+
+After substitution, delete the lines that read `Examples:` followed by the
+`  @~/.claude/rules/python.md` / `shell.md` / `stacks/vmware.md` example
+block (lines 19–22 of the template as of 2026-04-24). These are intentional
+docstring lines in the template and must not land in the generated
+CLAUDE.md.
+
+**3g.ii. Generate memory/MEMORY.md**
+
+Create `{local_path}/memory/` if absent. Copy `MEMORY.template.md` to
+`memory/MEMORY.md` verbatim (no placeholder substitution).
+
+**3g.iii. Generate SESSION_STATE.md**
+
+Copy `SESSION_STATE.template.md` to `{local_path}/SESSION_STATE.md` and
+substitute:
+- The literal string `YYYY-MM-DD` on the first line → today's date in
+  ISO format
+- `{{session_name}}` → `{repo_name}`
+
+This file is gitignored by the template-copied `.gitignore`, so it stays
+in the working tree but out of the initial commit. The committed
+`SESSION_STATE.template.md` copied by Step 3d serves as the example.
+
+**3g.iv. Generate .claude/settings.local.json**
+
+Create `{local_path}/.claude/` if absent. Copy
+`settings.local.template.json` to `.claude/settings.local.json` verbatim.
 
 ### 3h. Write LICENSE File
 Based on the user's choice, write the appropriate license text to `{local_path}/LICENSE`.
