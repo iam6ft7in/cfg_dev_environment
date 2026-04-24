@@ -42,9 +42,9 @@ Report the detected platform and ask the user to confirm or correct it.
 
 ### 1c. Confirm Identity
 Present a numbered list:
-1. personal/public, maps to ~/projects/personal/public/ (public GitHub repos)
-2. personal/private, maps to ~/projects/personal/private/ (private GitHub repos)
-3. personal/collaborative, maps to ~/projects/personal/collaborative/
+1. personal/public, maps to ~/projects/iam6ft7in/public/ (public GitHub repos)
+2. personal/private, maps to ~/projects/iam6ft7in/private/ (private GitHub repos)
+3. personal/collaborative, maps to ~/projects/iam6ft7in/collaborative/
 4. client
 5. arduino (custom)
 
@@ -85,8 +85,12 @@ For each item, report status as one of: PRESENT, MISSING, or NEEDS UPDATE.
 | `CHANGELOG.md` | File exists |
 | `CONTRIBUTING.md` | File exists |
 | `SECURITY.md` | File exists |
-| `CLAUDE.md` | File exists AND contains `@~/.claude/rules/core.md` |
+| `CLAUDE.md` | File exists AND contains `@.claude/rules/project.md` (or equivalent project-rule import). See CLAUDE.md Rule Import Check below. |
 | `.claude/rules/project.md` | File exists (any name is acceptable) |
+| `.claude/settings.local.json` | File exists |
+| `memory/MEMORY.md` | File exists |
+| `SESSION_STATE.md` | Listed in `.gitignore` (the file itself is machine-local; scaffolding it is optional) |
+| `SESSION_STATE.template.md` | File exists |
 | `.github/pull_request_template.md` | File exists |
 | `.github/ISSUE_TEMPLATE/bug_report.md` | File exists |
 | `.github/ISSUE_TEMPLATE/feature_request.md` | File exists |
@@ -104,16 +108,23 @@ For each item, report status as one of: PRESENT, MISSING, or NEEDS UPDATE.
 
 ### CLAUDE.md Rule Import Check
 
-A gold standard CLAUDE.md must contain all of the following lines (uncommented):
+Universal rules under `~/.claude/rules/*.md` auto-load for every session (the
+global `~/.claude/CLAUDE.md` @-imports them), so a repo CLAUDE.md does not need
+to re-import `core.md`, `shell.md`, etc. A gold standard repo CLAUDE.md must
+contain:
 ```
-@~/.claude/rules/core.md
-@~/.claude/rules/{platform}.md
 @.claude/rules/project.md
 ```
-(Platform rules only apply if a platform-specific rules file exists:
-`~/.claude/rules/powershell.md`, `~/.claude/rules/python.md`, etc.)
+and should @-import any opt-in stack rule the repo actually relies on, e.g.:
+```
+@~/.claude/stacks/vmware.md
+```
+Stacks under `~/.claude/stacks/*.md` do NOT auto-load; they must be explicitly
+@-imported per repo. Platform-specific rule files (`~/.claude/rules/python.md`,
+`~/.claude/rules/powershell.md`, etc.) are also fine to @-import when the repo
+wants to pin the dependency even though `rules/` auto-loads.
 
-If any import is missing, mark CLAUDE.md as NEEDS UPDATE.
+If `@.claude/rules/project.md` is absent, mark CLAUDE.md as NEEDS UPDATE.
 
 ---
 
@@ -133,6 +144,10 @@ Gold Standard Audit, {repo_name}
   SECURITY.md                            PRESENT
   CLAUDE.md (rule imports)               NEEDS UPDATE
   .claude/rules/project.md              PRESENT
+  .claude/settings.local.json            MISSING
+  memory/MEMORY.md                       MISSING
+  SESSION_STATE.md in .gitignore         PRESENT
+  SESSION_STATE.template.md              MISSING
   .github/pull_request_template.md       PRESENT
   .github/ISSUE_TEMPLATE/bug_report.md   MISSING
   .github/ISSUE_TEMPLATE/feature_request MISSING
@@ -144,7 +159,7 @@ Gold Standard Audit, {repo_name}
   Platform topic                         MISSING
   Projects v2 board                      MISSING
 ──────────────────────────────────────────────────────
-  9 present   12 need action
+  11 present   15 need action
 ```
 
 Ask: "Apply all fixes now? (yes/no)"
@@ -226,25 +241,54 @@ If missing, copy from `~/.claude/templates/project/CONTRIBUTING.md` and replace
 If missing, copy from `~/.claude/templates/project/SECURITY.md`.
 
 ### 4h. CLAUDE.md, Rule Imports
-If CLAUDE.md exists but is missing rule import lines, add them at the top of the file
-(before any existing content), inserting only the lines that are absent:
 
+**File exists, missing imports:** Add only the missing @-import lines. Place
+them inside the file's existing `## Stack-Specific Rules` section if one is
+present; otherwise insert them at the top of the file, before any existing
+content. Required import:
 ```
-@~/.claude/rules/core.md
-@~/.claude/rules/{platform}.md
 @.claude/rules/project.md
 ```
+Conditionally add, when the platform is not `other`:
+```
+@~/.claude/rules/{platform}.md
+```
+Only add the platform line if `~/.claude/rules/{platform}.md` actually exists.
 
-Only add `@~/.claude/rules/{platform}.md` if:
-- The platform is not `other`
-- The file `~/.claude/rules/{platform}.md` actually exists
+Preservation rule: do NOT replace, reflow, or reformat any existing content
+in CLAUDE.md. Do not remove existing @-imports, even stacks like
+`@~/.claude/stacks/vmware.md`. The only change permitted in this pass is to
+insert the missing lines listed above. If the user has added repo-specific
+commentary, key paths, or credentials notes, they must round-trip unchanged.
 
-Do NOT replace or reformat any existing content in CLAUDE.md, append imports only
-at the top.
+**File does not exist:** Copy the new-schema template and replace the
+placeholders. Resolve the template path in this order, stopping at the
+first hit:
 
-If CLAUDE.md does not exist at all, copy from
-`~/.claude/templates/project/CLAUDE.md`, replace placeholders, and uncomment the
-correct platform rule line.
+1. `~/.claude/templates/CLAUDE.template.md` (canonical; manually kept
+   up-to-date for cross-repo work on this machine).
+2. `~/.claude/templates/project/CLAUDE.template.md` (deployed by
+   `phase_08_scaffold_template`; this is what a fresh bootstrap produces).
+3. `~/.claude/templates/project/CLAUDE.md` (legacy old-schema template).
+   If this is the only option available, fall back and log a warning:
+   `CLAUDE.template.md not found in ~/.claude/templates/ or its project/
+   subdir, using legacy old-schema CLAUDE.md. Run phase_08 or copy the
+   canonical template into place.`
+
+The new schema uses lowercase curly-brace tokens:
+
+| Token                   | Source of value                                       |
+|-------------------------|-------------------------------------------------------|
+| `{{repo_name}}`         | Repository name detected in step 1                    |
+| `{{one_line_purpose}}`  | Ask the user for a one-sentence description           |
+| `{{owner}}`             | `iam6ft7in`, `pegapod`, or the confirmed identity      |
+| `{{visibility}}`        | `public`, `private`, or `collaborative`                |
+| `{{languages}}`         | Detected from platform, e.g. `powershell`, `python`    |
+| `{{session_name}}`      | Same as `{{repo_name}}` unless the user has a custom shortcut name |
+| `{{rule_imports}}`      | Render the required imports from the "File exists" rule above, one per line, followed by any stack @-imports the user confirms are needed (e.g. `@~/.claude/stacks/vmware.md`). Remove the "Examples:" placeholder block. |
+| `{{key_paths}}`         | Leave as a `\| Item \| Path \|` table header with a blank row; the user fills it in |
+| `{{credentials_note}}`  | Leave the default "Bitwarden CLI for ambient secrets" line; the user edits if the repo uses git-crypt |
+| `{{repo_specific}}`     | Leave blank unless the user supplies content          |
 
 ### 4i. .claude/rules/project.md
 If no file exists under `.claude/rules/`, copy from
@@ -314,7 +358,49 @@ chmod +x .git/hooks/commit-msg
 chmod +x .git/hooks/pre-commit
 ```
 
-### 4p. Branch Ruleset on main
+### 4n. SESSION_STATE.md
+If `SESSION_STATE.md` does not exist, copy
+`~/.claude/templates/project/SESSION_STATE.template.md` to `SESSION_STATE.md`
+and replace placeholders:
+- `YYYY-MM-DD` on the first line → today's date
+- `{{session_name}}` → same as the repo name unless the user has a custom
+  shortcut name
+
+The `.gitignore` from step 4b already contains `SESSION_STATE.md`, so the
+newly-scaffolded file is machine-local and will not be staged. If somehow
+`.gitignore` is missing the line (pre-existing repo, user stripped it), the
+step 4b drift report will flag it; do not silently add it here.
+
+Do not overwrite an existing `SESSION_STATE.md`, it is the user's live work.
+
+### 4o. SESSION_STATE.template.md
+If `SESSION_STATE.template.md` does not exist at the repo root, copy
+`~/.claude/templates/project/SESSION_STATE.template.md` verbatim (no
+placeholder replacement). This is the committed example-of-the-shape file
+that future `/session-save` runs use as a reference.
+
+### 4p. memory/MEMORY.md
+If `memory/MEMORY.md` does not exist:
+- Create the `memory/` directory if absent.
+- Copy `~/.claude/templates/project/MEMORY.template.md` to `memory/MEMORY.md`
+  verbatim (no placeholder replacement).
+
+Do not create the repo-level memory *entries* (individual `*.md` files
+alongside `MEMORY.md`), only the index. Entries accrue as the user works
+in the repo.
+
+### 4q. .claude/settings.local.json
+If `.claude/settings.local.json` does not exist:
+- Create the `.claude/` directory if absent.
+- Copy `~/.claude/templates/project/settings.local.template.json` to
+  `.claude/settings.local.json` verbatim.
+
+Note: `settings.local.json` is per-machine, not shared team config. It holds
+the user's local permission grants. Claude Code treats it as machine-local
+by convention; individual repos may or may not gitignore it. Do not add it
+to `.gitignore` in this pass, that is the user's call.
+
+### 4r. Branch Ruleset on main
 Apply via GitHub API. `required_pull_request_reviews` is a nested JSON object
 and `gh --field` cannot send it (magic type conversion covers bool/null/int
 only; objects become literal strings and the API rejects them). Pass the
@@ -360,7 +446,7 @@ user to verify in the browser under Settings → Rules → Rulesets that:
 These settings require GitHub Pro or higher and are not fully configurable via the
 REST API, they must be set through the UI or GitHub's GraphQL API.
 
-### 4q. Standard Issue Labels
+### 4s. Standard Issue Labels
 First check which labels already exist:
 ```
 gh label list --repo {username}/{repo} --limit 100
@@ -379,14 +465,14 @@ gh label create ci         --repo {username}/{repo} --color "f9d0c4" --descripti
 gh label create breaking   --repo {username}/{repo} --color "b60205" --description "Breaking change"
 ```
 
-### 4r. Platform Topic
+### 4t. Platform Topic
 Add platform topic if absent:
 ```
 gh repo edit {username}/{repo} --add-topic {platform}
 gh repo edit {username}/{repo} --add-topic automated-setup
 ```
 
-### 4s. GitHub Projects v2 Board
+### 4u. GitHub Projects v2 Board
 Ensure a board titled `{repo_name} Board` exists under `{username}` and that
 its Status field has the 5 standardized options in order: Backlog (GRAY),
 Todo (GREEN), In Progress (YELLOW), In Review (ORANGE), Done (PURPLE).
@@ -410,14 +496,23 @@ board manually, do not fail the rest of /apply-standard.
 If any files were added or modified, stage and commit:
 ```
 git add .gitattributes .gitignore .editorconfig README.md CHANGELOG.md \
-        CONTRIBUTING.md SECURITY.md CLAUDE.md \
-        .claude/rules/ .github/
+        CONTRIBUTING.md SECURITY.md CLAUDE.md SESSION_STATE.template.md \
+        .claude/rules/ .claude/settings.local.json \
+        memory/MEMORY.md .github/
 git commit -m "chore: apply gold standard scaffold"
 git push
 ```
 
 Only include files that actually exist after the fixes. Do not stage files that
 were not changed.
+
+Deliberately excluded from staging:
+- `SESSION_STATE.md` is gitignored (machine-local live state). The scaffolded
+  copy from step 4n stays in the working tree untracked.
+- `.claude/settings.local.json` is included above because the scaffolded copy
+  has an empty allow-list, which is safe to commit as a starting point. If the
+  user's repo has it gitignored, git will refuse to add it and the commit
+  proceeds without it, that is the correct outcome.
 
 ---
 
@@ -444,6 +539,10 @@ Files added/updated:
   + .editorconfig
   + README.md
   ~ CLAUDE.md (added rule imports)
+  + SESSION_STATE.md (scaffolded, gitignored)
+  + SESSION_STATE.template.md
+  + memory/MEMORY.md
+  + .claude/settings.local.json
   + .github/ISSUE_TEMPLATE/bug_report.md
   + .github/ISSUE_TEMPLATE/feature_request.md
   + .github/ISSUE_TEMPLATE/task.md
