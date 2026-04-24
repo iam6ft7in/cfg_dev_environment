@@ -194,7 +194,7 @@ EXIT CRITERIA: git config --list --global shows all expected values.
    pwsh -File scripts\phase_04_directories.ps1
 
 The script creates:
-- %USERPROFILE%\projects\personal\
+- %USERPROFILE%\projects\iam6ft7in\
 - %USERPROFILE%\projects\client\
 - %USERPROFILE%\projects\arduino\upstream\
 - %USERPROFILE%\projects\arduino\custom\
@@ -465,7 +465,7 @@ Test repo is cleaned up.
 
 The script:
 - Creates the repo on GitHub: personal_cfg_dev_environment (private)
-- Creates local directory at ~/projects/personal/cfg_dev_environment/
+- Creates local directory at ~/projects/iam6ft7in/cfg_dev_environment/
 - Copies all scaffold template files (from Phase 8)
 - Copies all setup scripts organized by phase into scripts/
 - Copies all configuration file templates

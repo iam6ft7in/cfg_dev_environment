@@ -42,11 +42,11 @@ echo -e   "========================================${C_RESET}\n"
 # ------------------------------------------------------------------------------
 DIRS=(
     # Project roots
-    "$HOME/projects/personal"
+    "$HOME/projects/iam6ft7in"
     "$HOME/projects/client"
     "$HOME/projects/arduino/upstream"
     "$HOME/projects/arduino/custom"
-    "$HOME/projects/shortcuts"    # Claude-launcher shortcuts (Phase 7b)
+    "$HOME/.claude/shortcuts"     # Claude-launcher shortcuts (Phase 7b)
 
     # Git template hooks
     "$HOME/.git-templates/hooks"

@@ -12,7 +12,7 @@ You are generating a comprehensive weekly review of all projects. Run each secti
 ## Section 1: Repo Health
 
 Find all Git repositories under:
-- `~/projects/personal/`
+- `~/projects/iam6ft7in/`
 - `~/projects/client/`
 - `~/projects/arduino/upstream/`
 - `~/projects/arduino/custom/`

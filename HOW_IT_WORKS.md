@@ -311,7 +311,7 @@ environment. Handles the full journey in one command.
 1. Validates 12 prerequisites (PS version, git, gh, auth, Bitwarden, etc.)
 2. Analyzes scaffold gaps (lists which of 7 standard files are missing)
 3. Detects gitignore candidates (.log, .pdf, .docx, dated transcripts, etc.)
-4. Copies the project to `%USERPROFILE%\projects\personal\<repo-name>`
+4. Copies the project to `%USERPROFILE%\projects\iam6ft7in\<repo-name>`
 5. Initializes a git repo
 6. Cleans stale OneDrive paths from `.claude/settings.local.json`
 7. Generates a `.gitignore` for PowerShell projects
@@ -369,7 +369,7 @@ Pass bare comma-separated values:
    ```
 4. After Phase 12 completes, clone the repo to its permanent location:
    ```powershell
-   git clone git@github-personal:{github_username}/cfg_dev_environment.git %USERPROFILE%\projects\personal\cfg_dev_environment
+   git clone git@github-personal:{github_username}/cfg_dev_environment.git %USERPROFILE%\projects\iam6ft7in\cfg_dev_environment
    ```
 5. Delete the temporary clone.
 
@@ -378,7 +378,7 @@ Pass bare comma-separated values:
 ## Migrating a Future Project
 
 ```powershell
-cd %USERPROFILE%\projects\personal\cfg_dev_environment
+cd %USERPROFILE%\projects\iam6ft7in\cfg_dev_environment
 
 pwsh -File scripts\migrate_to_github.ps1 `
     -SourcePath "C:\path\to\existing\project" `
