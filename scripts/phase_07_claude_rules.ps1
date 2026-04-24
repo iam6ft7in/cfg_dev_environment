@@ -1,15 +1,23 @@
 #Requires -Version 7.0
 <#
 .SYNOPSIS
-    Phase 07 - Deploy Claude Rules (diff-before-copy)
+    Phase 07 - Deploy Claude Rules and Stacks (diff-before-copy)
 
 .DESCRIPTION
     Script Name : phase_07_claude_rules.ps1
-    Purpose     : Deploy Claude rule files from $RepoRoot\claude-rules\ to
-                  ~/.claude/rules\, respecting any local personalizations
-                  the user has made to the deployed copy.
+    Purpose     : Deploy Claude rule and stack files from the repo to the
+                  per-user Claude config directory, respecting any local
+                  personalizations the user has made to the deployed copy.
 
-    For each expected rule file:
+    Two categories are deployed, in order:
+      - rules  : $RepoRoot\claude-rules\   -> ~/.claude/rules\
+                 Auto-loaded by Claude Code for universal rules or via
+                 extension triggers.
+      - stacks : $RepoRoot\claude-stacks\  -> ~/.claude/stacks\
+                 Opt-in. Do NOT auto-load. Repos @-import them from
+                 CLAUDE.md when needed.
+
+    For each expected file in each category:
       - If the deployed copy does not exist: create it (no drift risk).
       - If the deployed copy is byte-identical to the repo source: no-op,
         report IN-SYNC.
@@ -19,11 +27,12 @@
 
     Non-TTY runs (piped stdin, CI, scheduled tasks) skip every drifted file
     and warn on stderr. Re-run with -Force to override and overwrite every
-    drifted file without prompting.
+    drifted file without prompting. An "All" / "None" choice applies to the
+    remainder of the current category and carries over into the next.
 
     Phase       : 07
     Exit Criteria:
-        - Every expected rule file resolves to one of:
+        - Every expected rule and stack file resolves to one of:
           IN-SYNC, CREATED, OVERWRITE, SKIP (user), SKIP (non-TTY).
 
 .PARAMETER Force
@@ -92,85 +101,115 @@ function Read-FileAction {
 }
 
 # ---------------------------------------------------------------------------
-# Paths and expected files
+# Paths and categories
 # ---------------------------------------------------------------------------
-${RepoRoot}       = Split-Path -Parent ${PSScriptRoot}
-${SourceRulesDir} = Join-Path ${RepoRoot} 'claude-rules'
-${DestRulesDir}   = Join-Path ${HOME}     '.claude\rules'
+# Categories are deployed in the order listed. Each entry maps one repo
+# source directory to one destination directory with its own expected-file
+# roster. Adding a new category (e.g., claude-snippets) is a one-entry
+# addition here; no other code change required.
+${RepoRoot} = Split-Path -Parent ${PSScriptRoot}
 
-${ExpectedFiles} = @(
-    'core.md'
-    'arduino.md'
-    'python.md'
-    'shell.md'
-    'assembly.md'
-    'vbscript.md'
-    'command_paths.md'
-    'powershell.md'
-    'ssh.md'
+${Categories} = @(
+    [ordered]@{
+        Name     = 'rules'
+        Source   = Join-Path ${RepoRoot} 'claude-rules'
+        Dest     = Join-Path ${HOME}     '.claude\rules'
+        Expected = @(
+            'core.md'
+            'arduino.md'
+            'python.md'
+            'shell.md'
+            'assembly.md'
+            'vbscript.md'
+            'command_paths.md'
+            'powershell.md'
+            'ssh.md'
+        )
+    }
+    [ordered]@{
+        Name     = 'stacks'
+        Source   = Join-Path ${RepoRoot} 'claude-stacks'
+        Dest     = Join-Path ${HOME}     '.claude\stacks'
+        Expected = @(
+            'vmware.md'
+        )
+    }
 )
 
+# Results is keyed by "category:filename" so the summary can group them and
+# no entry ever collides across categories.
 ${Results} = [ordered]@{}
 
 # ---------------------------------------------------------------------------
 # Banner
 # ---------------------------------------------------------------------------
-Write-Host "`n=======================================" -ForegroundColor Cyan
-Write-Host "  Phase 07 - Deploy Claude Rules"         -ForegroundColor Cyan
-Write-Host "  Repo Root : ${RepoRoot}"                -ForegroundColor Cyan
-Write-Host "  Source    : ${SourceRulesDir}"          -ForegroundColor Cyan
-Write-Host "  Dest      : ${DestRulesDir}"            -ForegroundColor Cyan
-Write-Host "  Mode      : $(if (${Force}) { 'Force (overwrite all)' } else { 'Prompt on drift' })" -ForegroundColor Cyan
-Write-Host "=======================================`n" -ForegroundColor Cyan
-
-# ---------------------------------------------------------------------------
-# Step 1 - Verify source directory and expected files
-# ---------------------------------------------------------------------------
-Write-Section "Step 1: Verify source directory"
-
-if (-not (Test-Path ${SourceRulesDir} -PathType Container)) {
-    Exit-WithError "Source directory not found: ${SourceRulesDir}"
+Write-Host "`n==============================================" -ForegroundColor Cyan
+Write-Host "  Phase 07 - Deploy Claude Rules and Stacks"     -ForegroundColor Cyan
+Write-Host "  Repo Root : ${RepoRoot}"                       -ForegroundColor Cyan
+foreach (${cat} in ${Categories}) {
+    Write-Host ("  {0,-8} : {1} -> {2}" -f ${cat}.Name, ${cat}.Source, ${cat}.Dest) -ForegroundColor Cyan
 }
-Write-Pass "Source directory exists: ${SourceRulesDir}"
+Write-Host "  Mode      : $(if (${Force}) { 'Force (overwrite all)' } else { 'Prompt on drift' })" -ForegroundColor Cyan
+Write-Host "==============================================`n" -ForegroundColor Cyan
 
-${MissingFiles} = @()
-foreach (${fname} in ${ExpectedFiles}) {
-    ${srcPath} = Join-Path ${SourceRulesDir} ${fname}
-    if (Test-Path ${srcPath} -PathType Leaf) {
-        Write-Pass "Found: ${fname}"
-    } else {
-        Write-Fail "Missing: ${fname}"
-        ${MissingFiles} += ${fname}
+# ---------------------------------------------------------------------------
+# Step 1 - Verify source directories and expected files
+# ---------------------------------------------------------------------------
+Write-Section "Step 1: Verify source directories"
+
+foreach (${cat} in ${Categories}) {
+    ${name} = ${cat}.Name
+    ${src}  = ${cat}.Source
+
+    if (-not (Test-Path ${src} -PathType Container)) {
+        Exit-WithError "Source directory for '${name}' not found: ${src}"
+    }
+    Write-Pass "Source directory exists (${name}): ${src}"
+
+    ${missing} = @()
+    foreach (${fname} in ${cat}.Expected) {
+        ${srcPath} = Join-Path ${src} ${fname}
+        if (Test-Path ${srcPath} -PathType Leaf) {
+            Write-Pass "Found (${name}): ${fname}"
+        } else {
+            Write-Fail "Missing (${name}): ${fname}"
+            ${missing} += ${fname}
+        }
+    }
+
+    if (${missing}.Count -gt 0) {
+        Exit-WithError "Missing expected files in source (${name}): $(${missing} -join ', ')"
     }
 }
 
-if (${MissingFiles}.Count -gt 0) {
-    Exit-WithError "Missing expected rule files in source: $(${MissingFiles} -join ', ')"
-}
-
 # ---------------------------------------------------------------------------
-# Step 2 - Create destination directory
+# Step 2 - Create destination directories
 # ---------------------------------------------------------------------------
-Write-Section "Step 2: Create destination directory"
+Write-Section "Step 2: Create destination directories"
 
-if (Test-Path ${DestRulesDir} -PathType Container) {
-    Write-Info "Exists: ${DestRulesDir}"
-} else {
-    try {
-        New-Item -ItemType Directory -Path ${DestRulesDir} -Force | Out-Null
-        Write-Pass "Created: ${DestRulesDir}"
-    } catch {
-        Exit-WithError "Failed to create destination directory '${DestRulesDir}': ${_}"
+foreach (${cat} in ${Categories}) {
+    ${dest} = ${cat}.Dest
+    if (Test-Path ${dest} -PathType Container) {
+        Write-Info "Exists: ${dest}"
+    } else {
+        try {
+            New-Item -ItemType Directory -Path ${dest} -Force | Out-Null
+            Write-Pass "Created: ${dest}"
+        } catch {
+            Exit-WithError "Failed to create destination directory '${dest}': ${_}"
+        }
     }
 }
 
 # ---------------------------------------------------------------------------
 # Step 3 - Per-file deploy decision
 # ---------------------------------------------------------------------------
-Write-Section "Step 3: Deploy rule files (diff-before-copy)"
+Write-Section "Step 3: Deploy files (diff-before-copy)"
 
 # Decisions that short-circuit subsequent prompts once the user picks an
-# "All" or "None" option. Force starts in auto-overwrite mode.
+# "All" or "None" option. Force starts in auto-overwrite mode. These flags
+# persist across categories: if the user picks "All" during rules, stacks
+# inherits that, which matches the user's evident intent.
 ${autoOverwrite} = [bool]${Force}
 ${autoSkip}      = $false
 ${aborted}       = $false
@@ -179,83 +218,94 @@ ${aborted}       = $false
 # true when stdin is a pipe or file, so "not redirected" is our TTY signal.
 ${isTty} = -not [Console]::IsInputRedirected
 
-foreach (${fname} in ${ExpectedFiles}) {
-    ${src}  = Join-Path ${SourceRulesDir} ${fname}
-    ${dest} = Join-Path ${DestRulesDir}   ${fname}
+foreach (${cat} in ${Categories}) {
+    ${catName} = ${cat}.Name
+    ${src}     = ${cat}.Source
+    ${dest}    = ${cat}.Dest
 
-    if (${aborted}) {
-        ${Results}[${fname}] = 'SKIP (quit)'
-        continue
-    }
-
-    # Brand-new file on the deployed side: always deploy, no drift risk.
-    if (-not (Test-Path ${dest} -PathType Leaf)) {
-        Copy-Item -Path ${src} -Destination ${dest} -Force
-        Write-Pass "CREATED: ${fname}"
-        ${Results}[${fname}] = 'CREATED'
-        continue
-    }
-
-    # SHA-256 hash compare is cheap and unambiguous; line-ending differences
-    # are genuine drift worth surfacing, not false positives to hide.
-    ${srcHash}  = (Get-FileHash -Algorithm SHA256 -Path ${src}).Hash
-    ${destHash} = (Get-FileHash -Algorithm SHA256 -Path ${dest}).Hash
-
-    if (${srcHash} -eq ${destHash}) {
-        Write-Info "IN-SYNC: ${fname}"
-        ${Results}[${fname}] = 'IN-SYNC'
-        continue
-    }
-
-    # Drift detected. Pick an action based on mode.
-    if (${autoOverwrite}) {
-        Copy-Item -Path ${src} -Destination ${dest} -Force
-        Write-Pass "OVERWRITE: ${fname} (forced)"
-        ${Results}[${fname}] = 'OVERWRITE'
-        continue
-    }
-    if (${autoSkip}) {
-        Write-Info "SKIP: ${fname} (batch-skip)"
-        ${Results}[${fname}] = 'SKIP'
-        continue
-    }
-    if (-not ${isTty}) {
-        Write-Warn "SKIP: ${fname} (drift detected, stdin is not a TTY; re-run with -Force to overwrite)"
-        ${Results}[${fname}] = 'SKIP (non-TTY)'
-        continue
-    }
-
-    # Interactive: show the diff and prompt.
     Write-Host ""
-    Write-Host "DRIFT: ${fname}" -ForegroundColor Yellow
-    Show-RuleDiff -Src ${src} -Dest ${dest}
-    ${action} = Read-FileAction
+    Write-Host "-- Category: ${catName}" -ForegroundColor White
 
-    switch (${action}) {
-        'overwrite' {
-            Copy-Item -Path ${src} -Destination ${dest} -Force
-            Write-Pass "OVERWRITE: ${fname}"
-            ${Results}[${fname}] = 'OVERWRITE'
+    foreach (${fname} in ${cat}.Expected) {
+        ${key}      = "${catName}:${fname}"
+        ${srcFile}  = Join-Path ${src}  ${fname}
+        ${destFile} = Join-Path ${dest} ${fname}
+
+        if (${aborted}) {
+            ${Results}[${key}] = 'SKIP (quit)'
+            continue
         }
-        'skip' {
-            Write-Info "SKIP: ${fname}"
-            ${Results}[${fname}] = 'SKIP'
+
+        # Brand-new file on the deployed side: always deploy, no drift risk.
+        if (-not (Test-Path ${destFile} -PathType Leaf)) {
+            Copy-Item -Path ${srcFile} -Destination ${destFile} -Force
+            Write-Pass "CREATED: ${catName}/${fname}"
+            ${Results}[${key}] = 'CREATED'
+            continue
         }
-        'all-overwrite' {
-            Copy-Item -Path ${src} -Destination ${dest} -Force
-            Write-Pass "OVERWRITE: ${fname} (All)"
-            ${Results}[${fname}] = 'OVERWRITE'
-            ${autoOverwrite} = $true
+
+        # SHA-256 hash compare is cheap and unambiguous; line-ending
+        # differences are genuine drift worth surfacing, not false positives
+        # to hide.
+        ${srcHash}  = (Get-FileHash -Algorithm SHA256 -Path ${srcFile}).Hash
+        ${destHash} = (Get-FileHash -Algorithm SHA256 -Path ${destFile}).Hash
+
+        if (${srcHash} -eq ${destHash}) {
+            Write-Info "IN-SYNC: ${catName}/${fname}"
+            ${Results}[${key}] = 'IN-SYNC'
+            continue
         }
-        'all-skip' {
-            Write-Info "SKIP: ${fname} (None)"
-            ${Results}[${fname}] = 'SKIP'
-            ${autoSkip} = $true
+
+        # Drift detected. Pick an action based on mode.
+        if (${autoOverwrite}) {
+            Copy-Item -Path ${srcFile} -Destination ${destFile} -Force
+            Write-Pass "OVERWRITE: ${catName}/${fname} (forced)"
+            ${Results}[${key}] = 'OVERWRITE'
+            continue
         }
-        'quit' {
-            Write-Warn "QUIT: ${fname} (user aborted; remaining files will be marked skipped)"
-            ${Results}[${fname}] = 'SKIP (quit)'
-            ${aborted} = $true
+        if (${autoSkip}) {
+            Write-Info "SKIP: ${catName}/${fname} (batch-skip)"
+            ${Results}[${key}] = 'SKIP'
+            continue
+        }
+        if (-not ${isTty}) {
+            Write-Warn "SKIP: ${catName}/${fname} (drift detected, stdin is not a TTY; re-run with -Force to overwrite)"
+            ${Results}[${key}] = 'SKIP (non-TTY)'
+            continue
+        }
+
+        # Interactive: show the diff and prompt.
+        Write-Host ""
+        Write-Host "DRIFT: ${catName}/${fname}" -ForegroundColor Yellow
+        Show-RuleDiff -Src ${srcFile} -Dest ${destFile}
+        ${action} = Read-FileAction
+
+        switch (${action}) {
+            'overwrite' {
+                Copy-Item -Path ${srcFile} -Destination ${destFile} -Force
+                Write-Pass "OVERWRITE: ${catName}/${fname}"
+                ${Results}[${key}] = 'OVERWRITE'
+            }
+            'skip' {
+                Write-Info "SKIP: ${catName}/${fname}"
+                ${Results}[${key}] = 'SKIP'
+            }
+            'all-overwrite' {
+                Copy-Item -Path ${srcFile} -Destination ${destFile} -Force
+                Write-Pass "OVERWRITE: ${catName}/${fname} (All)"
+                ${Results}[${key}] = 'OVERWRITE'
+                ${autoOverwrite} = $true
+            }
+            'all-skip' {
+                Write-Info "SKIP: ${catName}/${fname} (None)"
+                ${Results}[${key}] = 'SKIP'
+                ${autoSkip} = $true
+            }
+            'quit' {
+                Write-Warn "QUIT: ${catName}/${fname} (user aborted; remaining files will be marked skipped)"
+                ${Results}[${key}] = 'SKIP (quit)'
+                ${aborted} = $true
+            }
         }
     }
 }
@@ -266,12 +316,12 @@ foreach (${fname} in ${ExpectedFiles}) {
 Write-Section "Summary"
 
 ${counts} = @{
-    'IN-SYNC'       = 0
-    'CREATED'       = 0
-    'OVERWRITE'     = 0
-    'SKIP'          = 0
+    'IN-SYNC'        = 0
+    'CREATED'        = 0
+    'OVERWRITE'      = 0
+    'SKIP'           = 0
     'SKIP (non-TTY)' = 0
-    'SKIP (quit)'   = 0
+    'SKIP (quit)'    = 0
 }
 foreach (${kv} in ${Results}.GetEnumerator()) {
     ${key} = ${kv}.Value
@@ -292,7 +342,7 @@ foreach (${kv} in ${Results}.GetEnumerator()) {
         'SKIP*'         { 'Yellow' }
         default         { 'White'  }
     }
-    Write-Host ("    {0,-20} {1}" -f ${name}, ${status}) -ForegroundColor ${color}
+    Write-Host ("    {0,-28} {1}" -f ${name}, ${status}) -ForegroundColor ${color}
 }
 
 Write-Host ""

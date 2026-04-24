@@ -1,13 +1,21 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Phase 7 - Deploy Claude Rules (diff-before-copy)
+# Phase 7 - Deploy Claude Rules and Stacks (diff-before-copy)
 #
 # Script Name : phase_07_claude_rules.sh
-# Purpose     : Deploy rule files from REPO_ROOT/claude-rules/ to
-#               ~/.claude/rules/, preserving any local personalizations the
-#               user has made to the deployed copies.
+# Purpose     : Deploy Claude rule and stack files from the repo to the
+#               per-user Claude config directory, preserving any local
+#               personalizations the user has made to the deployed copies.
 #
-# For each expected rule file:
+# Two categories are deployed, in order:
+#   - rules  : REPO_ROOT/claude-rules/   -> ~/.claude/rules/
+#              Auto-loaded by Claude Code for universal rules or via
+#              extension triggers.
+#   - stacks : REPO_ROOT/claude-stacks/  -> ~/.claude/stacks/
+#              Opt-in. Do NOT auto-load. Repos @-import them from
+#              CLAUDE.md when needed.
+#
+# For each expected file in each category:
 #   - If the deployed copy does not exist: create it (no drift risk).
 #   - If the deployed copy is byte-identical to the repo source: no-op,
 #     report IN-SYNC.
@@ -17,12 +25,13 @@
 #
 # Non-TTY runs (piped stdin, CI, scheduled tasks) skip every drifted file
 # and warn on stderr. Re-run with --force to override and overwrite every
-# drifted file without prompting.
+# drifted file without prompting. An "All" / "None" choice applies to the
+# remainder of the current category and carries over into the next.
 #
 # Phase       : 7 of 12
 # Exit Criteria:
-#   - Every expected rule file resolves to IN-SYNC, CREATED, OVERWRITE,
-#     SKIP (user), or SKIP (non-TTY).
+#   - Every expected rule and stack file resolves to IN-SYNC, CREATED,
+#     OVERWRITE, SKIP (user), or SKIP (non-TTY).
 #
 # Run with: bash scripts/phase_07_claude_rules.sh
 # Force:    bash scripts/phase_07_claude_rules.sh --force
@@ -40,7 +49,7 @@ for arg in "$@"; do
     case "${arg}" in
         -f|--force) FORCE=1 ;;
         -h|--help)
-            sed -n '3,30p' "$0" | sed 's/^# \{0,1\}//'
+            sed -n '3,36p' "$0" | sed 's/^# \{0,1\}//'
             exit 0
             ;;
         *)
@@ -75,12 +84,27 @@ abort() {
 }
 
 # ------------------------------------------------------------------------------
-# Paths and expected files
+# Categories and expected files
 # ------------------------------------------------------------------------------
-SOURCE_DIR="${REPO_ROOT}/claude-rules"
-DEST_DIR="${HOME}/.claude/rules"
+# Bash 3 lacks arrays-of-arrays, so each category is encoded as three
+# parallel indexed arrays. Adding a category means one entry in each of
+# CAT_NAMES / CAT_SOURCES / CAT_DESTS and one entry in FILES_FOR_<name>
+# below. RESULTS is keyed by "category:filename" to keep categories
+# separate in the summary.
+CAT_NAMES=(
+    "rules"
+    "stacks"
+)
+CAT_SOURCES=(
+    "${REPO_ROOT}/claude-rules"
+    "${REPO_ROOT}/claude-stacks"
+)
+CAT_DESTS=(
+    "${HOME}/.claude/rules"
+    "${HOME}/.claude/stacks"
+)
 
-EXPECTED_FILES=(
+FILES_FOR_rules=(
     "core.md"
     "arduino.md"
     "python.md"
@@ -91,10 +115,25 @@ EXPECTED_FILES=(
     "powershell.md"
     "ssh.md"
 )
+FILES_FOR_stacks=(
+    "vmware.md"
+)
 
 # Associative arrays need bash 4+. The script already requires bash (shebang),
 # and every Windows dev env covered here has Git Bash's bash 4.x or higher.
 declare -A RESULTS
+# Ordered list of result keys ("cat:fname") in deployment order, for a
+# deterministic summary.
+RESULT_ORDER=()
+
+# Resolve the expected-files array for a category by name. Bash has no
+# clean way to pass an array by name across boundaries; an indirect
+# expansion is the least-bad option.
+files_for_category() {
+    local cat="$1"
+    local varname="FILES_FOR_${cat}[@]"
+    printf '%s\n' "${!varname}"
+}
 
 # ------------------------------------------------------------------------------
 # Banner
@@ -104,54 +143,65 @@ if [ "${FORCE}" -eq 1 ]; then
     mode_label="Force (overwrite all)"
 fi
 
-echo -e "\n${C_CYAN}========================================"
-echo      "  Phase 7 - Deploy Claude Rules"
+echo -e "\n${C_CYAN}=============================================="
+echo      "  Phase 7 - Deploy Claude Rules and Stacks"
 echo      "  Repo Root : ${REPO_ROOT}"
-echo      "  Source    : ${SOURCE_DIR}"
-echo      "  Dest      : ${DEST_DIR}"
+for i in "${!CAT_NAMES[@]}"; do
+    printf "  %-8s : %s -> %s\n" "${CAT_NAMES[$i]}" "${CAT_SOURCES[$i]}" "${CAT_DESTS[$i]}"
+done
 echo      "  Mode      : ${mode_label}"
-echo -e   "========================================${C_RESET}\n"
+echo -e   "==============================================${C_RESET}\n"
 
 # ==============================================================================
-# Step 1 - Verify source directory and expected files
+# Step 1 - Verify source directories and expected files
 # ==============================================================================
-log_section "Step 1: Verify source directory"
+log_section "Step 1: Verify source directories"
 
-[ -d "${SOURCE_DIR}" ] || abort "Source directory not found: ${SOURCE_DIR}"
-log_pass "Source directory exists: ${SOURCE_DIR}"
+for i in "${!CAT_NAMES[@]}"; do
+    cat_name="${CAT_NAMES[$i]}"
+    src_dir="${CAT_SOURCES[$i]}"
 
-missing=()
-for fname in "${EXPECTED_FILES[@]}"; do
-    if [ -f "${SOURCE_DIR}/${fname}" ]; then
-        log_pass "Found: ${fname}"
-    else
-        log_fail "Missing: ${fname}"
-        missing+=("${fname}")
+    [ -d "${src_dir}" ] || abort "Source directory for '${cat_name}' not found: ${src_dir}"
+    log_pass "Source directory exists (${cat_name}): ${src_dir}"
+
+    missing=()
+    while IFS= read -r fname; do
+        if [ -f "${src_dir}/${fname}" ]; then
+            log_pass "Found (${cat_name}): ${fname}"
+        else
+            log_fail "Missing (${cat_name}): ${fname}"
+            missing+=("${fname}")
+        fi
+    done < <(files_for_category "${cat_name}")
+
+    if [ "${#missing[@]}" -gt 0 ]; then
+        abort "Missing expected files in source (${cat_name}): ${missing[*]}"
     fi
 done
 
-if [ "${#missing[@]}" -gt 0 ]; then
-    abort "Missing expected rule files in source: ${missing[*]}"
-fi
-
 # ==============================================================================
-# Step 2 - Create destination directory
+# Step 2 - Create destination directories
 # ==============================================================================
-log_section "Step 2: Create destination directory"
+log_section "Step 2: Create destination directories"
 
-if [ -d "${DEST_DIR}" ]; then
-    log_info "Exists: ${DEST_DIR}"
-else
-    mkdir -p "${DEST_DIR}" || abort "Failed to create destination directory: ${DEST_DIR}"
-    log_pass "Created: ${DEST_DIR}"
-fi
+for i in "${!CAT_NAMES[@]}"; do
+    dest_dir="${CAT_DESTS[$i]}"
+    if [ -d "${dest_dir}" ]; then
+        log_info "Exists: ${dest_dir}"
+    else
+        mkdir -p "${dest_dir}" || abort "Failed to create destination directory: ${dest_dir}"
+        log_pass "Created: ${dest_dir}"
+    fi
+done
 
 # ==============================================================================
 # Step 3 - Per-file deploy decision
 # ==============================================================================
-log_section "Step 3: Deploy rule files (diff-before-copy)"
+log_section "Step 3: Deploy files (diff-before-copy)"
 
 # Short-circuit flags flip once the user picks an "All" or "None" option.
+# They persist across categories: if the user picks "All" during rules,
+# stacks inherits that, which matches the user's evident intent.
 auto_overwrite=${FORCE}
 auto_skip=0
 aborted=0
@@ -165,10 +215,11 @@ fi
 # Portable sha256 helper: prefer sha256sum (coreutils, Git Bash ships it),
 # fall back to shasum -a 256 (macOS default).
 file_hash() {
-    # sha256sum prepends '\' to the hash when the filename contains backslashes
-    # or newlines (escaped-name form). Strip any leading backslash so the
-    # compared hashes match regardless of path style. ~/.claude/rules/ paths
-    # never contain backslashes, but keep the guard for parity with phase_07b.
+    # sha256sum prepends '\' to the hash when the filename contains
+    # backslashes or newlines (escaped-name form). Strip any leading
+    # backslash so the compared hashes match regardless of path style.
+    # Paths under ~/.claude/... never contain backslashes, but keep the
+    # guard for parity with phase_07b.
     if command -v sha256sum >/dev/null 2>&1; then
         sha256sum "$1" | awk '{h=$1; sub(/^\\/, "", h); print h}'
     else
@@ -176,8 +227,8 @@ file_hash() {
     fi
 }
 
-# Show a unified diff for the two files. diff -u exits 1 on difference, 0 on
-# identical; we only call it when we already know they differ, so the
+# Show a unified diff for the two files. diff -u exits 1 on difference,
+# 0 on identical; we only call it when we already know they differ, so the
 # non-zero exit is expected and swallowed with `|| true`.
 show_rule_diff() {
     local src="$1" dest="$2"
@@ -202,82 +253,93 @@ read_file_action() {
     done
 }
 
-for fname in "${EXPECTED_FILES[@]}"; do
-    src="${SOURCE_DIR}/${fname}"
-    dest="${DEST_DIR}/${fname}"
-
-    if [ "${aborted}" -eq 1 ]; then
-        RESULTS["${fname}"]="SKIP (quit)"
-        continue
-    fi
-
-    if [ ! -f "${dest}" ]; then
-        cp -f "${src}" "${dest}"
-        log_pass "CREATED: ${fname}"
-        RESULTS["${fname}"]="CREATED"
-        continue
-    fi
-
-    src_hash=$(file_hash "${src}")
-    dest_hash=$(file_hash "${dest}")
-
-    if [ "${src_hash}" = "${dest_hash}" ]; then
-        log_info "IN-SYNC: ${fname}"
-        RESULTS["${fname}"]="IN-SYNC"
-        continue
-    fi
-
-    if [ "${auto_overwrite}" -eq 1 ]; then
-        cp -f "${src}" "${dest}"
-        log_pass "OVERWRITE: ${fname} (forced)"
-        RESULTS["${fname}"]="OVERWRITE"
-        continue
-    fi
-
-    if [ "${auto_skip}" -eq 1 ]; then
-        log_info "SKIP: ${fname} (batch-skip)"
-        RESULTS["${fname}"]="SKIP"
-        continue
-    fi
-
-    if [ "${is_tty}" -eq 0 ]; then
-        log_warn "SKIP: ${fname} (drift detected, stdin is not a TTY; re-run with --force to overwrite)"
-        RESULTS["${fname}"]="SKIP (non-TTY)"
-        continue
-    fi
+for i in "${!CAT_NAMES[@]}"; do
+    cat_name="${CAT_NAMES[$i]}"
+    src_dir="${CAT_SOURCES[$i]}"
+    dest_dir="${CAT_DESTS[$i]}"
 
     echo ""
-    echo -e "${C_YELLOW}DRIFT: ${fname}${C_RESET}"
-    show_rule_diff "${src}" "${dest}"
-    action=$(read_file_action)
+    echo -e "${C_WHITE}-- Category: ${cat_name}${C_RESET}"
 
-    case "${action}" in
-        overwrite)
+    while IFS= read -r fname; do
+        key="${cat_name}:${fname}"
+        RESULT_ORDER+=("${key}")
+        src="${src_dir}/${fname}"
+        dest="${dest_dir}/${fname}"
+
+        if [ "${aborted}" -eq 1 ]; then
+            RESULTS["${key}"]="SKIP (quit)"
+            continue
+        fi
+
+        if [ ! -f "${dest}" ]; then
             cp -f "${src}" "${dest}"
-            log_pass "OVERWRITE: ${fname}"
-            RESULTS["${fname}"]="OVERWRITE"
-            ;;
-        skip)
-            log_info "SKIP: ${fname}"
-            RESULTS["${fname}"]="SKIP"
-            ;;
-        all-overwrite)
+            log_pass "CREATED: ${cat_name}/${fname}"
+            RESULTS["${key}"]="CREATED"
+            continue
+        fi
+
+        src_hash=$(file_hash "${src}")
+        dest_hash=$(file_hash "${dest}")
+
+        if [ "${src_hash}" = "${dest_hash}" ]; then
+            log_info "IN-SYNC: ${cat_name}/${fname}"
+            RESULTS["${key}"]="IN-SYNC"
+            continue
+        fi
+
+        if [ "${auto_overwrite}" -eq 1 ]; then
             cp -f "${src}" "${dest}"
-            log_pass "OVERWRITE: ${fname} (All)"
-            RESULTS["${fname}"]="OVERWRITE"
-            auto_overwrite=1
-            ;;
-        all-skip)
-            log_info "SKIP: ${fname} (None)"
-            RESULTS["${fname}"]="SKIP"
-            auto_skip=1
-            ;;
-        quit)
-            log_warn "QUIT: ${fname} (user aborted; remaining files will be marked skipped)"
-            RESULTS["${fname}"]="SKIP (quit)"
-            aborted=1
-            ;;
-    esac
+            log_pass "OVERWRITE: ${cat_name}/${fname} (forced)"
+            RESULTS["${key}"]="OVERWRITE"
+            continue
+        fi
+
+        if [ "${auto_skip}" -eq 1 ]; then
+            log_info "SKIP: ${cat_name}/${fname} (batch-skip)"
+            RESULTS["${key}"]="SKIP"
+            continue
+        fi
+
+        if [ "${is_tty}" -eq 0 ]; then
+            log_warn "SKIP: ${cat_name}/${fname} (drift detected, stdin is not a TTY; re-run with --force to overwrite)"
+            RESULTS["${key}"]="SKIP (non-TTY)"
+            continue
+        fi
+
+        echo ""
+        echo -e "${C_YELLOW}DRIFT: ${cat_name}/${fname}${C_RESET}"
+        show_rule_diff "${src}" "${dest}"
+        action=$(read_file_action)
+
+        case "${action}" in
+            overwrite)
+                cp -f "${src}" "${dest}"
+                log_pass "OVERWRITE: ${cat_name}/${fname}"
+                RESULTS["${key}"]="OVERWRITE"
+                ;;
+            skip)
+                log_info "SKIP: ${cat_name}/${fname}"
+                RESULTS["${key}"]="SKIP"
+                ;;
+            all-overwrite)
+                cp -f "${src}" "${dest}"
+                log_pass "OVERWRITE: ${cat_name}/${fname} (All)"
+                RESULTS["${key}"]="OVERWRITE"
+                auto_overwrite=1
+                ;;
+            all-skip)
+                log_info "SKIP: ${cat_name}/${fname} (None)"
+                RESULTS["${key}"]="SKIP"
+                auto_skip=1
+                ;;
+            quit)
+                log_warn "QUIT: ${cat_name}/${fname} (user aborted; remaining files will be marked skipped)"
+                RESULTS["${key}"]="SKIP (quit)"
+                aborted=1
+                ;;
+        esac
+    done < <(files_for_category "${cat_name}")
 done
 
 # ==============================================================================
@@ -289,8 +351,8 @@ in_sync=0; created=0; overwritten=0; skipped=0
 
 echo ""
 echo -e "${C_WHITE}  Per-file status:${C_RESET}"
-for fname in "${EXPECTED_FILES[@]}"; do
-    status="${RESULTS[${fname}]:-UNKNOWN}"
+for key in "${RESULT_ORDER[@]}"; do
+    status="${RESULTS[${key}]:-UNKNOWN}"
     case "${status}" in
         IN-SYNC)         color="${C_CYAN}";   (( in_sync++ ))     || true ;;
         CREATED)         color="${C_GREEN}";  (( created++ ))     || true ;;
@@ -298,7 +360,7 @@ for fname in "${EXPECTED_FILES[@]}"; do
         SKIP*)           color="${C_YELLOW}"; (( skipped++ ))     || true ;;
         *)               color="${C_WHITE}" ;;
     esac
-    printf "    ${color}%-20s %s${C_RESET}\n" "${fname}" "${status}"
+    printf "    ${color}%-28s %s${C_RESET}\n" "${key}" "${status}"
 done
 
 echo ""
