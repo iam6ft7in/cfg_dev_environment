@@ -85,7 +85,7 @@ For each item, report status as one of: PRESENT, MISSING, or NEEDS UPDATE.
 | `CHANGELOG.md` | File exists |
 | `CONTRIBUTING.md` | File exists |
 | `SECURITY.md` | File exists |
-| `CLAUDE.md` | File exists AND contains `@.claude/rules/project.md` (or equivalent project-rule import). See CLAUDE.md Rule Import Check below. |
+| `CLAUDE.md` | File exists AND contains at least one `@.claude/rules/*.md` import (single `project.md` or topic-split files both qualify). See CLAUDE.md Rule Import Check below. |
 | `.claude/rules/project.md` | File exists (any name is acceptable) |
 | `.claude/settings.local.json` | File exists |
 | `memory/MEMORY.md` | File exists |
@@ -111,11 +111,23 @@ For each item, report status as one of: PRESENT, MISSING, or NEEDS UPDATE.
 Universal rules under `~/.claude/rules/*.md` auto-load for every session (the
 global `~/.claude/CLAUDE.md` @-imports them), so a repo CLAUDE.md does not need
 to re-import `core.md`, `shell.md`, etc. A gold standard repo CLAUDE.md must
-contain:
-```
-@.claude/rules/project.md
-```
-and should @-import any opt-in stack rule the repo actually relies on, e.g.:
+@-import at least one project-specific rule file from `.claude/rules/`, in
+one of two shapes:
+
+- Single consolidated file:
+  ```
+  @.claude/rules/project.md
+  ```
+- Multiple topic-split files (equally valid; common in repos with
+  infrastructure, security, testing, etc. as separate concerns):
+  ```
+  @.claude/rules/infrastructure.md
+  @.claude/rules/security.md
+  @.claude/rules/testing.md
+  ```
+
+A repo CLAUDE.md should also @-import any opt-in stack rule the repo actually
+relies on, e.g.:
 ```
 @~/.claude/stacks/vmware.md
 ```
@@ -124,7 +136,9 @@ Stacks under `~/.claude/stacks/*.md` do NOT auto-load; they must be explicitly
 `~/.claude/rules/powershell.md`, etc.) are also fine to @-import when the repo
 wants to pin the dependency even though `rules/` auto-loads.
 
-If `@.claude/rules/project.md` is absent, mark CLAUDE.md as NEEDS UPDATE.
+If no `@.claude/rules/*.md` import is present at all, mark CLAUDE.md as
+NEEDS UPDATE. The audit check passes as soon as at least one project-rule
+import is found, regardless of filename.
 
 ---
 
