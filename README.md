@@ -10,7 +10,8 @@ across all personal and client projects.
 |-----------|----------|
 | `scripts/` | 26 setup scripts (phases 1–12 inc. 7b, PowerShell 7 + bash) plus `migrate_to_github.ps1` |
 | `templates/` | Project scaffold, platform-specific files, VS Code config |
-| `claude-rules/` | 6 global Claude rule files (`~/.claude/rules/`) |
+| `claude-rules/` | Global Claude rule files, deployed to `~/.claude/rules/` (auto-load universal or extension-triggered) |
+| `claude-stacks/` | Opt-in stack rule files, deployed to `~/.claude/stacks/` (do NOT auto-load; @-imported per repo) |
 | `claude-skills/` | Skill directories deployed to `~/.claude/skills/` |
 | `claude-scripts/` | Helper scripts the skills call, deployed to `~/.claude/scripts/` and `{projects_root}\shortcuts\` by Phase 7b |
 | `config/` | gitconfig, gitleaks, Oh My Posh theme, ssh_config |
