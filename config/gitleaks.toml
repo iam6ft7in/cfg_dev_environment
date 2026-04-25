@@ -59,4 +59,10 @@ regexes = [
     '''UPDATE_WITH_''',
     '''placeholder''',
     '''your_.*_here''',
+    # Upstream ArduPilot Mission Planner ships a hard-coded GUID
+    # (MagicKEY) in MainV2.cs that trips the generic-api-key
+    # rule. Not a secret; baked into the upstream Windows .NET
+    # app. Allowlist by exact string so the rule still fires on
+    # real secrets elsewhere in the same file.
+    '''258EAFA5-E914-47DA-95CA-C5AB0DC85B11''',
 ]
