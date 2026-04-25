@@ -39,9 +39,9 @@ over in a generated repo.
 
 ### 1c. Identity
 Present a numbered list:
-1. personal/public, maps to ~/projects/iam6ft7in/public/ (public GitHub repos)
-2. personal/private, maps to ~/projects/iam6ft7in/private/ (private GitHub repos)
-3. personal/collaborative, maps to ~/projects/iam6ft7in/collaborative/
+1. personal/public, maps to ~/projects/{username}/public/ (public GitHub repos)
+2. personal/private, maps to ~/projects/{username}/private/ (private GitHub repos)
+3. personal/collaborative, maps to ~/projects/{username}/collaborative/
 4. client, maps to ~/projects/client/
 5. arduino, maps to ~/projects/arduino/custom/
 
@@ -77,17 +77,19 @@ If the file does not exist or the key is absent, fall back to `$HOME\projects` a
 warn: "~/.claude/config.json not found, run phase_04_directories.ps1 to configure
 your projects root. Falling back to %USERPROFILE%\projects."
 
-Based on identity, construct the local path from `{projects_root}`:
-- `personal/public` → `{projects_root}\personal\public\{repo_name}`
-- `personal/private` → `{projects_root}\personal\private\{repo_name}`
-- `personal/collaborative` → `{projects_root}\personal\collaborative\{repo_name}`
-- `client` → `{projects_root}\client\{repo_name}`
-- `arduino` → `{projects_root}\arduino\custom\{repo_name}`
-
-Determine the GitHub username based on identity:
+Determine the GitHub username based on identity (resolve before constructing
+the path so `{username}` is substituted correctly):
 - `personal` → use the username from `gh api user --jq .login` under the personal account
 - `client` → `client`
 - `arduino` → use personal username (arduino repos live under the personal GitHub account)
+
+Based on identity, construct the local path from `{projects_root}` and the
+resolved `{username}`:
+- `personal/public` → `{projects_root}\{username}\public\{repo_name}`
+- `personal/private` → `{projects_root}\{username}\private\{repo_name}`
+- `personal/collaborative` → `{projects_root}\{username}\collaborative\{repo_name}`
+- `client` → `{projects_root}\client\{repo_name}`
+- `arduino` → `{projects_root}\arduino\custom\{repo_name}`
 
 Determine the SSH host alias based on identity:
 - `personal` → `github-personal`
@@ -354,12 +356,14 @@ the user to set the Status options manually at
 https://github.com/users/{username}/projects.
 
 ### 3n. Apply Platform Topics
-Add topics to the repository based on the platform:
+Add the platform name as a topic, unless `{platform}` is `other`. The
+`other` catch-all carries no semantic value as a topic, so skip it in
+that case:
 ```
 gh repo edit {username}/{repo_name} --add-topic {platform}
 ```
 
-Also add a standard `automated-setup` topic:
+Always add the standard `automated-setup` topic:
 ```
 gh repo edit {username}/{repo_name} --add-topic automated-setup
 ```
@@ -392,10 +396,10 @@ gh label create breaking --repo {username}/{repo_name} --color "b60205" --descri
 
 ### 3q. Regenerate Project Shortcuts
 Re-run the launcher-shortcut generator so a `.lnk` for the new repo appears in
-`{projects_root}\shortcuts\` (auto-discovers repos via `.git` dirs and clears
+`~/.claude/shortcuts/` (auto-discovers repos via `.git` dirs and clears
 stale `.lnk`s):
 ```powershell
-pwsh -File "{projects_root}\shortcuts\regenerate.ps1"
+pwsh -File "$HOME\.claude\shortcuts\regenerate.ps1"
 ```
 If the script is missing, note it in the final report but do not fail the run.
 
@@ -419,8 +423,8 @@ Repository created successfully.
 
   Branch protection applied to: main
   Labels created: feat, fix, docs, chore, refactor, test, ci, breaking
-  Topics applied: {platform}, automated-setup
-  Shortcut regenerated: {projects_root}\shortcuts\{repo_name}.lnk
+  Topics applied: {topics_applied}
+  Shortcut regenerated: ~/.claude/shortcuts/{repo_name}.lnk
 
 Next step: open Claude in this repo and run /rename {repo_name}
 ```
