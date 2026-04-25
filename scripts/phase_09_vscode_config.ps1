@@ -47,6 +47,10 @@ $VSCodeTemplSrc     = Join-Path $RepoRoot 'templates\vscode'
 $VSCodeTemplDest    = Join-Path $HOME '.claude\templates\vscode'
 $CSpellDir          = Join-Path $HOME '.cspell'
 $CSpellFile         = Join-Path $CSpellDir 'custom-words.txt'
+# CSpell words live in config/cspell-custom-words.txt (added in the
+# Phase D Tier B sweep) so the dictionary is editable without
+# touching this script.
+$CSpellWordsSrc     = Join-Path $RepoRoot 'config\cspell-custom-words.txt'
 
 # Track results
 $Results = [ordered]@{}
@@ -204,22 +208,16 @@ if (-not (Test-Path $VSCodeTemplSrc -PathType Container)) {
 # ---------------------------------------------------------------------------
 Write-Section "Step 5: Write ~/.cspell/custom-words.txt"
 
-$CSpellWords = @(
-    'ArduPilot', 'ardupilot', 'copter', 'multirotor',
-    'NASM', 'nasm',
-    'gitleaks',
-    'PyProject', 'pyproject',
-    'uv', 'ruff',
-    'SYSID', 'passphrase', 'client',
-    'winget',
-    'gitconfig', 'gitignore', 'gitattributes', 'editorconfig',
-    'precommit', 'shellcheck',
-    'PSScriptAnalyzer', 'Pester',
-    'psm1', 'ps1', 'vbs', 'asm',
-    'cpanfile', 'BATS', 'bats',
-    'VTOL', 'autopilot', 'firmware',
-    'waypoints', 'params', 'param'
-)
+if (-not (Test-Path $CSpellWordsSrc)) {
+    Exit-WithError "Template missing: $CSpellWordsSrc"
+}
+
+# Read words from the committed template (one per line, trimmed,
+# blanks dropped). This is the single source of truth; edit
+# config/cspell-custom-words.txt to change the dictionary.
+$CSpellWords = Get-Content -Path $CSpellWordsSrc |
+    ForEach-Object { $_.Trim() } |
+    Where-Object { $_ -ne '' }
 
 try {
     if (-not (Test-Path $CSpellDir -PathType Container)) {
@@ -230,7 +228,7 @@ try {
     $Utf8NoBom = New-Object System.Text.UTF8Encoding $false
     [System.IO.File]::WriteAllText($CSpellFile, $CSpellContent + "`n", $Utf8NoBom)
     Write-Pass "CSpell dictionary written: $CSpellFile"
-    Write-Info "$($CSpellWords.Count) words in dictionary."
+    Write-Info "$($CSpellWords.Count) words in dictionary (from $CSpellWordsSrc)."
     $Results['CSpellDict'] = 'PASS'
 } catch {
     Write-Fail "Failed to write CSpell dictionary: $_"
