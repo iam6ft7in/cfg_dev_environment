@@ -116,6 +116,7 @@ ${Categories} = @(
         Dest     = Join-Path ${HOME}     '.claude\rules'
         Expected = @(
             'core.md'
+            'other.md'
             'arduino.md'
             'python.md'
             'shell.md'
