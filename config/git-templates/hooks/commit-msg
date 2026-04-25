@@ -1,0 +1,66 @@
+#!/bin/sh
+# commit-msg — Conventional Commits format validation
+# Installed by phase_06_hooks_and_scanning.ps1
+#
+# Validates the commit message against the Conventional Commits specification.
+# Pattern: <type>(<optional scope>): <description>
+#   - type     : feat|fix|docs|style|refactor|perf|test|chore|ci|revert
+#   - scope    : optional, in parentheses
+#   - description: 1-88 characters, lowercase preferred, no trailing period
+#
+# Merge commits, revert commits, and fixup commits bypass validation.
+
+MSG_FILE="$1"
+MSG=$(cat "$MSG_FILE")
+
+# Skip validation for merge commits
+if echo "$MSG" | grep -qE '^Merge '; then
+    exit 0
+fi
+
+# Skip validation for revert auto-generated messages
+if echo "$MSG" | grep -qE '^Revert "'; then
+    exit 0
+fi
+
+# Skip fixup and squash commits (used during interactive rebase)
+if echo "$MSG" | grep -qE '^(fixup|squash)!'; then
+    exit 0
+fi
+
+# Skip empty messages or comment-only messages (git handles these separately)
+STRIPPED=$(echo "$MSG" | sed '/^#/d' | sed '/^$/d')
+if [ -z "$STRIPPED" ]; then
+    exit 0
+fi
+
+# Conventional Commits pattern
+# type(scope): description  — total subject line max 88 chars
+CC_PATTERN='^(feat|fix|docs|style|refactor|perf|test|chore|ci|revert)(\(.+\))?: .{1,88}$'
+
+# Extract subject line (first non-empty, non-comment line)
+SUBJECT=$(echo "$MSG" | sed '/^#/d' | sed '/^[[:space:]]*$/d' | head -1)
+
+if ! echo "$SUBJECT" | grep -qE "$CC_PATTERN"; then
+    echo "" >&2
+    echo "  COMMIT REJECTED — message does not follow Conventional Commits format." >&2
+    echo "" >&2
+    echo "  Your message:" >&2
+    echo "    $SUBJECT" >&2
+    echo "" >&2
+    echo "  Required format:" >&2
+    echo "    <type>(<scope>): <short description>" >&2
+    echo "" >&2
+    echo "  Valid types: feat, fix, docs, style, refactor, perf, test, chore, ci, revert" >&2
+    echo "  Scope is optional. Description must be 1-88 characters." >&2
+    echo "" >&2
+    echo "  Examples:" >&2
+    echo "    feat(auth): add SSH key rotation support" >&2
+    echo "    fix(hooks): prevent false positive on test fixtures" >&2
+    echo "    chore: update uv to 0.5.0" >&2
+    echo "    docs(readme): add Phase 2 troubleshooting section" >&2
+    echo "" >&2
+    exit 1
+fi
+
+exit 0

@@ -1,0 +1,15 @@
+# ~/.config/bitwarden/env — Bitwarden CLI API key credentials
+#
+# Source this file to enable unattended `bw` access via API key (no master
+# password prompt). Used by the bw-unlock function in ~/.bashrc.
+#
+# To populate: in the Bitwarden web vault, open Settings -> Security ->
+# Keys, generate a personal API key, then paste the values below.
+#
+# This file MUST NOT be committed. The .gitignore template covers
+# ~/.config/bitwarden/env via the secrets section.
+#
+# After editing, restrict permissions: chmod 600 ~/.config/bitwarden/env
+
+export BW_CLIENTID="user.PASTE_YOUR_CLIENT_ID_HERE"
+export BW_CLIENTSECRET="PASTE_YOUR_CLIENT_SECRET_HERE"

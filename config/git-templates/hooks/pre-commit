@@ -1,0 +1,46 @@
+#!/bin/sh
+# pre-commit — gitleaks secret scan on staged files
+# Installed by phase_06_hooks_and_scanning.ps1
+#
+# Runs gitleaks against staged changes before every commit.
+# If secrets are detected, the commit is aborted.
+# Set SKIP_GITLEAKS=1 to bypass (for test fixtures only — use sparingly).
+
+if [ "${SKIP_GITLEAKS:-0}" = "1" ]; then
+    echo "[pre-commit] WARNING: gitleaks scan skipped (SKIP_GITLEAKS=1)" >&2
+    exit 0
+fi
+
+# Check if gitleaks is on PATH
+if ! command -v gitleaks >/dev/null 2>&1; then
+    echo "[pre-commit] WARNING: gitleaks is not installed — skipping secret scan." >&2
+    echo "[pre-commit] Install gitleaks and re-run Phase 1 to enable scanning." >&2
+    exit 0
+fi
+
+# Determine config path
+GITLEAKS_CONFIG="$HOME/.gitleaks.toml"
+if [ ! -f "$GITLEAKS_CONFIG" ]; then
+    GITLEAKS_CONFIG=""
+fi
+
+# Run gitleaks on staged files
+if [ -n "$GITLEAKS_CONFIG" ]; then
+    gitleaks protect --staged --redact --config "$GITLEAKS_CONFIG" 2>&1
+else
+    gitleaks protect --staged --redact 2>&1
+fi
+
+EXIT_CODE=$?
+
+if [ $EXIT_CODE -ne 0 ]; then
+    echo "" >&2
+    echo "[pre-commit] BLOCKED: gitleaks detected potential secrets in staged files." >&2
+    echo "[pre-commit] Review the output above. If this is a false positive:" >&2
+    echo "[pre-commit]   1. Add an allowlist entry to ~/.gitleaks.toml" >&2
+    echo "[pre-commit]   2. Or set SKIP_GITLEAKS=1 (only for test fixture commits)" >&2
+    echo "" >&2
+    exit 1
+fi
+
+exit 0

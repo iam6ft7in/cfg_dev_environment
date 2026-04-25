@@ -1,0 +1,61 @@
+# =============================================================================
+# ~/.bashrc.template — sourced by Git Bash on every interactive shell
+# =============================================================================
+#
+# Two universal Windows + Git Bash workarounds plus a Bitwarden CLI helper.
+# Operators can drop additional per-user PATH entries (e.g. UWP-installed
+# Python 3.13) below the marked section.
+
+# ── Bitwarden SSH Agent bridge ─────────────────────────────────────────────────
+# Git Bash (MSYS2) uses its own ssh binary which cannot reach the Bitwarden SSH
+# agent (a Windows named pipe). The Windows OpenSSH binary CAN reach it, so we
+# shadow the MSYS ssh/scp/ssh-add with thin wrappers that delegate to the
+# Windows binaries. Agent forwarding (-A) and ssh-add -l then work with
+# Bitwarden's loaded keys.
+WIN_SSH_DIR="/c/WINDOWS/System32/OpenSSH"
+
+ssh()     { "${WIN_SSH_DIR}/ssh.exe"     "$@"; }
+scp()     { "${WIN_SSH_DIR}/scp.exe"     "$@"; }
+ssh-add() { "${WIN_SSH_DIR}/ssh-add.exe" "$@"; }
+
+export -f ssh scp ssh-add
+
+# ── Bitwarden CLI credentials ──────────────────────────────────────────────────
+[[ -f "${HOME}/.config/bitwarden/env" ]] && source "${HOME}/.config/bitwarden/env"
+
+# bw-unlock: run once at the start of a session to enable unattended bw access.
+# Writes the session key to ~/.config/bitwarden/session so all Claude sessions
+# can pick it up without needing BW_SESSION in their environment.
+bw-unlock() {
+    local bw="/c/Program Files/WinGet/Links/bw.exe"
+    local session_file="${HOME}/.config/bitwarden/session"
+
+    # If a session file exists, verify it is still valid before prompting
+    if [[ -f "${session_file}" ]]; then
+        local existing
+        existing=$(cat "${session_file}")
+        if "${bw}" status --session "${existing}" 2>/dev/null | grep -q '"status":"unlocked"'; then
+            export BW_SESSION="${existing}"
+            echo "Bitwarden already unlocked. Existing session is valid."
+            return 0
+        fi
+    fi
+
+    # No valid session — prompt for master password to get a new one
+    local session
+    session=$("${bw}" unlock --raw)
+    if [[ -z "${session}" ]]; then
+        echo "Bitwarden unlock failed — check that your vault is logged in."
+        return 1
+    fi
+    export BW_SESSION="${session}"
+    mkdir -p "${HOME}/.config/bitwarden"
+    echo "${session}" > "${session_file}"
+    chmod 600 "${session_file}"
+    echo "Bitwarden unlocked. Session key saved for Claude sessions."
+}
+
+# ── Per-operator PATH additions ────────────────────────────────────────────────
+# Append per-operator PATH lines below this comment. Examples:
+#   export PATH="$PATH:/c/Program Files/PowerShell/7"
+#   export PATH="$PATH:${LOCALAPPDATA}/Packages/PythonSoftwareFoundation.Python.3.13_<family>/LocalCache/local-packages/Python313/Scripts"
