@@ -66,6 +66,12 @@ $weeklyScript = Join-Path $templateDir 'gitleaks-weekly-scan.ps1'
 $gitleaksToml = Join-Path $HOME '.gitleaks.toml'
 $configSrc    = Join-Path $RepoRoot 'config\gitleaks.toml'
 
+# Hook bodies live in config/git-templates/hooks/ as the source of
+# truth (added in the Phase D Tier B sweep). Single source of truth:
+# edit those files, re-run Phase 6 to redeploy.
+$preCommitTemplate = Join-Path $RepoRoot 'config\git-templates\hooks\pre-commit'
+$commitMsgTemplate = Join-Path $RepoRoot 'config\git-templates\hooks\commit-msg'
+
 $Results = [ordered]@{}
 
 # ---------------------------------------------------------------------------
@@ -90,58 +96,14 @@ $Results['Template Hooks Dir'] = 'PASS'
 
 Write-Section "Step 2, Write pre-commit hook (gitleaks staged scan)"
 
-$preCommitContent = @'
-#!/bin/sh
-# pre-commit, gitleaks secret scan on staged files
-# Installed by phase_06_hooks_and_scanning.ps1
-#
-# Runs gitleaks against staged changes before every commit.
-# If secrets are detected, the commit is aborted.
-# Set SKIP_GITLEAKS=1 to bypass (for test fixtures only, use sparingly).
-
-if [ "${SKIP_GITLEAKS:-0}" = "1" ]; then
-    echo "[pre-commit] WARNING: gitleaks scan skipped (SKIP_GITLEAKS=1)" >&2
-    exit 0
-fi
-
-# Check if gitleaks is on PATH
-if ! command -v gitleaks >/dev/null 2>&1; then
-    echo "[pre-commit] WARNING: gitleaks is not installed, skipping secret scan." >&2
-    echo "[pre-commit] Install gitleaks and re-run Phase 1 to enable scanning." >&2
-    exit 0
-fi
-
-# Determine config path
-GITLEAKS_CONFIG="$HOME/.gitleaks.toml"
-if [ ! -f "$GITLEAKS_CONFIG" ]; then
-    GITLEAKS_CONFIG=""
-fi
-
-# Run gitleaks on staged files
-if [ -n "$GITLEAKS_CONFIG" ]; then
-    gitleaks protect --staged --redact --config "$GITLEAKS_CONFIG" 2>&1
-else
-    gitleaks protect --staged --redact 2>&1
-fi
-
-EXIT_CODE=$?
-
-if [ $EXIT_CODE -ne 0 ]; then
-    echo "" >&2
-    echo "[pre-commit] BLOCKED: gitleaks detected potential secrets in staged files." >&2
-    echo "[pre-commit] Review the output above. If this is a false positive:" >&2
-    echo "[pre-commit]   1. Add an allowlist entry to ~/.gitleaks.toml" >&2
-    echo "[pre-commit]   2. Or set SKIP_GITLEAKS=1 (only for test fixture commits)" >&2
-    echo "" >&2
-    exit 1
-fi
-
-exit 0
-'@
+if (-not (Test-Path $preCommitTemplate)) {
+    Abort "Template missing: $preCommitTemplate"
+}
+$preCommitContent = Get-Content -Raw -Path $preCommitTemplate
 
 try {
     Write-UnixFile -Path $preCommit -Content $preCommitContent
-    Write-Pass "Written: $preCommit"
+    Write-Pass "Written: $preCommit (from $preCommitTemplate)"
     $Results['pre-commit Hook'] = 'PASS'
 } catch {
     Write-Fail "Failed to write pre-commit hook: $_"
@@ -154,78 +116,14 @@ try {
 
 Write-Section "Step 3, Write commit-msg hook (Conventional Commits)"
 
-$commitMsgContent = @'
-#!/bin/sh
-# commit-msg, Conventional Commits format validation
-# Installed by phase_06_hooks_and_scanning.ps1
-#
-# Validates the commit message against the Conventional Commits specification.
-# Pattern: <type>(<optional scope>): <description>
-#   - type     : feat|fix|docs|style|refactor|perf|test|chore|ci|revert
-#   - scope    : optional, in parentheses
-#   - description: 1-88 characters, lowercase preferred, no trailing period
-#
-# Merge commits, revert commits, and fixup commits bypass validation.
-
-MSG_FILE="$1"
-MSG=$(cat "$MSG_FILE")
-
-# Skip validation for merge commits
-if echo "$MSG" | grep -qE '^Merge '; then
-    exit 0
-fi
-
-# Skip validation for revert auto-generated messages
-if echo "$MSG" | grep -qE '^Revert "'; then
-    exit 0
-fi
-
-# Skip fixup and squash commits (used during interactive rebase)
-if echo "$MSG" | grep -qE '^(fixup|squash)!'; then
-    exit 0
-fi
-
-# Skip empty messages or comment-only messages (git handles these separately)
-STRIPPED=$(echo "$MSG" | sed '/^#/d' | sed '/^$/d')
-if [ -z "$STRIPPED" ]; then
-    exit 0
-fi
-
-# Conventional Commits pattern
-# type(scope): description , total subject line max 88 chars
-CC_PATTERN='^(feat|fix|docs|style|refactor|perf|test|chore|ci|revert)(\(.+\))?: .{1,88}$'
-
-# Extract subject line (first non-empty, non-comment line)
-SUBJECT=$(echo "$MSG" | sed '/^#/d' | sed '/^[[:space:]]*$/d' | head -1)
-
-if ! echo "$SUBJECT" | grep -qE "$CC_PATTERN"; then
-    echo "" >&2
-    echo "  COMMIT REJECTED, message does not follow Conventional Commits format." >&2
-    echo "" >&2
-    echo "  Your message:" >&2
-    echo "    $SUBJECT" >&2
-    echo "" >&2
-    echo "  Required format:" >&2
-    echo "    <type>(<scope>): <short description>" >&2
-    echo "" >&2
-    echo "  Valid types: feat, fix, docs, style, refactor, perf, test, chore, ci, revert" >&2
-    echo "  Scope is optional. Description must be 1-88 characters." >&2
-    echo "" >&2
-    echo "  Examples:" >&2
-    echo "    feat(auth): add SSH key rotation support" >&2
-    echo "    fix(hooks): prevent false positive on test fixtures" >&2
-    echo "    chore: update uv to 0.5.0" >&2
-    echo "    docs(readme): add Phase 2 troubleshooting section" >&2
-    echo "" >&2
-    exit 1
-fi
-
-exit 0
-'@
+if (-not (Test-Path $commitMsgTemplate)) {
+    Abort "Template missing: $commitMsgTemplate"
+}
+$commitMsgContent = Get-Content -Raw -Path $commitMsgTemplate
 
 try {
     Write-UnixFile -Path $commitMsg -Content $commitMsgContent
-    Write-Pass "Written: $commitMsg"
+    Write-Pass "Written: $commitMsg (from $commitMsgTemplate)"
     $Results['commit-msg Hook'] = 'PASS'
 } catch {
     Write-Fail "Failed to write commit-msg hook: $_"
@@ -249,109 +147,20 @@ $Results['Hook Executability'] = 'PASS (Windows, no chmod needed)'
 
 Write-Section "Step 5, Install ~/.gitleaks.toml"
 
-$gitleaksTomlContent = @'
-# ~/.gitleaks.toml, Custom gitleaks configuration
-# Generated by phase_06_hooks_and_scanning.ps1
-#
-# Extends the default gitleaks ruleset with project-specific allowlists.
-# Reference: https://github.com/gitleaks/gitleaks/tree/master#configuration
+# Source of truth is config/gitleaks.toml in this repo. The previous
+# inline-default fallback was dead weight (config/gitleaks.toml is
+# always committed) and risked silent drift between the inline copy
+# and the committed template. Abort if the template is missing.
 
-title = "Custom Gitleaks Config"
-
-[extend]
-# Use the built-in default rules as the base
-useDefault = true
-
-# ---------------------------------------------------------------------------
-# Global allowlist, patterns that are NEVER secrets regardless of context
-# ---------------------------------------------------------------------------
-[allowlist]
-description = "Global allowlist for known safe patterns"
-
-# ArduPilot / MAVLink parameter strings that look like keys but are not
-regexes = [
-    # MAVLink parameter names (all caps, underscores, numbers)
-    '''[A-Z][A-Z0-9_]{2,15}''',
-    # C preprocessor hex constants (e.g. 0xDEADBEEF)
-    '''0x[0-9A-Fa-f]{4,16}''',
-    # NASM assembly hex immediates (e.g. 0FFFFh, 0xABCD)
-    '''[0-9][0-9A-Fa-f]*h\b''',
-]
-
-paths = [
-    # Test fixture directories
-    '''test[s]?/fixtures/''',
-    '''test[s]?/data/''',
-    # Documentation examples
-    '''docs?/examples?/''',
-    # This config file itself
-    '''\.gitleaks\.toml''',
-    # Phase setup scripts (contain example patterns in comments)
-    '''scripts/phase_0[0-9]_''',
-]
-
-# ---------------------------------------------------------------------------
-# Additional custom rules
-# ---------------------------------------------------------------------------
-
-# Detect Windows credential manager exports
-[[rules]]
-id          = "windows-credential-export"
-description = "Windows Credential Manager exported credential"
-regex       = '''(?i)(target|username|password|credential).{0,30}[:=].{0,100}'''
-tags        = ["windows", "credential"]
-severity    = "HIGH"
-
-[rules.allowlist]
-regexes = [
-    # Allow documentation comments
-    '''^\s*#''',
-    # Allow gitconfig format lines
-    '''^\s+\w+\s*=\s*\w+''',
-]
-
-# Detect SSH private key material accidentally staged
-[[rules]]
-id          = "ssh-private-key-content"
-description = "SSH private key content (not just BEGIN PRIVATE KEY header)"
-regex       = '''-----BEGIN (OPENSSH|RSA|DSA|EC|PGP) PRIVATE KEY-----'''
-tags        = ["ssh", "key", "private"]
-severity    = "CRITICAL"
-
-# Detect .env-style variable assignments containing secrets
-[[rules]]
-id          = "env-variable-secret"
-description = "Environment variable assignment with a probable secret value"
-regex       = '''(?i)(api_?key|api_?secret|auth_?token|access_?token|secret_?key|private_?key|client_?secret)\s*[=:]\s*['"]?[A-Za-z0-9+/=_\-]{16,}['"]?'''
-tags        = ["env", "secret", "token"]
-severity    = "HIGH"
-
-[rules.allowlist]
-regexes = [
-    # Allow .env.example files, they contain placeholders
-    '''\.env\.example''',
-    # Allow lines that are clearly placeholder values
-    '''(?i)(your[-_]?|example[-_]?|replace[-_]?|placeholder|<.*>|CHANGEME)''',
-]
-'@
-
-# Prefer copying from repo config/ if it exists; otherwise write inline
-if (Test-Path $configSrc) {
-    try {
-        Copy-Item -Path $configSrc -Destination $gitleaksToml -Force
-        Write-Pass "Copied from repo: $configSrc -> $gitleaksToml"
-        $Results['gitleaks.toml'] = 'PASS (from repo config/)'
-    } catch {
-        Write-Warn "Copy failed: $_. Writing inline default instead."
-        Set-Content -Path $gitleaksToml -Value $gitleaksTomlContent -Encoding UTF8
-        Write-Pass "Written inline: $gitleaksToml"
-        $Results['gitleaks.toml'] = 'PASS (inline default)'
-    }
-} else {
-    Write-Info "config\gitleaks.toml not found in repo root, writing inline default"
-    Set-Content -Path $gitleaksToml -Value $gitleaksTomlContent -Encoding UTF8
-    Write-Pass "Written: $gitleaksToml"
-    $Results['gitleaks.toml'] = 'PASS (inline default)'
+if (-not (Test-Path $configSrc)) {
+    Abort "Template missing: $configSrc. Run from a complete cfg_dev_environment checkout."
+}
+try {
+    Copy-Item -Path $configSrc -Destination $gitleaksToml -Force
+    Write-Pass "Copied from repo: $configSrc -> $gitleaksToml"
+    $Results['gitleaks.toml'] = 'PASS (from repo config/)'
+} catch {
+    Abort "Copy failed: $_"
 }
 
 # ---------------------------------------------------------------------------
