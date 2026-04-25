@@ -1,12 +1,14 @@
 ---
 name: session-save
-description: Write or update SESSION_STATE.md, what was accomplished, blockers, key paths touched, and exact next steps. Keeps the file under 100 lines.
+description: Write or update SESSION_STATE.md, what was accomplished, blockers, key paths touched, and exact next steps.
 ---
 
 # /session-save, Save Session State
 
 Write or overwrite `SESSION_STATE.md` in the current working directory with a
-concise snapshot of this session. The file must stay under 100 lines.
+snapshot of this session. Optimize for usefulness to a future session reading
+the file cold. There is no length limit; include enough detail that the next
+session can resume without re-reading the conversation, and no more.
 
 ---
 
@@ -15,16 +17,17 @@ concise snapshot of this session. The file must stay under 100 lines.
 Do NOT ask the user any questions. Derive everything from the conversation history
 and the current repo state:
 
-- **Accomplished**, actions completed in this session (commits, PRs, files created,
-  config applied, decisions made).
-- **Open items**, anything started but not finished, blocked, or deferred. Include
-  PR URLs, issue numbers, and manual steps that cannot be automated.
-- **Key paths**, files and directories that were created or meaningfully changed.
-  Repo-relative paths are preferred; absolute paths for out-of-repo locations
-  (OneDrive scripts, ~/.claude/, etc.).
-- **Next steps**, ordered, concrete actions the user should take to resume. Each
-  step must be actionable without re-reading the full conversation. Include exact
-  commands, PR URLs, or skill names (e.g., `/merge-complete`) where relevant.
+- **Accomplished**, actions completed in this session (commits, PRs, files
+  created, config applied, decisions made).
+- **Open items**, anything started but not finished, blocked, or deferred.
+  Include PR URLs, issue numbers, and manual steps that cannot be automated.
+- **Key paths**, files and directories that were created or meaningfully
+  changed. Repo-relative paths are preferred; absolute paths for out-of-repo
+  locations (OneDrive scripts, ~/.claude/, etc.).
+- **Next steps**, ordered, concrete actions the user should take to resume.
+  Each step must be actionable without re-reading the full conversation.
+  Include exact commands, PR URLs, or skill names (e.g., `/merge-complete`)
+  where relevant.
 
 ---
 
@@ -38,7 +41,7 @@ read before it can be overwritten. If the file does not exist yet, skip this ste
 ## Step 3: Write SESSION_STATE.md
 
 Write the file using this exact structure. Omit any section that has nothing to
-report (e.g., no blockers → omit Open Items).
+report (e.g., no blockers means omit Open Items).
 
 If the current session has a name (not a default placeholder like "New Session"
 or an auto-generated timestamp), include it as a `Session` metadata line
@@ -53,7 +56,7 @@ Session: {session name}
 
 ## Open Items
 - **{item}**, {why it is blocked or pending}
-  → {URL or command to resume}
+  -> {URL or command to resume}
 
 ## Key Paths
 | Item | Path |
@@ -70,9 +73,12 @@ Rules:
 - Date must be today's date in `YYYY-MM-DD` format.
 - Omit the `Session:` line entirely if the session is unnamed.
 - Bullets are past-tense for Accomplished, imperative for Next Steps.
-- Keep every line under 100 characters.
-- Total file must be under 100 lines.
 - Do not include meta-commentary, pleasantries, or filler.
+- Length is whatever the work requires. Compress when nothing more needs
+  to be said; expand when the next session needs commit hashes, PR
+  numbers, per-repo state, or decision rationale to resume cleanly.
+- No em dashes anywhere. Use commas, parentheses, colons, periods, or
+  semicolons. See `~/.claude/rules/core.md`.
 
 ---
 
