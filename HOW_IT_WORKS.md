@@ -17,7 +17,7 @@ once on a fresh machine. After all 12 phases complete, the machine has:
 - All development tools installed and configured
 - SSH keys in Bitwarden (never on disk)
 - Signed git commits and tags globally enabled
-- A project directory structure at `%USERPROFILE%\projects\`
+- A project directory structure at `{projects_root}\` (chosen during Phase 3, default `%USERPROFILE%\projects\`)
 - Global git hooks (Conventional Commits, gitleaks secret scanning)
 - Global Claude rules and skills installed
 - VS Code and Windows Terminal fully configured
@@ -93,10 +93,14 @@ Writes `~/.gitconfig` with:
 Writes `~/.gitmessage` commit message template.
 
 ### Phase 4: Directory Structure
-Creates the project directory tree:
+Creates the project directory tree under the `projects_root` chosen in
+Phase 3 (default `%USERPROFILE%\projects\`):
 ```
-%USERPROFILE%\projects\
-├── personal\
+{projects_root}\
+├── {github_username}\
+│   ├── public\
+│   ├── private\
+│   └── collaborative\
 ├── client\
 └── arduino\
     ├── upstream\
@@ -223,7 +227,7 @@ Includes context-include blocks for Client and Arduino git identities.
 
 ### `config/gitconfig-client.template` / `config/gitconfig-arduino.template`
 Conditional include files for alternate identities. Used when working in
-`%USERPROFILE%\projects\client\` or `%USERPROFILE%\projects\arduino\`.
+`{projects_root}\client\` or `{projects_root}\arduino\` (resolved from `~/.claude/config.json`).
 
 ### `config/gitleaks.toml`
 The live gitleaks config copied to `~/.gitleaks.toml`. Custom rules:
@@ -309,7 +313,7 @@ environment. Handles the full journey in one command.
 1. Validates 12 prerequisites (PS version, git, gh, auth, Bitwarden, etc.)
 2. Analyzes scaffold gaps (lists which of 7 standard files are missing)
 3. Detects gitignore candidates (.log, .pdf, .docx, dated transcripts, etc.)
-4. Copies the project to `%USERPROFILE%\projects\iam6ft7in\<repo-name>`
+4. Copies the project to `{projects_root}\{github_username}\<repo-name>`
 5. Initializes a git repo
 6. Cleans stale OneDrive paths from `.claude/settings.local.json`
 7. Generates a `.gitignore` for PowerShell projects
@@ -367,7 +371,7 @@ Pass bare comma-separated values:
    ```
 4. After Phase 12 completes, clone the repo to its permanent location:
    ```powershell
-   git clone git@github-personal:{github_username}/cfg_dev_environment.git %USERPROFILE%\projects\iam6ft7in\cfg_dev_environment
+   git clone git@github-personal:{github_username}/cfg_dev_environment.git {projects_root}\{github_username}\public\cfg_dev_environment
    ```
 5. Delete the temporary clone.
 
@@ -376,7 +380,7 @@ Pass bare comma-separated values:
 ## Migrating a Future Project
 
 ```powershell
-cd %USERPROFILE%\projects\iam6ft7in\cfg_dev_environment
+cd {projects_root}\{github_username}\public\cfg_dev_environment
 
 pwsh -File scripts\migrate_to_github.ps1 `
     -SourcePath "C:\path\to\existing\project" `

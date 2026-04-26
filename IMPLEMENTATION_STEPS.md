@@ -193,13 +193,16 @@ EXIT CRITERIA: git config --list --global shows all expected values.
 ### How to start it:
    pwsh -File scripts\phase_04_directories.ps1
 
-The script creates:
-- %USERPROFILE%\projects\iam6ft7in\
-- %USERPROFILE%\projects\client\
-- %USERPROFILE%\projects\arduino\upstream\
-- %USERPROFILE%\projects\arduino\custom\
+The script reads `projects_root` and `github_username` from
+`~/.claude/config.json` (written by Phase 3) and creates:
+- {projects_root}\{github_username}\public\
+- {projects_root}\{github_username}\private\
+- {projects_root}\{github_username}\collaborative\
+- {projects_root}\client\
+- {projects_root}\arduino\upstream\
+- {projects_root}\arduino\custom\
 
-EXIT CRITERIA: All four directories exist.
+EXIT CRITERIA: All six directories exist.
 
 ---
 
@@ -462,7 +465,7 @@ Test repo is cleaned up.
 
 The script:
 - Creates the repo on GitHub: personal_cfg_dev_environment (private)
-- Creates local directory at ~/projects/iam6ft7in/cfg_dev_environment/
+- Creates local directory at {projects_root}/{github_username}/public/cfg_dev_environment/
 - Copies all scaffold template files (from Phase 8)
 - Copies all setup scripts organized by phase into scripts/
 - Copies all configuration file templates

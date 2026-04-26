@@ -39,15 +39,17 @@ GitHub topics for discoverability. Comma-separated, lowercase, no spaces.
 - Optional — press Enter to skip.
 
 ### 1e. Identity
-Present a numbered list:
-1. personal/public — migrates to `{projects_root}\personal\public\{repo_name}`
-2. personal/private — migrates to `{projects_root}\personal\private\{repo_name}`
-3. personal/collaborative — migrates to `{projects_root}\personal\collaborative\{repo_name}`
-4. client — migrates to `{projects_root}\client\{repo_name}`
-5. arduino — migrates to `{projects_root}\arduino\custom\{repo_name}`
+Read `projects_root` and `github_username` from `~/.claude/config.json`
+(both written by Phase 3 of `cfg_dev_environment`). Fall back to
+`%USERPROFILE%\projects` for `projects_root` if absent; abort with a
+pointer to Phase 3 if `github_username` is absent.
 
-Read `{projects_root}` from `~/.claude/config.json` (key: `projects_root`).
-Fall back to `%USERPROFILE%\projects` if absent.
+Present a numbered list:
+1. personal/public, migrates to `{projects_root}\{github_username}\public\{repo_name}`
+2. personal/private, migrates to `{projects_root}\{github_username}\private\{repo_name}`
+3. personal/collaborative, migrates to `{projects_root}\{github_username}\collaborative\{repo_name}`
+4. client, migrates to `{projects_root}\client\{repo_name}`
+5. arduino, migrates to `{projects_root}\arduino\custom\{repo_name}`
 
 Determine the GitHub SSH alias based on identity:
 - `personal/*` → `github-personal`
