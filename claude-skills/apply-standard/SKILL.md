@@ -41,24 +41,28 @@ Inspect the repository structure to determine the platform:
 Report the detected platform and ask the user to confirm or correct it.
 
 ### 1c. Confirm Identity
+Read `projects_root` and `github_username` from `~/.claude/config.json`
+(both written by Phase 3 of `cfg_dev_environment`):
+```powershell
+$config         = Get-Content "$HOME\.claude\config.json" -Raw | ConvertFrom-Json
+$projectsRoot   = $config.projects_root
+$githubUsername = $config.github_username
+```
+If `projects_root` is absent, fall back to `$HOME\projects`. If
+`github_username` is absent, abort and direct the user to re-run
+Phase 3.
+
 Present a numbered list:
-1. personal/public, maps to ~/projects/iam6ft7in/public/ (public GitHub repos)
-2. personal/private, maps to ~/projects/iam6ft7in/private/ (private GitHub repos)
-3. personal/collaborative, maps to ~/projects/iam6ft7in/collaborative/
+1. personal/public, maps to `{projects_root}\{github_username}\public\` (public GitHub repos)
+2. personal/private, maps to `{projects_root}\{github_username}\private\` (private GitHub repos)
+3. personal/collaborative, maps to `{projects_root}\{github_username}\collaborative\`
 4. client
 5. arduino (custom)
 
-Read the projects root from `~/.claude/config.json` (key: `projects_root`):
-```powershell
-$config = Get-Content "$HOME\.claude\config.json" -Raw | ConvertFrom-Json
-$projectsRoot = $config.projects_root
-```
-If absent, fall back to `$HOME\projects`.
-
-Derive the local path from `{projects_root}`:
-- `personal/public` → `{projects_root}\personal\public\{repo_name}`
-- `personal/private` → `{projects_root}\personal\private\{repo_name}`
-- `personal/collaborative` → `{projects_root}\personal\collaborative\{repo_name}`
+Derive the local path from `{projects_root}` and `{github_username}`:
+- `personal/public` → `{projects_root}\{github_username}\public\{repo_name}`
+- `personal/private` → `{projects_root}\{github_username}\private\{repo_name}`
+- `personal/collaborative` → `{projects_root}\{github_username}\collaborative\{repo_name}`
 - `client` → `{projects_root}\client\{repo_name}`
 - `arduino` → `{projects_root}\arduino\custom\{repo_name}`
 
@@ -295,7 +299,7 @@ The new schema uses lowercase curly-brace tokens:
 |-------------------------|-------------------------------------------------------|
 | `{{repo_name}}`         | Repository name detected in step 1                    |
 | `{{one_line_purpose}}`  | Ask the user for a one-sentence description           |
-| `{{owner}}`             | `iam6ft7in`, `pegapod`, or the confirmed identity      |
+| `{{owner}}`             | `{github_username}` for personal, the client name, or the confirmed identity |
 | `{{visibility}}`        | `public`, `private`, or `collaborative`                |
 | `{{languages}}`         | Detected from platform, e.g. `powershell`, `python`    |
 | `{{session_name}}`      | Same as `{{repo_name}}` unless the user has a custom shortcut name |

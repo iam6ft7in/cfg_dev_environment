@@ -39,11 +39,11 @@ over in a generated repo.
 
 ### 1c. Identity
 Present a numbered list:
-1. personal/public, maps to ~/projects/{username}/public/ (public GitHub repos)
-2. personal/private, maps to ~/projects/{username}/private/ (private GitHub repos)
-3. personal/collaborative, maps to ~/projects/{username}/collaborative/
-4. client, maps to ~/projects/client/
-5. arduino, maps to ~/projects/arduino/custom/
+1. personal/public, maps to `{projects_root}/{username}/public/` (public GitHub repos)
+2. personal/private, maps to `{projects_root}/{username}/private/` (private GitHub repos)
+3. personal/collaborative, maps to `{projects_root}/{username}/collaborative/`
+4. client, maps to `{projects_root}/client/`
+5. arduino, maps to `{projects_root}/arduino/custom/`
 
 ### 1d. Short Description
 - One sentence describing what the repository does.
@@ -68,20 +68,24 @@ The user MUST choose one. If they do not answer clearly, ask again.
 
 ## Step 2: Determine Local Path
 
-Read the projects root from `~/.claude/config.json` (key: `projects_root`):
+Read `projects_root` and `github_username` from `~/.claude/config.json`
+(both written by Phase 3 of `cfg_dev_environment`):
 ```powershell
-$config = Get-Content "$HOME\.claude\config.json" -Raw | ConvertFrom-Json
-$projectsRoot = $config.projects_root
+$config         = Get-Content "$HOME\.claude\config.json" -Raw | ConvertFrom-Json
+$projectsRoot   = $config.projects_root
+$githubUsername = $config.github_username
 ```
-If the file does not exist or the key is absent, fall back to `$HOME\projects` and
-warn: "~/.claude/config.json not found, run phase_04_directories.ps1 to configure
-your projects root. Falling back to %USERPROFILE%\projects."
+If the file does not exist or `projects_root` is absent, fall back to
+`$HOME\projects` and warn: "~/.claude/config.json not found, run Phase 3
+of cfg_dev_environment to configure your projects root. Falling back to
+%USERPROFILE%\projects." If `github_username` is absent, abort and
+direct the user to re-run Phase 3.
 
 Determine the GitHub username based on identity (resolve before constructing
 the path so `{username}` is substituted correctly):
-- `personal` → use the username from `gh api user --jq .login` under the personal account
+- `personal` → `$githubUsername` from config (verify it matches `gh api user --jq .login` under the personal account; warn if they differ)
 - `client` → `client`
-- `arduino` → use personal username (arduino repos live under the personal GitHub account)
+- `arduino` → `$githubUsername` (arduino repos live under the personal GitHub account)
 
 Based on identity, construct the local path from `{projects_root}` and the
 resolved `{username}`:
@@ -195,7 +199,7 @@ Placeholders replaced here:
 - `{{PLATFORM}}` → the chosen platform
 - `{{YEAR}}` → the current year (4 digits)
 - `{{REPO_PATH}}` → the full local path resolved in Step 2 (e.g.,
-  `{projects_root}\personal\{repo_name}`)
+  `{projects_root}\{username}\public\{repo_name}` for personal/public)
 
 Use PowerShell to do this recursively:
 ```powershell
