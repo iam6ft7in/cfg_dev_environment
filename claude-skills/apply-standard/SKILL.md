@@ -533,10 +533,10 @@ Deliberately excluded from staging:
 ## Step 6: Regenerate Project Shortcuts
 
 Re-run the launcher-shortcut generator so a `.lnk` for this repo appears in
-`{projects_root}\shortcuts\` (auto-discovers repos via `.git` dirs and clears
+`~/.claude/shortcuts/` (auto-discovers repos via `.git` dirs and clears
 stale `.lnk`s):
 ```powershell
-pwsh -File "{projects_root}\shortcuts\regenerate.ps1"
+pwsh -File "$HOME\.claude\shortcuts\regenerate.ps1"
 ```
 If the script is missing, note it in the final report but do not fail the run.
 
@@ -569,7 +569,7 @@ GitHub settings:
   + Projects board: {repo_name} Board (Backlog, Todo, In Progress, In Review, Done)
 
 Shortcut:
-  + {projects_root}\shortcuts\{repo_name}.lnk (regenerated)
+  + ~/.claude/shortcuts/{repo_name}.lnk (regenerated)
 
 Already present (unchanged):
   .gitattributes, .gitignore, CHANGELOG.md, CONTRIBUTING.md,

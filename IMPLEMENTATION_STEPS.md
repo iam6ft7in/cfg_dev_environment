@@ -298,17 +298,14 @@ reported as one of IN-SYNC, CREATED, OVERWRITE, or SKIP.
 ### What the script does:
 Walks every file under claude-skills/ and under claude-scripts/ and
 deploys each one against its counterpart in either ~/.claude/skills/,
-~/.claude/scripts/, or {projects_root}\shortcuts\ (for the shortcut
+~/.claude/scripts/, or ~/.claude/shortcuts/ (for the shortcut
 regenerator). Path mapping:
 - claude-skills/{skill}/*
     -> ~/.claude/skills/{skill}/*
 - claude-scripts\setup_project_board.ps1
     -> ~/.claude/scripts/setup_project_board.ps1
 - claude-scripts\regenerate_shortcuts.ps1
-    -> {projects_root}\shortcuts\regenerate.ps1
-
-The projects root is read from ~/.claude/config.json (written by Phase 4);
-falls back to %USERPROFILE%\projects if the config is missing.
+    -> ~/.claude/shortcuts/regenerate.ps1
 
 ### Behavior on re-run (diff-before-copy):
 Each file is compared to its deployed counterpart:
@@ -324,7 +321,7 @@ Force mode:
 
 EXIT CRITERIA: Every SKILL.md in claude-skills/ has a deployed copy,
 setup_project_board.ps1 exists in ~/.claude/scripts/, and regenerate.ps1
-exists in {projects_root}\shortcuts\. Each file resolves to one of
+exists in ~/.claude/shortcuts/. Each file resolves to one of
 IN-SYNC, CREATED, OVERWRITE, or SKIP.
 
 ---

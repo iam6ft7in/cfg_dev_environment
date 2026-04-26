@@ -19,9 +19,6 @@
 #
 # Phase       : 7b of 12 (runs after Phase 7 rules, before Phase 8 templates)
 #
-# Projects root resolution: reads ~/.claude/config.json (projects_root),
-# written by Phase 4. Falls back to $HOME/projects and warns.
-#
 # Run with: bash scripts/phase_07b_claude_skills_and_scripts.sh
 # Force:    bash scripts/phase_07b_claude_skills_and_scripts.sh --force
 # ==============================================================================
@@ -79,27 +76,7 @@ SOURCE_SKILLS_DIR="${REPO_ROOT}/claude-skills"
 SOURCE_SCRIPTS_DIR="${REPO_ROOT}/claude-scripts"
 DEST_SKILLS_DIR="${HOME}/.claude/skills"
 DEST_SCRIPTS_DIR="${HOME}/.claude/scripts"
-CONFIG_PATH="${HOME}/.claude/config.json"
-
-DEFAULT_ROOT="${HOME}/projects"
-PROJECTS_ROOT="${DEFAULT_ROOT}"
-if [ -f "${CONFIG_PATH}" ]; then
-    if command -v jq >/dev/null 2>&1; then
-        cfg_root=$(jq -r '.projects_root // empty' "${CONFIG_PATH}" 2>/dev/null || true)
-    else
-        cfg_root=$(grep -oE '"projects_root"[[:space:]]*:[[:space:]]*"[^"]+"' "${CONFIG_PATH}" \
-                   | sed -E 's/.*"projects_root"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/' \
-                   | head -n1 || true)
-    fi
-    if [ -n "${cfg_root:-}" ]; then
-        PROJECTS_ROOT="${cfg_root//\\\\/\\}"
-    else
-        log_warn "~/.claude/config.json exists but projects_root is unset. Falling back to ${DEFAULT_ROOT}."
-    fi
-else
-    log_warn "~/.claude/config.json not found - run Phase 4 first. Falling back to ${DEFAULT_ROOT}."
-fi
-SHORTCUTS_DIR="${PROJECTS_ROOT}/shortcuts"
+SHORTCUTS_DIR="${HOME}/.claude/shortcuts"
 
 BOARD_HELPER_SRC="${SOURCE_SCRIPTS_DIR}/setup_project_board.ps1"
 BOARD_HELPER_DEST="${DEST_SCRIPTS_DIR}/setup_project_board.ps1"
