@@ -146,11 +146,9 @@ become available) and the two helper scripts the skills shell out to:
 - `claude-scripts/setup_project_board.ps1` → `~/.claude/scripts/setup_project_board.ps1`
   (creates and standardizes the GitHub Projects v2 board; called by
   `/new-repo` step 3m, `/migrate-repo` step 5, `/apply-standard` step 4s)
-- `claude-scripts/regenerate_shortcuts.ps1` → `{projects_root}\shortcuts\regenerate.ps1`
-  (rebuilds `.lnk` files under the shortcuts directory; called by the
+- `claude-scripts/regenerate_shortcuts.ps1` → `~/.claude/shortcuts/regenerate.ps1`
+  (rebuilds `.lnk` files under `~/.claude/shortcuts/`; called by the
   same three skills at the end of their runs)
-
-The projects root is read from `~/.claude/config.json` (written by Phase 4).
 
 On re-run, each file is compared to its deployed counterpart. Identical
 files report `IN-SYNC`. Drifted files trigger a per-file prompt
@@ -298,7 +296,7 @@ deploys these alongside the SKILL.md files:
 | Script | Destination | Called by |
 |---|---|---|
 | `setup_project_board.ps1` | `~/.claude/scripts/` | `/new-repo`, `/migrate-repo`, `/apply-standard` |
-| `regenerate_shortcuts.ps1` | `{projects_root}\shortcuts\regenerate.ps1` | `/new-repo`, `/migrate-repo`, `/apply-standard` |
+| `regenerate_shortcuts.ps1` | `~/.claude/shortcuts/regenerate.ps1` | `/new-repo`, `/migrate-repo`, `/apply-standard` |
 
 ---
 

@@ -184,10 +184,10 @@ the apply-standard prompts individually, but the default is a full run.
 ## Step 7: Regenerate Project Shortcuts
 
 Re-run the launcher-shortcut generator so a `.lnk` for the migrated repo
-appears in `{projects_root}\shortcuts\` (auto-discovers repos via `.git` dirs
+appears in `~/.claude/shortcuts/` (auto-discovers repos via `.git` dirs
 and clears stale `.lnk`s):
 ```powershell
-pwsh -File "{projects_root}\shortcuts\regenerate.ps1"
+pwsh -File "$HOME\.claude\shortcuts\regenerate.ps1"
 ```
 If the script is missing, note it in the final report but do not fail the run.
 
@@ -201,7 +201,7 @@ Migration Complete
   Repo:     {repo_name}
   GitHub:   https://github.com/{github_username}/{repo_name}
   Local:    {projects_root}\{identity_subpath}\{repo_name}
-  Shortcut: {projects_root}\shortcuts\{repo_name}.lnk
+  Shortcut: ~/.claude/shortcuts/{repo_name}.lnk
 
 Next steps:
   1. Open Claude in the new repo directory

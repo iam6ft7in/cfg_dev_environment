@@ -13,7 +13,7 @@ across all personal and client projects.
 | `claude-rules/` | Global Claude rule files, deployed to `~/.claude/rules/` (auto-load universal or extension-triggered) |
 | `claude-stacks/` | Opt-in stack rule files, deployed to `~/.claude/stacks/` (do NOT auto-load; @-imported per repo) |
 | `claude-skills/` | Skill directories deployed to `~/.claude/skills/` |
-| `claude-scripts/` | Helper scripts the skills call, deployed to `~/.claude/scripts/` and `{projects_root}\shortcuts\` by Phase 7b |
+| `claude-scripts/` | Helper scripts the skills call, deployed to `~/.claude/scripts/` and `~/.claude/shortcuts/` by Phase 7b |
 | `config/` | Source-of-truth for dotfiles deployed to `~/`: gitconfig, gitleaks, gitignore_global, gitmessage, Oh My Posh theme, ssh_config, bashrc, bash_profile, git-templates/hooks, cspell custom words, bitwarden_env.example |
 
 ## Usage

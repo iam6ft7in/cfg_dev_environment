@@ -11,7 +11,7 @@
                     2. claude-scripts\setup_project_board.ps1
                          -> ~/.claude/scripts/setup_project_board.ps1
                     3. claude-scripts\regenerate_shortcuts.ps1
-                         -> {projects_root}\shortcuts\regenerate.ps1
+                         -> ~\.claude\shortcuts\regenerate.ps1
 
     For every file involved, compare repo source against its deployed
     counterpart before writing:
@@ -29,9 +29,6 @@
     file without prompting.
 
     Phase       : 07b (runs after Phase 07 rules, before Phase 08 templates)
-
-    Projects root resolution: reads ~/.claude/config.json (projects_root),
-    written by Phase 04. Falls back to %USERPROFILE%\projects and warns.
 
 .PARAMETER Force
     Overwrite every drifted file without prompting.
@@ -100,28 +97,7 @@ ${SourceSkillsDir}   = Join-Path ${RepoRoot} 'claude-skills'
 ${SourceScriptsDir}  = Join-Path ${RepoRoot} 'claude-scripts'
 ${DestSkillsDir}     = Join-Path ${HOME}     '.claude\skills'
 ${DestScriptsDir}    = Join-Path ${HOME}     '.claude\scripts'
-${ConfigPath}        = Join-Path ${HOME}     '.claude\config.json'
-
-${DefaultRoot} = Join-Path ${HOME} 'projects'
-if (Test-Path ${ConfigPath}) {
-    try {
-        ${cfg} = Get-Content ${ConfigPath} -Raw -Encoding UTF8 | ConvertFrom-Json
-        if (${cfg}.PSObject.Properties.Name -contains 'projects_root' `
-                -and ${cfg}.projects_root) {
-            ${ProjectsRoot} = ${cfg}.projects_root
-        } else {
-            Write-Warn "~/.claude/config.json exists but has no projects_root key. Falling back to ${DefaultRoot}."
-            ${ProjectsRoot} = ${DefaultRoot}
-        }
-    } catch {
-        Write-Warn "Could not parse ~/.claude/config.json (${_}). Falling back to ${DefaultRoot}."
-        ${ProjectsRoot} = ${DefaultRoot}
-    }
-} else {
-    Write-Warn "~/.claude/config.json not found - run Phase 04 first. Falling back to ${DefaultRoot}."
-    ${ProjectsRoot} = ${DefaultRoot}
-}
-${ShortcutsDir} = Join-Path ${ProjectsRoot} 'shortcuts'
+${ShortcutsDir}      = Join-Path ${HOME}     '.claude\shortcuts'
 
 ${BoardHelperSrc}  = Join-Path ${SourceScriptsDir} 'setup_project_board.ps1'
 ${BoardHelperDest} = Join-Path ${DestScriptsDir}   'setup_project_board.ps1'
