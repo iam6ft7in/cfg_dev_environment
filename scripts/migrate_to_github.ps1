@@ -6,9 +6,9 @@
 .DESCRIPTION
     Script Name : migrate_to_github.ps1
     Purpose     : Copies an existing project to the personal projects root
-                  (read from ~/.claude/config.json, falls back to
-                  %USERPROFILE%\projects\iam6ft7in), initializes git, adds missing
-                  scaffold files, creates a private GitHub repo under the
+                  ({projects_root}/{github_username} from ~/.claude/config.json,
+                  written by Phase 3), initializes git, adds missing scaffold
+                  files, creates a private GitHub repo under the
                   github-personal SSH alias, makes an initial signed commit,
                   pushes, and applies a branch protection ruleset.
 
@@ -33,8 +33,10 @@
     Example: @("powershell","hyper-v","infrastructure")
 
 .PARAMETER TargetRoot
-    Parent directory for the migrated repo. Defaults to the personal projects root
-    from ~/.claude/config.json, or %USERPROFILE%\projects\iam6ft7in if not configured.
+    Parent directory for the migrated repo. Defaults to
+    {projects_root}/{github_username} read from ~/.claude/config.json
+    (written by Phase 3). Aborts if the config is missing and no value is
+    passed explicitly.
 
 .PARAMETER GitHubAlias
     SSH config host alias to use for the remote. Default: github-personal
@@ -115,15 +117,32 @@ function Abort {
 # ---------------------------------------------------------------------------
 
 # Resolve TargetRoot from ~/.claude/config.json when not supplied explicitly.
-# This keeps the script portable, no hardcoded username in the default.
+# Reads both projects_root and github_username (set by Phase 3) so personal
+# repos land under {projects_root}/{github_username}/. Falls back to
+# ~/projects when config is missing, but the username fallback is
+# intentionally absent: the script aborts later rather than write to a
+# guessed path.
 if ([string]::IsNullOrEmpty(${TargetRoot})) {
     ${ClaudeConfig} = Join-Path $HOME '.claude\config.json'
     if (Test-Path ${ClaudeConfig}) {
-        ${ProjectsRoot} = (Get-Content ${ClaudeConfig} -Raw -Encoding UTF8 |
-                           ConvertFrom-Json).projects_root
-        ${TargetRoot} = Join-Path ${ProjectsRoot} 'personal'
+        ${cfg} = Get-Content ${ClaudeConfig} -Raw -Encoding UTF8 | ConvertFrom-Json
+        ${ProjectsRoot}   = ${cfg}.projects_root
+        ${GithubUsername} = if (${cfg}.PSObject.Properties.Name -contains 'github_username') {
+            ${cfg}.github_username
+        } else { $null }
+
+        if (-not ${ProjectsRoot}) {
+            Write-Error "projects_root missing from ${ClaudeConfig}. Run Phase 3 to set it, or pass -TargetRoot explicitly."
+            exit 1
+        }
+        if (-not ${GithubUsername}) {
+            Write-Error "github_username missing from ${ClaudeConfig}. Run Phase 3 to set it, or pass -TargetRoot explicitly."
+            exit 1
+        }
+        ${TargetRoot} = Join-Path ${ProjectsRoot} ${GithubUsername}
     } else {
-        ${TargetRoot} = Join-Path $HOME 'projects\iam6ft7in'
+        Write-Error "${ClaudeConfig} not found. Run Phase 3 first, or pass -TargetRoot explicitly."
+        exit 1
     }
 }
 

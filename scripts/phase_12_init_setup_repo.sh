@@ -40,7 +40,32 @@ abort() {
 }
 
 REPO_NAME="personal_cfg_dev_environment"
-LOCAL_DIR="$HOME/projects/iam6ft7in/public/cfg_dev_environment"
+
+# Resolve install location from ~/.claude/config.json (Phase 3).
+CLAUDE_CONFIG="${HOME}/.claude/config.json"
+if [ ! -f "${CLAUDE_CONFIG}" ]; then
+    log_fail "~/.claude/config.json not found. Run Phase 3 first."
+    exit 1
+fi
+read_config_value() {
+    local key="$1"
+    if command -v jq >/dev/null 2>&1; then
+        jq -r --arg k "${key}" '.[$k] // empty' "${CLAUDE_CONFIG}" 2>/dev/null || true
+    else
+        grep -oE "\"${key}\"[[:space:]]*:[[:space:]]*\"[^\"]+\"" "${CLAUDE_CONFIG}" \
+            | sed -E "s/.*\"${key}\"[[:space:]]*:[[:space:]]*\"([^\"]+)\".*/\1/" \
+            | head -n1
+    fi
+}
+PROJECTS_ROOT="$(read_config_value 'projects_root')"
+GITHUB_USERNAME="$(read_config_value 'github_username')"
+if [ -z "${PROJECTS_ROOT}" ] || [ -z "${GITHUB_USERNAME}" ]; then
+    log_fail "projects_root or github_username missing from ${CLAUDE_CONFIG}. Re-run Phase 3."
+    exit 1
+fi
+# Normalize to forward slashes for shell use.
+PROJECTS_ROOT="${PROJECTS_ROOT//\\//}"
+LOCAL_DIR="${PROJECTS_ROOT}/${GITHUB_USERNAME}/public/cfg_dev_environment"
 SCAFFOLD_SRC="$HOME/.claude/templates/project"
 
 # ------------------------------------------------------------------------------

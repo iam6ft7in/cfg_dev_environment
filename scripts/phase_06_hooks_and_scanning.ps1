@@ -191,10 +191,23 @@ Write-Section "Step 7, Weekly gitleaks scan (Task Scheduler)"
 $weeklyScanContent = @"
 #Requires -Version 7.0
 # gitleaks-weekly-scan.ps1
-# Runs gitleaks on all git repos under ~/projects/ every Sunday at 02:00 AM.
+# Runs gitleaks on every git repo under projects_root (read from
+# ~/.claude/config.json) every Sunday at 02:00 AM.
 # Created by phase_06_hooks_and_scanning.ps1
 
-`$scanRoot   = Join-Path `$HOME 'projects'
+`$cfgPath   = Join-Path `$HOME '.claude\config.json'
+`$scanRoot  = Join-Path `$HOME 'projects'
+if (Test-Path `$cfgPath) {
+    try {
+        `$cfg = Get-Content `$cfgPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        if (`$cfg.PSObject.Properties.Name -contains 'projects_root' ``
+                -and `$cfg.projects_root) {
+            `$scanRoot = `$cfg.projects_root
+        }
+    } catch {
+        # Fall through to the default path on parse error.
+    }
+}
 `$logFile    = Join-Path `$HOME '.git-templates\gitleaks-weekly-scan.log'
 `$gitleaksCfg = Join-Path `$HOME '.gitleaks.toml'
 `$timestamp  = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
@@ -299,7 +312,7 @@ try {
             -Action   $taskAction `
             -Trigger  $taskTrigger `
             -Settings $taskSettings `
-            -Description 'Weekly gitleaks scan of all git repos under ~/projects/. Created by phase_06_hooks_and_scanning.ps1.' `
+            -Description 'Weekly gitleaks scan of all git repos under projects_root (read from ~/.claude/config.json). Created by phase_06_hooks_and_scanning.ps1.' `
             -RunLevel Limited | Out-Null
         Write-Pass "Created Task Scheduler task: $taskName"
         $Results['Task Scheduler Task'] = 'PASS'

@@ -220,36 +220,50 @@ Confirm the client username appears in the output.
 
 ## Step 9: Verify Identity Routing
 
-Create a temporary test repository to confirm commits are signed and attributed to the client identity.
+Resolve `{projects_root}` from `~/.claude/config.json` (written by Phase 3 of `cfg_dev_environment`). The conditional include in `~/.gitconfig` is keyed off `{projects_root}/client/`, so the test repo MUST live under that path or the include will not fire.
 
 ```powershell
-$testPath = "$HOME\projects\client\_identity_test"
+$cfg          = Get-Content "$HOME/.claude/config.json" -Raw -Encoding UTF8 | ConvertFrom-Json
+$projectsRoot = $cfg.projects_root
+$testPath     = Join-Path $projectsRoot 'client\_identity_test'
 New-Item -ItemType Directory -Path $testPath -Force
 ```
 
+Or in bash:
 ```bash
-git -C ~/projects/client/_identity_test init
-git -C ~/projects/client/_identity_test checkout -b main
-echo "identity test" > ~/projects/client/_identity_test/test.txt
-git -C ~/projects/client/_identity_test add test.txt
-git -C ~/projects/client/_identity_test commit -m "chore: identity test"
+projects_root=$(jq -r '.projects_root' ~/.claude/config.json)
+test_path="${projects_root}/client/_identity_test"
+mkdir -p "${test_path}"
+```
+
+Create a temporary test repository to confirm commits are signed and attributed to the client identity. Substitute `${test_path}` (bash) or `$testPath` (PowerShell) into each command:
+
+```bash
+git -C "${test_path}" init
+git -C "${test_path}" checkout -b main
+echo "identity test" > "${test_path}/test.txt"
+git -C "${test_path}" add test.txt
+git -C "${test_path}" commit -m "chore: identity test"
 ```
 
 Check the committed identity:
 ```
-git -C ~/projects/client/_identity_test config user.email
+git -C "${test_path}" config user.email
 ```
 This must show the client noreply email, not the personal email.
 
 Check the commit signature:
 ```
-git -C ~/projects/client/_identity_test log --show-signature -1
+git -C "${test_path}" log --show-signature -1
 ```
 Look for `Good "git" signature` and confirmation the key fingerprint matches the client key.
 
 Clean up:
 ```powershell
-Remove-Item -Recurse -Force "$HOME\projects\client\_identity_test"
+Remove-Item -Recurse -Force $testPath
+```
+```bash
+rm -rf "${test_path}"
 ```
 
 If the email is wrong or the signature is not verified, revisit Steps 4 and 5.
@@ -270,7 +284,7 @@ Client identity activation complete.
   Commit Signing:  Verified
   GH CLI Auth:     Logged in as client
 
-  Repos under ~/projects/client/ will automatically use this identity
+  Repos under {projects_root}/client/ will automatically use this identity
   via the conditional include in ~/.gitconfig.
 
   To start a new client repo: run /new-repo and choose identity: client
