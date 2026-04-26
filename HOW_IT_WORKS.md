@@ -4,7 +4,9 @@ This document explains the structure and purpose of every component in this
 repository, and how to use it, both for setting up a fresh Windows 11
 development environment and for migrating existing projects into it.
 
-For the step-by-step run instructions, see `IMPLEMENTATION_STEPS.md`.
+For the step-by-step run instructions, see `IMPLEMENTATION_STEPS.md`. New
+arrivals should start with `README.md` and run `scripts/preview.ps1` first
+to see exactly what every phase would change on the local machine.
 
 ---
 
