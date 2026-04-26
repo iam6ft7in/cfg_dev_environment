@@ -23,3 +23,8 @@ SESSION_STATE.md
 
 # send-email skill, live config contains credentials
 claude-skills/send-email/config.json
+
+# Python bytecode caches
+__pycache__/
+*.pyc
+*.pyo

@@ -179,7 +179,13 @@ foreach (${skill} in ${SkillDirs}) {
     ${skillSrcRoot}  = ${skill}.FullName
     ${skillDestRoot} = Join-Path ${DestSkillsDir} ${skill}.Name
 
-    ${skillFiles} = @(Get-ChildItem -Path ${skillSrcRoot} -Recurse -File -Force)
+    # Exclude transient bytecode caches so a stray local Python compile in
+    # the source tree does not deploy to the user's skills directory.
+    ${skillFiles} = @(Get-ChildItem -Path ${skillSrcRoot} -Recurse -File -Force |
+        Where-Object {
+            ${_}.FullName -notmatch '[\\/]__pycache__[\\/]' -and
+            ${_}.Extension -notin @('.pyc', '.pyo')
+        })
     if (${skillFiles}.Count -eq 0) {
         Write-Warn "Skipping $(${skill}.Name): source dir has no files"
         continue
@@ -325,7 +331,11 @@ foreach (${skill} in ${SkillDirs}) {
     # Compute the set of relative paths present in source for this skill.
     ${skillSrcRoot}  = ${skill}.FullName
     ${srcSet} = @{}
-    foreach (${f} in @(Get-ChildItem -Path ${skillSrcRoot} -Recurse -File -Force)) {
+    foreach (${f} in @(Get-ChildItem -Path ${skillSrcRoot} -Recurse -File -Force |
+        Where-Object {
+            ${_}.FullName -notmatch '[\\/]__pycache__[\\/]' -and
+            ${_}.Extension -notin @('.pyc', '.pyo')
+        })) {
         ${rel} = [System.IO.Path]::GetRelativePath(${skillSrcRoot}, ${f}.FullName)
         ${srcSet}[${rel}] = $true
     }
