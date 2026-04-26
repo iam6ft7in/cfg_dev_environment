@@ -53,9 +53,23 @@ $TestResults = [ordered]@{
     'T8_VerifyPR'        = 'NOT RUN'
 }
 
-$RepoRoot    = Split-Path -Parent $PSScriptRoot
+$RepoRoot     = Split-Path -Parent $PSScriptRoot
 $TestRepoName = 'test_e2e_delete_me'
-$TestLocalDir = "$HOME\projects\iam6ft7in\_e2e_test_temp"
+
+# Resolve the test clone target from ~/.claude/config.json (Phase 3). The
+# test runs under {projects_root}/{github_username}/_e2e_test_temp so the
+# personal gitconfig include applies correctly during the signing test.
+${ClaudeConfig} = Join-Path $HOME '.claude\config.json'
+if (-not (Test-Path ${ClaudeConfig})) {
+    Write-Host "[ABORT] ~/.claude/config.json not found. Run Phase 3 first." -ForegroundColor Red
+    exit 1
+}
+${cfg} = Get-Content ${ClaudeConfig} -Raw -Encoding UTF8 | ConvertFrom-Json
+if (-not ${cfg}.projects_root -or -not ${cfg}.github_username) {
+    Write-Host "[ABORT] projects_root or github_username missing from ${ClaudeConfig}. Re-run Phase 3." -ForegroundColor Red
+    exit 1
+}
+$TestLocalDir = Join-Path ${cfg}.projects_root "$(${cfg}.github_username)\_e2e_test_temp"
 
 # ---------------------------------------------------------------------------
 # Banner

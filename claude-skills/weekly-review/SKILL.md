@@ -11,11 +11,21 @@ You are generating a comprehensive weekly review of all projects. Run each secti
 
 ## Section 1: Repo Health
 
+First, resolve `{projects_root}` and `{github_username}` from `~/.claude/config.json` (written by Phase 3 of `cfg_dev_environment`):
+
+```powershell
+$cfg = Get-Content "$HOME/.claude/config.json" -Raw -Encoding UTF8 | ConvertFrom-Json
+$projectsRoot   = $cfg.projects_root
+$githubUsername = $cfg.github_username
+```
+
+Do NOT hard-code `~/projects` or any specific username; both vary per machine.
+
 Find all Git repositories under:
-- `~/projects/iam6ft7in/`
-- `~/projects/client/`
-- `~/projects/arduino/upstream/`
-- `~/projects/arduino/custom/`
+- `{projects_root}/{github_username}/`
+- `{projects_root}/client/`
+- `{projects_root}/arduino/upstream/`
+- `{projects_root}/arduino/custom/`
 
 For each repo, collect:
 

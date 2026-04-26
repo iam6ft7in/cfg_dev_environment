@@ -42,6 +42,38 @@ OMP_DIR="$HOME/.oh-my-posh"
 WIN_SSH_PATH="C:\\Windows\\System32\\OpenSSH\\ssh.exe"
 WIN_OMP_THEME=$(cygpath -w "$OMP_THEME" 2>/dev/null || echo "%USERPROFILE%\\.oh-my-posh\\theme.json")
 
+# Read projects_root and github_username from ~/.claude/config.json (Phase 3).
+# Used to seed the Windows Terminal profile startingDirectory values printed
+# at Step 5. Falls back to %USERPROFILE%\projects if config is missing.
+CLAUDE_CONFIG="${HOME}/.claude/config.json"
+read_config_value() {
+    local key="$1"
+    [ -f "${CLAUDE_CONFIG}" ] || { echo ""; return; }
+    if command -v jq >/dev/null 2>&1; then
+        jq -r --arg k "${key}" '.[$k] // empty' "${CLAUDE_CONFIG}" 2>/dev/null || true
+    else
+        grep -oE "\"${key}\"[[:space:]]*:[[:space:]]*\"[^\"]+\"" "${CLAUDE_CONFIG}" \
+            | sed -E "s/.*\"${key}\"[[:space:]]*:[[:space:]]*\"([^\"]+)\".*/\1/" \
+            | head -n1
+    fi
+}
+PROJECTS_ROOT="$(read_config_value 'projects_root')"
+GITHUB_USERNAME="$(read_config_value 'github_username')"
+if [ -z "${PROJECTS_ROOT}" ]; then
+    PROJECTS_ROOT='%USERPROFILE%\projects'
+fi
+# Convert to Windows-style path with double-backslash escapes for the
+# JSON values printed to the user.
+WIN_PROJECTS_ROOT="$(echo "${PROJECTS_ROOT}" | sed -e 's|/|\\\\|g' -e 's|\\\([^\\]\)|\\\\\1|g')"
+# Personal subtree uses {projects_root}/{github_username}/. If username is
+# missing, fall back to the parent directory so the profile still opens
+# something sensible.
+if [ -n "${GITHUB_USERNAME}" ]; then
+    WIN_PERSONAL_DIR="${WIN_PROJECTS_ROOT}\\\\${GITHUB_USERNAME}"
+else
+    WIN_PERSONAL_DIR="${WIN_PROJECTS_ROOT}"
+fi
+
 # ------------------------------------------------------------------------------
 # Banner
 # ------------------------------------------------------------------------------
@@ -243,11 +275,11 @@ echo -e "${C_YELLOW}  Windows Terminal settings.json must be updated manually.${
 echo    "  Open Windows Terminal -> Settings -> Open JSON file"
 echo    "  Add the following profiles to the 'list' array inside 'profiles':"
 echo ""
-cat <<'JSON'
+cat <<JSON
 {
     "name": "personal",
-    "commandline": "C:\\Program Files\\Git\\bin\\bash.exe -i -l",
-    "startingDirectory": "%USERPROFILE%\\projects\\personal",
+    "commandline": "C:\\\\Program Files\\\\Git\\\\bin\\\\bash.exe -i -l",
+    "startingDirectory": "${WIN_PERSONAL_DIR}",
     "colorScheme": "Campbell",
     "tabColor": "#56B4E9",
     "icon": "\ud83d\udc64",
@@ -258,8 +290,8 @@ cat <<'JSON'
 },
 {
     "name": "client",
-    "commandline": "C:\\Program Files\\Git\\bin\\bash.exe -i -l",
-    "startingDirectory": "%USERPROFILE%\\projects\\client",
+    "commandline": "C:\\\\Program Files\\\\Git\\\\bin\\\\bash.exe -i -l",
+    "startingDirectory": "${WIN_PROJECTS_ROOT}\\\\client",
     "colorScheme": "Campbell",
     "tabColor": "#E69F00",
     "icon": "\ud83d\udd27",
@@ -270,8 +302,8 @@ cat <<'JSON'
 },
 {
     "name": "arduino",
-    "commandline": "C:\\Program Files\\Git\\bin\\bash.exe -i -l",
-    "startingDirectory": "%USERPROFILE%\\projects\\arduino",
+    "commandline": "C:\\\\Program Files\\\\Git\\\\bin\\\\bash.exe -i -l",
+    "startingDirectory": "${WIN_PROJECTS_ROOT}\\\\arduino",
     "colorScheme": "Campbell",
     "tabColor": "#CC79A7",
     "icon": "\ud83e\udd16",

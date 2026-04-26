@@ -5,11 +5,12 @@
 
 .DESCRIPTION
     Script Name : phase_04_directories.ps1
-    Purpose     : Prompt for the projects root directory, create the project
-                  directory tree and supporting dot-directories (~/.git-templates,
-                  ~/.claude, ~/.cspell, ~/.oh-my-posh), write the chosen root to
-                  ~/.claude/config.json, and report whether each directory was
-                  newly created or already existed.
+    Purpose     : Read projects_root and github_username from
+                  ~/.claude/config.json (written by Phase 3), create the
+                  project directory tree under that root and the supporting
+                  dot-directories (~/.git-templates, ~/.claude, ~/.cspell,
+                  ~/.oh-my-posh), and report whether each directory was newly
+                  created or already existed. Aborts if Phase 3 has not run.
     Phase       : 4 of 12
     Exit Criteria: All required directories exist on disk.
 
@@ -66,30 +67,43 @@ $Results  = [ordered]@{}
 $anyFail  = $false
 
 # ---------------------------------------------------------------------------
-# Prompt for projects root
+# Read projects_root and github_username from ~/.claude/config.json
 # ---------------------------------------------------------------------------
 
-$DefaultRoot = Join-Path $HOME 'projects'
-Write-Host "Where should your GitHub repos live?" -ForegroundColor White
-Write-Host "  Default: ${DefaultRoot}" -ForegroundColor DarkGray
-${InputRoot} = Read-Host "Projects root (press Enter to accept default)"
-${ProjectsRoot} = if ([string]::IsNullOrWhiteSpace(${InputRoot})) {
-    $DefaultRoot
-} else {
-    ${InputRoot}.TrimEnd('\').TrimEnd('/')
+${ClaudeConfigPath} = Join-Path $HOME '.claude\config.json'
+if (-not (Test-Path ${ClaudeConfigPath})) {
+    Abort "~/.claude/config.json not found. Run Phase 3 first; it prompts for projects_root and github_username and persists both to config."
 }
-Write-Info "Projects root set to: ${ProjectsRoot}"
+
+${Config} = Get-Content ${ClaudeConfigPath} -Raw -Encoding UTF8 | ConvertFrom-Json
+
+if (-not (${Config}.PSObject.Properties.Name -contains 'projects_root') `
+        -or [string]::IsNullOrWhiteSpace(${Config}.projects_root)) {
+    Abort "projects_root missing from ${ClaudeConfigPath}. Re-run Phase 3."
+}
+if (-not (${Config}.PSObject.Properties.Name -contains 'github_username') `
+        -or [string]::IsNullOrWhiteSpace(${Config}.github_username)) {
+    Abort "github_username missing from ${ClaudeConfigPath}. Re-run Phase 3."
+}
+
+${ProjectsRoot}   = ${Config}.projects_root
+${GithubUsername} = ${Config}.github_username
+
+Write-Info "Projects root  : ${ProjectsRoot}"
+Write-Info "GitHub username: ${GithubUsername}"
 
 # ---------------------------------------------------------------------------
 # Directory definitions
 # ---------------------------------------------------------------------------
 
 $Directories = [ordered]@{
-    # Project roots, derived from the user-chosen projects root
-    "${ProjectsRoot}\personal"          = 'Personal GitHub projects'
-    "${ProjectsRoot}\client"           = 'Client GitHub projects'
-    "${ProjectsRoot}\arduino\upstream"  = 'Arduino/ArduPilot upstream forks'
-    "${ProjectsRoot}\arduino\custom"    = 'Arduino/ArduPilot custom work'
+    # Project roots, derived from the values stored by Phase 3
+    "${ProjectsRoot}\${GithubUsername}\public"        = 'Personal public GitHub projects'
+    "${ProjectsRoot}\${GithubUsername}\private"       = 'Personal private GitHub projects'
+    "${ProjectsRoot}\${GithubUsername}\collaborative" = 'Personal collaborative GitHub projects'
+    "${ProjectsRoot}\client"                          = 'Client GitHub projects'
+    "${ProjectsRoot}\arduino\upstream"                = 'Arduino/ArduPilot upstream forks'
+    "${ProjectsRoot}\arduino\custom"                  = 'Arduino/ArduPilot custom work'
 
     # Git template directory (used by Phase 6 hooks)
     "$HOME\.git-templates"                      = 'Git template root'
@@ -152,31 +166,6 @@ foreach ($dirPath in $Directories.Keys) {
 
 if (-not $verifyFail) {
     Write-Pass "All $($Directories.Count) directories verified on disk."
-}
-
-# ---------------------------------------------------------------------------
-# Write ~/.claude/config.json
-# ---------------------------------------------------------------------------
-
-Write-Section "Writing ~/.claude/config.json"
-
-${ClaudeConfigPath} = Join-Path $HOME '.claude\config.json'
-try {
-    # Preserve any existing keys; only set projects_root.
-    ${Config} = if (Test-Path ${ClaudeConfigPath}) {
-        Get-Content ${ClaudeConfigPath} -Raw -Encoding UTF8 | ConvertFrom-Json
-    } else {
-        [PSCustomObject]@{}
-    }
-    ${Config} | Add-Member -MemberType NoteProperty -Name 'projects_root' `
-                           -Value ${ProjectsRoot} -Force
-    ${Config} | ConvertTo-Json -Depth 5 |
-        Set-Content -Path ${ClaudeConfigPath} -Encoding UTF8
-    Write-Pass "Config written: ${ClaudeConfigPath}"
-    Write-Info "  projects_root = ${ProjectsRoot}"
-} catch {
-    Write-Warn "Could not write config.json: $_"
-    Write-Warn "Skills and scripts will fall back to %USERPROFILE%\projects."
 }
 
 # ---------------------------------------------------------------------------

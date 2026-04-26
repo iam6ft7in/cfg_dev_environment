@@ -81,6 +81,77 @@ fi
 
 log_pass "Using name: ${GIT_USER_NAME}"
 
+# ==============================================================================
+# Step 1c: Prompt for projects root and personal GitHub username
+# ==============================================================================
+log_section "Step 1c: Projects root and personal GitHub username"
+
+CLAUDE_CONFIG="${HOME}/.claude/config.json"
+
+# Read existing config (if any) to seed defaults. Use jq when available;
+# otherwise a small grep/sed fallback (the values are simple JSON strings).
+read_config_value() {
+    local key="$1"
+    [ -f "${CLAUDE_CONFIG}" ] || { echo ""; return; }
+    if command -v jq >/dev/null 2>&1; then
+        jq -r --arg k "${key}" '.[$k] // empty' "${CLAUDE_CONFIG}" 2>/dev/null || true
+    else
+        grep -oE "\"${key}\"[[:space:]]*:[[:space:]]*\"[^\"]+\"" "${CLAUDE_CONFIG}" \
+            | sed -E "s/.*\"${key}\"[[:space:]]*:[[:space:]]*\"([^\"]+)\".*/\1/" \
+            | head -n1
+    fi
+}
+
+EXISTING_ROOT="$(read_config_value 'projects_root')"
+EXISTING_USER="$(read_config_value 'github_username')"
+
+DEFAULT_ROOT="${EXISTING_ROOT:-${HOME}/projects}"
+
+echo -e "${C_WHITE}Where should your GitHub repos live?${C_RESET}"
+echo    "  Default: ${DEFAULT_ROOT}"
+read -r -p "  Projects root (Enter for default): " INPUT_ROOT
+if [ -z "${INPUT_ROOT}" ]; then
+    PROJECTS_ROOT="${DEFAULT_ROOT}"
+else
+    # Trim trailing slashes
+    PROJECTS_ROOT="${INPUT_ROOT%/}"
+    PROJECTS_ROOT="${PROJECTS_ROOT%\\}"
+fi
+log_pass "Projects root: ${PROJECTS_ROOT}"
+
+echo -e "${C_WHITE}Personal GitHub username (used for ${PROJECTS_ROOT}/<username>/).${C_RESET}"
+if [ -n "${EXISTING_USER}" ]; then
+    echo "  Default: ${EXISTING_USER}"
+fi
+GITHUB_USERNAME=""
+while [ -z "${GITHUB_USERNAME}" ]; do
+    if [ -n "${EXISTING_USER}" ]; then
+        read -r -p "  GitHub username (Enter for ${EXISTING_USER}): " INPUT_USER
+        GITHUB_USERNAME="${INPUT_USER:-${EXISTING_USER}}"
+    else
+        read -r -p "  GitHub username: " GITHUB_USERNAME
+    fi
+done
+log_pass "GitHub username: ${GITHUB_USERNAME}"
+
+# Persist to ~/.claude/config.json so Phase 4 and later phases read instead
+# of re-prompting.
+mkdir -p "$(dirname "${CLAUDE_CONFIG}")"
+if [ -f "${CLAUDE_CONFIG}" ] && command -v jq >/dev/null 2>&1; then
+    tmp_cfg="$(mktemp)"
+    jq --arg root "${PROJECTS_ROOT}" --arg user "${GITHUB_USERNAME}" \
+       '. + {projects_root: $root, github_username: $user}' \
+       "${CLAUDE_CONFIG}" > "${tmp_cfg}" && mv "${tmp_cfg}" "${CLAUDE_CONFIG}"
+else
+    cat > "${CLAUDE_CONFIG}" <<JSON
+{
+  "projects_root": "${PROJECTS_ROOT}",
+  "github_username": "${GITHUB_USERNAME}"
+}
+JSON
+fi
+log_pass "Wrote: ${CLAUDE_CONFIG}"
+
 # Paths
 GITCONFIG="$HOME/.gitconfig"
 GITCONFIG_CLIENT="$HOME/.gitconfig-client"
@@ -179,10 +250,10 @@ cat > "$GITCONFIG" <<EOF
     pu  = push --set-upstream origin HEAD
     wip = "!git add -A && git commit -m 'wip: work in progress'"
 
-[includeIf "gitdir:~/projects/client/"]
+[includeIf "gitdir:${PROJECTS_ROOT//\\//}/client/"]
     path = $GITCONFIG_CLIENT
 
-[includeIf "gitdir:~/projects/arduino/"]
+[includeIf "gitdir:${PROJECTS_ROOT//\\//}/arduino/"]
     path = $GITCONFIG_ARDUINO
 EOF
 
@@ -195,7 +266,7 @@ log_section "Step 3: Write ~/.gitconfig-client"
 
 cat > "$GITCONFIG_CLIENT" <<EOF
 # Client identity, placeholder until client GitHub account is created.
-# Activated for all repos under ~/projects/client/
+# Activated for all repos under ${PROJECTS_ROOT//\\//}/client/
 [user]
     name       = ${GIT_USER_NAME} (client)
     email      = $NOREPLY_EMAIL
@@ -215,7 +286,7 @@ log_section "Step 4: Write ~/.gitconfig-arduino"
 
 cat > "$GITCONFIG_ARDUINO" <<EOF
 # Arduino/ArduPilot identity override.
-# Activated for all repos under ~/projects/arduino/
+# Activated for all repos under ${PROJECTS_ROOT//\\//}/arduino/
 [user]
     name       = ${GIT_USER_NAME}
     email      = $NOREPLY_EMAIL

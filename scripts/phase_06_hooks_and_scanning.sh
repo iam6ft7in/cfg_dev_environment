@@ -240,19 +240,13 @@ log_pass "init.templateDir = $registered"
 log_section "Step 6: Weekly gitleaks scan, Task Scheduler (manual)"
 
 echo -e "${C_YELLOW}  Windows Task Scheduler is not available from Git Bash.${C_RESET}"
-echo    "  To set up a weekly full-repo scan (Sundays at 02:00 AM),"
-echo    "  run the following in PowerShell 7+ (no admin required):"
+echo    "  Run the .ps1 variant of Phase 6 to register the scheduled task."
+echo    "  That script reads projects_root from ~/.claude/config.json and"
+echo    "  generates ~/.git-templates/gitleaks-weekly-scan.ps1, which the"
+echo    "  scheduled task runs every Sunday at 02:00 AM."
 echo ""
-echo    '  $action  = New-ScheduledTaskAction -Execute "gitleaks.exe" \'
-echo    '             -Argument "detect --source \"$HOME\projects\" --verbose" \'
-echo    '             -WorkingDirectory "$HOME"'
-echo    '  $trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At 2am'
-echo    '  $settings = New-ScheduledTaskSettingsSet -RunOnlyIfNetworkAvailable:$false'
-echo    '  Register-ScheduledTask -TaskName "gitleaks-weekly-scan" \'
-echo    '      -Action $action -Trigger $trigger -Settings $settings \'
-echo    '      -Description "Weekly gitleaks secret scan" -Force'
-echo ""
-log_warn "Task Scheduler setup requires PowerShell, complete manually if needed."
+log_warn "Task Scheduler setup requires PowerShell. Run:"
+log_warn "  pwsh -File scripts/phase_06_hooks_and_scanning.ps1"
 
 # ==============================================================================
 # Verify

@@ -10,7 +10,7 @@
     Phase       : 12
     Exit Criteria:
         - GitHub repo 'cfg_dev_environment' created under the authenticated account
-        - ~/projects/iam6ft7in/public/cfg_dev_environment/ populated with all project files
+        - Repo populated under {projects_root}/{github_username}/public/cfg_dev_environment/
         - Git initialized with remote set to git@github-personal:{user}/cfg_dev_environment.git
         - CLAUDE.md and AGENTS.md created
         - Chosen license file written
@@ -49,8 +49,18 @@ $Utf8NoBom = New-Object System.Text.UTF8Encoding $false
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
-$RepoRoot      = Split-Path -Parent $PSScriptRoot
-$LocalRepoPath = "$HOME\projects\iam6ft7in\public\cfg_dev_environment"
+$RepoRoot = Split-Path -Parent $PSScriptRoot
+
+# Resolve install location from ~/.claude/config.json (Phase 3).
+${ClaudeConfig} = Join-Path $HOME '.claude\config.json'
+if (-not (Test-Path ${ClaudeConfig})) {
+    Exit-WithError "~/.claude/config.json not found. Run Phase 3 first."
+}
+${cfg} = Get-Content ${ClaudeConfig} -Raw -Encoding UTF8 | ConvertFrom-Json
+if (-not ${cfg}.projects_root -or -not ${cfg}.github_username) {
+    Exit-WithError "projects_root or github_username missing from ${ClaudeConfig}. Re-run Phase 3."
+}
+$LocalRepoPath = Join-Path ${cfg}.projects_root "$(${cfg}.github_username)\public\cfg_dev_environment"
 $RepoName      = 'cfg_dev_environment'
 
 # Track results

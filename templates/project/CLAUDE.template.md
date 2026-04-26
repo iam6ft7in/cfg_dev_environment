@@ -2,7 +2,7 @@
 
 {{one_line_purpose}}
 
-- **Owner:** {{owner}}              (iam6ft7in | pegapod | ...)
+- **Owner:** {{owner}}              (your personal GitHub username, a client name, etc.)
 - **Visibility:** {{visibility}}    (public | private | collaborative)
 - **Primary languages:** {{languages}}
 - **Session name:** `{{session_name}}`  (used by the shortcut's

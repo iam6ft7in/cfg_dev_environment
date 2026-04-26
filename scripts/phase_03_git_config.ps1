@@ -103,10 +103,106 @@ Write-Pass "Name accepted: ${gitUserName}"
 $Results['Name Validated'] = 'PASS'
 
 # ---------------------------------------------------------------------------
-# Step 3: Read personal SSH public key
+# Step 3: Prompt for projects root directory
 # ---------------------------------------------------------------------------
 
-Write-Section "Step 3, Read personal SSH public key"
+Write-Section "Step 3, Projects root directory"
+
+${ClaudeConfigPath} = Join-Path $HOME '.claude\config.json'
+${ExistingConfig}   = if (Test-Path ${ClaudeConfigPath}) {
+    Get-Content ${ClaudeConfigPath} -Raw -Encoding UTF8 | ConvertFrom-Json
+} else {
+    [PSCustomObject]@{}
+}
+
+${DefaultRoot} = if (${ExistingConfig}.PSObject.Properties.Name -contains 'projects_root' `
+        -and ${ExistingConfig}.projects_root) {
+    ${ExistingConfig}.projects_root
+} else {
+    Join-Path $HOME 'projects'
+}
+
+Write-Info "Where should your GitHub repos live?"
+Write-Host "  Default: ${DefaultRoot}" -ForegroundColor DarkGray
+${InputRoot} = Read-Host "  Projects root (press Enter to accept default)"
+${ProjectsRoot} = if ([string]::IsNullOrWhiteSpace(${InputRoot})) {
+    ${DefaultRoot}
+} else {
+    ${InputRoot}.Trim().TrimEnd('\').TrimEnd('/')
+}
+Write-Pass "Projects root: ${ProjectsRoot}"
+$Results['Projects Root'] = 'PASS'
+
+# ---------------------------------------------------------------------------
+# Step 4: Prompt for personal GitHub username
+# ---------------------------------------------------------------------------
+
+Write-Section "Step 4, Personal GitHub username"
+
+${DefaultUsername} = if (${ExistingConfig}.PSObject.Properties.Name -contains 'github_username' `
+        -and ${ExistingConfig}.github_username) {
+    ${ExistingConfig}.github_username
+} else {
+    ''
+}
+
+Write-Info "Used to construct your personal repo paths under ${ProjectsRoot}\<username>\"
+if (${DefaultUsername}) {
+    Write-Host "  Default: ${DefaultUsername}" -ForegroundColor DarkGray
+}
+${GithubUsername} = ''
+do {
+    ${prompt} = if (${DefaultUsername}) {
+        "  GitHub username (press Enter for ${DefaultUsername})"
+    } else {
+        "  GitHub username"
+    }
+    ${rawInput} = (Read-Host ${prompt}).Trim()
+    ${GithubUsername} = if ([string]::IsNullOrWhiteSpace(${rawInput})) {
+        ${DefaultUsername}
+    } else {
+        ${rawInput}
+    }
+} while ([string]::IsNullOrWhiteSpace(${GithubUsername}))
+
+Write-Pass "GitHub username: ${GithubUsername}"
+$Results['GitHub Username'] = 'PASS'
+
+# ---------------------------------------------------------------------------
+# Step 5: Persist projects_root and github_username to ~/.claude/config.json
+# ---------------------------------------------------------------------------
+
+Write-Section "Step 5, Persist configuration"
+
+# Phase 4 (and other phases) will read these values rather than re-prompting.
+${ClaudeDir} = Split-Path -Parent ${ClaudeConfigPath}
+if (-not (Test-Path ${ClaudeDir})) {
+    New-Item -ItemType Directory -Path ${ClaudeDir} -Force | Out-Null
+}
+
+${Config} = ${ExistingConfig}
+if (-not ${Config}) { ${Config} = [PSCustomObject]@{} }
+${Config} | Add-Member -MemberType NoteProperty -Name 'projects_root' `
+                       -Value ${ProjectsRoot}   -Force
+${Config} | Add-Member -MemberType NoteProperty -Name 'github_username' `
+                       -Value ${GithubUsername} -Force
+${Config} | ConvertTo-Json -Depth 5 |
+    Set-Content -Path ${ClaudeConfigPath} -Encoding UTF8
+
+Write-Pass "Wrote: ${ClaudeConfigPath}"
+Write-Info "  projects_root   = ${ProjectsRoot}"
+Write-Info "  github_username = ${GithubUsername}"
+$Results['Config Persisted'] = 'PASS'
+
+# Forward-slash form of projects root for embedding in gitconfig (gitconfig
+# parses paths with forward slashes regardless of platform).
+${projectsRootForward} = ${ProjectsRoot} -replace '\\', '/'
+
+# ---------------------------------------------------------------------------
+# Step 6: Read personal SSH public key
+# ---------------------------------------------------------------------------
+
+Write-Section "Step 6, Read personal SSH public key"
 
 if (-not (Test-Path $personalKeyPub)) {
     Abort "Personal SSH public key not found: $personalKeyPub`nRun Phase 2 first."
@@ -125,10 +221,10 @@ Write-Pass "Public key read: $keyType $($keyMaterial.Substring(0, 20))..."
 $Results['Public Key Read'] = 'PASS'
 
 # ---------------------------------------------------------------------------
-# Step 4: Write ~/.gitconfig
+# Step 7: Write ~/.gitconfig
 # ---------------------------------------------------------------------------
 
-Write-Section "Step 4, Write ~/.gitconfig"
+Write-Section "Step 7, Write ~/.gitconfig"
 
 # Use forward-slash home path for gitconfig (git uses POSIX-style paths internally)
 $homeForward = $HOME -replace '\\', '/'
@@ -254,10 +350,10 @@ $gitconfigContent = @"
     undo = reset HEAD~1 --mixed
     pushf = push --force-with-lease
 
-[includeIf "gitdir:~/projects/client/"]
+[includeIf "gitdir:${projectsRootForward}/client/"]
     path = ~/.gitconfig-client
 
-[includeIf "gitdir:~/projects/arduino/"]
+[includeIf "gitdir:${projectsRootForward}/arduino/"]
     path = ~/.gitconfig-arduino
 "@
 
@@ -266,17 +362,17 @@ Write-Pass "Written: $gitconfig"
 $Results['~/.gitconfig'] = 'PASS'
 
 # ---------------------------------------------------------------------------
-# Step 5: Write ~/.gitconfig-client
+# Step 8: Write ~/.gitconfig-client
 # ---------------------------------------------------------------------------
 
-Write-Section "Step 5, Write ~/.gitconfig-client"
+Write-Section "Step 8, Write ~/.gitconfig-client"
 
 $gitconfigPegaContent = @"
 # ~/.gitconfig-client, Client Identity Override
 # Generated by phase_03_git_config.ps1
 #
-# This file is included automatically for repos under ~/projects/client/
-# via the [includeIf "gitdir:~/projects/client/"] directive in ~/.gitconfig.
+# This file is included automatically for repos under ${projectsRootForward}/client/
+# via the [includeIf "gitdir:${projectsRootForward}/client/"] directive in ~/.gitconfig.
 #
 # TO ACTIVATE: Run the /activate-client skill after creating the client
 # GitHub account. That skill will:
@@ -307,17 +403,17 @@ Write-Pass "Written: $gitconfigPega"
 $Results['~/.gitconfig-client'] = 'PASS'
 
 # ---------------------------------------------------------------------------
-# Step 6: Write ~/.gitconfig-arduino
+# Step 9: Write ~/.gitconfig-arduino
 # ---------------------------------------------------------------------------
 
-Write-Section "Step 6, Write ~/.gitconfig-arduino"
+Write-Section "Step 9, Write ~/.gitconfig-arduino"
 
 $gitconfigArduContent = @"
 # ~/.gitconfig-arduino, Arduino/ArduPilot Identity Override
 # Generated by phase_03_git_config.ps1
 #
-# This file is included automatically for repos under ~/projects/arduino/
-# via the [includeIf "gitdir:~/projects/arduino/"] directive in ~/.gitconfig.
+# This file is included automatically for repos under ${projectsRootForward}/arduino/
+# via the [includeIf "gitdir:${projectsRootForward}/arduino/"] directive in ~/.gitconfig.
 #
 # Uses the personal identity and signing key (same GitHub account as personal).
 
@@ -338,10 +434,10 @@ Write-Pass "Written: $gitconfigArdu"
 $Results['~/.gitconfig-arduino'] = 'PASS'
 
 # ---------------------------------------------------------------------------
-# Step 7: Write ~/.gitmessage
+# Step 10: Write ~/.gitmessage
 # ---------------------------------------------------------------------------
 
-Write-Section "Step 7, Write ~/.gitmessage"
+Write-Section "Step 10, Write ~/.gitmessage"
 
 $gitmessageContent = @"
 # Conventional Commits, commit message template
@@ -392,10 +488,10 @@ Write-Pass "Written: $gitmessage"
 $Results['~/.gitmessage'] = 'PASS'
 
 # ---------------------------------------------------------------------------
-# Step 8: Update ~/.ssh/allowed_signers with real noreply email
+# Step 11: Update ~/.ssh/allowed_signers with real noreply email
 # ---------------------------------------------------------------------------
 
-Write-Section "Step 8, Update ~/.ssh/allowed_signers with noreply email"
+Write-Section "Step 11, Update ~/.ssh/allowed_signers with noreply email"
 
 $allowedSignersContent = @"
 # allowed_signers, SSH commit signature verification
@@ -414,10 +510,10 @@ Write-Pass "Updated: $allowedSigners (using $noReplyEmail)"
 $Results['allowed_signers Updated'] = 'PASS'
 
 # ---------------------------------------------------------------------------
-# Step 9: Verify: git config --list --global
+# Step 12: Verify: git config --list --global
 # ---------------------------------------------------------------------------
 
-Write-Section "Step 9, Verify git config --list --global"
+Write-Section "Step 12, Verify git config --list --global"
 
 try {
     $configOutput = git config --list --global 2>&1

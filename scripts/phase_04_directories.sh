@@ -38,15 +38,56 @@ echo      "  Phase 4, Directory Structure"
 echo -e   "========================================${C_RESET}\n"
 
 # ------------------------------------------------------------------------------
-# Directory list
+# Read projects_root and github_username from ~/.claude/config.json (Phase 3)
+# ------------------------------------------------------------------------------
+CLAUDE_CONFIG="${HOME}/.claude/config.json"
+if [ ! -f "${CLAUDE_CONFIG}" ]; then
+    log_fail "${CLAUDE_CONFIG} not found. Run Phase 3 first; it prompts for projects_root and github_username and persists both."
+    exit 1
+fi
+
+read_config_value() {
+    local key="$1"
+    if command -v jq >/dev/null 2>&1; then
+        jq -r --arg k "${key}" '.[$k] // empty' "${CLAUDE_CONFIG}" 2>/dev/null || true
+    else
+        grep -oE "\"${key}\"[[:space:]]*:[[:space:]]*\"[^\"]+\"" "${CLAUDE_CONFIG}" \
+            | sed -E "s/.*\"${key}\"[[:space:]]*:[[:space:]]*\"([^\"]+)\".*/\1/" \
+            | head -n1
+    fi
+}
+
+PROJECTS_ROOT="$(read_config_value 'projects_root')"
+GITHUB_USERNAME="$(read_config_value 'github_username')"
+
+if [ -z "${PROJECTS_ROOT}" ]; then
+    log_fail "projects_root missing from ${CLAUDE_CONFIG}. Re-run Phase 3."
+    exit 1
+fi
+if [ -z "${GITHUB_USERNAME}" ]; then
+    log_fail "github_username missing from ${CLAUDE_CONFIG}. Re-run Phase 3."
+    exit 1
+fi
+
+log_info "Projects root  : ${PROJECTS_ROOT}"
+log_info "GitHub username: ${GITHUB_USERNAME}"
+
+# ------------------------------------------------------------------------------
+# Directory list (derived from config)
 # ------------------------------------------------------------------------------
 DIRS=(
-    # Project roots
-    "$HOME/projects/iam6ft7in"
-    "$HOME/projects/client"
-    "$HOME/projects/arduino/upstream"
-    "$HOME/projects/arduino/custom"
-    "$HOME/.claude/shortcuts"     # Claude-launcher shortcuts (Phase 7b)
+    # Personal repo subtree (under ${GITHUB_USERNAME})
+    "${PROJECTS_ROOT}/${GITHUB_USERNAME}/public"
+    "${PROJECTS_ROOT}/${GITHUB_USERNAME}/private"
+    "${PROJECTS_ROOT}/${GITHUB_USERNAME}/collaborative"
+
+    # Other project roots
+    "${PROJECTS_ROOT}/client"
+    "${PROJECTS_ROOT}/arduino/upstream"
+    "${PROJECTS_ROOT}/arduino/custom"
+
+    # Claude-launcher shortcuts (Phase 7b)
+    "$HOME/.claude/shortcuts"
 
     # Git template hooks
     "$HOME/.git-templates/hooks"

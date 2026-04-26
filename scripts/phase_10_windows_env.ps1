@@ -293,23 +293,38 @@ foreach ($Candidate in @($WTSettingsPath1, $WTSettingsPath2)) {
     }
 }
 
-# Resolve projects root from ~/.claude/config.json (written by phase_04).
-# Falls back to %USERPROFILE%\projects if the config does not exist.
-${ClaudeConfig} = Join-Path $HOME '.claude\config.json'
-${ProjectsRoot} = if (Test-Path ${ClaudeConfig}) {
-    (Get-Content ${ClaudeConfig} -Raw -Encoding UTF8 | ConvertFrom-Json).projects_root
-} else {
-    Join-Path $HOME 'projects'
+# Resolve projects root and personal username from ~/.claude/config.json
+# (both written by phase_03). Falls back to %USERPROFILE%\projects when the
+# config does not exist; the personal profile then opens projects_root
+# itself rather than a missing username subdirectory.
+${ClaudeConfig}   = Join-Path $HOME '.claude\config.json'
+${ProjectsRoot}   = $null
+${GithubUsername} = $null
+if (Test-Path ${ClaudeConfig}) {
+    ${cfg} = Get-Content ${ClaudeConfig} -Raw -Encoding UTF8 | ConvertFrom-Json
+    if (${cfg}.PSObject.Properties.Name -contains 'projects_root') {
+        ${ProjectsRoot}   = ${cfg}.projects_root
+    }
+    if (${cfg}.PSObject.Properties.Name -contains 'github_username') {
+        ${GithubUsername} = ${cfg}.github_username
+    }
 }
+if (-not ${ProjectsRoot}) { ${ProjectsRoot} = Join-Path $HOME 'projects' }
 # Convert backslashes to forward slashes, Windows Terminal requires forward slashes.
 ${ProjectsRoot} = ${ProjectsRoot}.Replace('\', '/')
+
+${PersonalDir} = if (${GithubUsername}) {
+    "${ProjectsRoot}/${GithubUsername}"
+} else {
+    ${ProjectsRoot}
+}
 
 # Profile definitions
 $NewProfiles = @(
     [ordered]@{
         name              = 'GitHub Personal'
         commandline       = 'pwsh.exe'
-        startingDirectory = "${ProjectsRoot}/personal"
+        startingDirectory = ${PersonalDir}
         background        = '#1A1A2E'
         tabColor          = '#56B4E9'
         fontFace          = 'JetBrainsMono Nerd Font'
