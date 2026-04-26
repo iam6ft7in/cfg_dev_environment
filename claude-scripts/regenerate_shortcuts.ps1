@@ -24,10 +24,10 @@
         under {projects_root}. The script wipes any stale .lnk files
         in that directory before re-creating them.
       - Each repo's .lnk filename and the session name passed to
-        claude (-n) both default to the repo basename. Examples
+        claude (--name) both default to the repo basename. Examples
         (no collisions):
-          iam6ft7in/private/ltvdc -> ltvdc.lnk     (-n ltvdc)
-          JobChron/JobChron       -> JobChron.lnk  (-n JobChron)
+          iam6ft7in/private/ltvdc -> ltvdc.lnk     (--name ltvdc)
+          JobChron/JobChron       -> JobChron.lnk  (--name JobChron)
       - When two or more repos share a basename anywhere under
         {projects_root}, every colliding entry is promoted to its
         path-joined name (separators replaced by '_'). Both the .lnk
@@ -39,7 +39,7 @@
           iam6ft7in/private/lua -> iam6ft7in_private_lua.lnk
       - The Windows Terminal tab title is left to claude itself: WT
         honors the OSC title sequence claude emits when launched with
-        -n, so passing --title is unnecessary.
+        --name, so passing --title is unnecessary.
 
 .NOTES
     Projects root resolution:
@@ -100,8 +100,8 @@ Get-ChildItem -Path ${projectsRoot} -Recurse -Force -Depth 4 `
 
 # Resolve basename collisions. When two or more repos share a basename
 # anywhere under projectsRoot, every colliding entry gets promoted to its
-# path-joined name so claude -n stays unambiguous (/resume picker, prompt
-# header, and the per-repo auto-memory bucket).
+# path-joined name so claude --name stays unambiguous (/resume picker,
+# prompt header, and the per-repo auto-memory bucket).
 ${baseNameCounts} = @{}
 foreach (${r} in ${repos}) {
     if (${baseNameCounts}.ContainsKey(${r}.BaseName)) {
@@ -128,10 +128,10 @@ foreach (${r} in ${repos}) {
 
     ${sc}.TargetPath       = ${wt}
     # No --title is passed: Windows Terminal honors the OSC title sequence
-    # claude emits when launched with -n, so the tab adopts the session name
-    # automatically. pwsh -NoExit keeps the tab open after claude exits so
-    # any final output remains visible.
-    ${sc}.Arguments        = "new-tab --startingDirectory `"$(${r}.Path)`" pwsh.exe -NoExit -Command claude -n $(${r}.SessionName)"
+    # claude emits when launched with --name, so the tab adopts the session
+    # name automatically. pwsh -NoExit keeps the tab open after claude exits
+    # so any final output remains visible.
+    ${sc}.Arguments        = "new-tab --startingDirectory `"$(${r}.Path)`" pwsh.exe -NoExit -Command claude --name $(${r}.SessionName)"
     ${sc}.WorkingDirectory = ${r}.Path
     ${sc}.IconLocation     = ${iconSrc}
     ${sc}.Description      = "Claude Code session: $(${r}.SessionName)"
