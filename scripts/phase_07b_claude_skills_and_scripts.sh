@@ -151,7 +151,13 @@ for skill_path in "${SKILL_DIRS[@]}"; do
     skill_name="$(basename "${skill_path}")"
     skill_dest_root="${DEST_SKILLS_DIR}/${skill_name}"
 
-    mapfile -t skill_files < <(find "${skill_path}" -type f | sort)
+    # Exclude transient bytecode caches so a stray local Python compile in
+    # the source tree does not deploy to the user's skills directory.
+    mapfile -t skill_files < <(find "${skill_path}" -type f \
+        -not -path '*/__pycache__/*' \
+        -not -name '*.pyc' \
+        -not -name '*.pyo' \
+        | sort)
     if [ "${#skill_files[@]}" -eq 0 ]; then
         log_warn "Skipping ${skill_name}: source dir has no files"
         continue
@@ -326,7 +332,11 @@ for skill_path in "${SKILL_DIRS[@]}"; do
     while IFS= read -r -d '' f; do
         rel="${f#${skill_path}/}"
         src_set["${rel}"]=1
-    done < <(find "${skill_path}" -type f -print0)
+    done < <(find "${skill_path}" -type f \
+        -not -path '*/__pycache__/*' \
+        -not -name '*.pyc' \
+        -not -name '*.pyo' \
+        -print0)
 
     while IFS= read -r -d '' d; do
         rel="${d#${skill_dest_root}/}"
