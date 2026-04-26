@@ -7,6 +7,34 @@ This document lists every step you personally need to take, either manually
 Do not proceed to the next phase until the exit criteria for the current
 phase are met.
 
+> **New here?** Start with `README.md`. It has a five-step quick start
+> and the `scripts\preview.ps1` command that prints exactly what every
+> phase below would change on your machine before you run anything.
+
+---
+
+## Preview Phase, Read-Only Inventory
+**Type:** Script (you start it, script makes no changes)
+**Script file:** scripts\preview.ps1
+**Bash fallback:** scripts\preview.sh
+
+### How to start it:
+   pwsh -File scripts\preview.ps1
+
+### What the script does:
+Walks the 12 phases below and prints, for each one, the tools it would
+install, the directories it would create, the config files it would write
+or overwrite, the registry keys it would set, and the Claude artifacts it
+would deploy. Tags every line with the current state on this machine
+(`[EXISTS]`, `[WILL CREATE]`, `[INSTALLED]`, `[WILL INSTALL]`,
+`[WILL OVERWRITE]`).
+
+Run this first. Read the output. If you see anything you do not want to
+change, stop here and ask before proceeding.
+
+EXIT CRITERIA: You have read the preview output and accept the planned
+changes for Phases 1 through 12.
+
 ---
 
 ## PHASE 0, Manual Prerequisites
