@@ -35,6 +35,30 @@ and the current repo state:
   Include exact commands, PR URLs, or skill names (e.g., `/merge-complete`)
   where relevant.
 
+### Scope filter: this repo's state only
+
+`SESSION_STATE.md` tracks the CURRENT repo's own state. It is not a
+catalog of bookmarks for other repos. Before adding any Open Item, Key
+Path, or Next Step, ask: "does this entry belong to a different repo?"
+
+- **Track here:** files owned by this repo, user-level `~/.claude/`
+  paths that don't belong to a single repo, paths currently in motion
+  this session pending a follow-up that will land in their proper
+  home, and cross-cutting work that genuinely spans multiple repos
+  with no single home.
+- **Don't track here:** files owned by other repos (those repos have
+  their own `SESSION_STATE.md`), bug lists for other repos (file as
+  GitHub issues on the target repo), reference docs for delegated
+  work, PRs and deferred work clearly owned by a single other repo.
+- **Cross-ref instead of mirroring:** if a one-line pointer is needed,
+  use the repo name (e.g., "AWS migration: see `tool_aws_vdc`"). Do
+  NOT pin paths inside another repo, they go silently stale on
+  rename.
+
+Why: mirroring other repos' state creates drift risk and bloats the
+file with entries the next session does not need. Each repo's own
+session-save discipline is the right home for its own state.
+
 ---
 
 ## Step 2: Read Existing File
@@ -93,9 +117,16 @@ Rules:
   default; only carry detail forward by folding it into the Open Item
   or Next Step it supports. `/session-resume` skips this section by
   design, so it has no value as a long-running log.
+- Fresh `Accomplished` entries from THIS session are fine; they age out
+  on the next `/session-save` once the work has a real home (commit,
+  PR, issue, memory file).
 - Length is whatever the work requires. Compress when nothing more needs
   to be said; expand when the next session needs commit hashes, PR
   numbers, per-repo state, or decision rationale to resume cleanly.
+- Pruning signal: if the file passes ~100 to 150 lines and `Next Steps`
+  is short, that is a cue to prune `Accomplished` aggressively and
+  audit `Open Items` / `Key Paths` for stale cross-repo entries.
+  Forward-work density should dominate, not backstory.
 - No em dashes anywhere. Use commas, parentheses, colons, periods, or
   semicolons. See `~/.claude/rules/core.md`.
 
