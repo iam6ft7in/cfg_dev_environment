@@ -310,10 +310,11 @@ def build_message(*, sender, from_override, to_list, cc_list, reply_to,
     return msg
 
 
-def send(smtp_cfg, sender, password, msg, envelope_recipients, *, dry_run=False):
+def send(smtp_cfg, login_user, password, envelope_sender, msg, envelope_recipients, *, dry_run=False):
     if dry_run:
         print("=== DRY RUN, message NOT sent ===",                            file=sys.stderr)
-        print(f"  Envelope sender    : {sender}",                              file=sys.stderr)
+        print(f"  SMTP login user    : {login_user}",                          file=sys.stderr)
+        print(f"  Envelope sender    : {envelope_sender}",                     file=sys.stderr)
         print(f"  Envelope recipients: {', '.join(envelope_recipients)}",      file=sys.stderr)
         print("--- begin message ---",                                          file=sys.stderr)
         sys.stderr.write(msg.as_string())
@@ -325,17 +326,20 @@ def send(smtp_cfg, sender, password, msg, envelope_recipients, *, dry_run=False)
     security = smtp_cfg.get("security", "starttls")
     timeout = smtp_cfg.get("timeout", 30)
 
+    # SMTP AUTH must use the actual mailbox owner's address. The envelope
+    # sender (MAIL FROM) can differ when --from selects a "Send mail as"
+    # alias the server has authorized for that account.
     if security == "ssl":
         with smtplib.SMTP_SSL(host, port, timeout=timeout) as server:
-            server.login(sender, password)
-            server.send_message(msg, from_addr=sender, to_addrs=envelope_recipients)
+            server.login(login_user, password)
+            server.send_message(msg, from_addr=envelope_sender, to_addrs=envelope_recipients)
     else:
         with smtplib.SMTP(host, port, timeout=timeout) as server:
             server.ehlo()
             server.starttls()
             server.ehlo()
-            server.login(sender, password)
-            server.send_message(msg, from_addr=sender, to_addrs=envelope_recipients)
+            server.login(login_user, password)
+            server.send_message(msg, from_addr=envelope_sender, to_addrs=envelope_recipients)
 
 
 # ---------------------------------------------------------------------------
@@ -412,7 +416,9 @@ def main():
 
     if args.dry_run:
         envelope_sender = args.from_addr or sender
-        send(cfg["smtp"], envelope_sender, None, msg, envelope_recipients, dry_run=True)
+        # BW is not queried in dry-run, so the real login user is unknown
+        # here. Show a placeholder; real sends use the BW item's username.
+        send(cfg["smtp"], "<from BW item>", None, envelope_sender, msg, envelope_recipients, dry_run=True)
         return
 
     username, password = get_credentials(cfg)
@@ -424,11 +430,12 @@ def main():
     extras = f" ({'; '.join(log_extras)})" if log_extras else ""
     print(f"Sending email to {', '.join(to_list)}{extras} ...", file=sys.stderr)
     try:
-        # Envelope sender is the SMTP-authenticated username unless --from
-        # was given, in which case we trust the caller (the SMTP server may
-        # or may not honor it).
+        # SMTP AUTH always uses the credential's username (the actual
+        # mailbox owner). --from sets only the envelope MAIL FROM and the
+        # visible From header; the server validates that against the
+        # account's authorized "Send mail as" aliases.
         env_sender = args.from_addr or username
-        send(cfg["smtp"], env_sender, password, msg, envelope_recipients)
+        send(cfg["smtp"], username, password, env_sender, msg, envelope_recipients)
         print("Sent.", file=sys.stderr)
     except Exception as e:
         print(f"ERROR: {e}", file=sys.stderr)
