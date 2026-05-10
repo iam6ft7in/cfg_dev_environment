@@ -143,32 +143,63 @@ Apply the `--days` filter client-side (search.messages does not
 accept date filters reliably). Drop matches older than
 `(Get-Date).AddDays(-${days})`.
 
-PowerShell strict-mode gotcha: `thread_ts`, `permalink`, and other
-optional fields may be absent on individual matches. Use
-`PSObject.Properties.Name -contains 'thread_ts'` checks rather than
-direct property access.
+PowerShell strict-mode gotcha: `thread_ts`, `reply_count`,
+`reply_users`, and (sometimes) `permalink` are NOT returned by
+`search.messages` on user tokens. Treat each match as a flat record;
+only `ts`, `channel`, `user`, `text`, and `permalink` (when present)
+are reliable. Thread metadata must come from `conversations.history`
+in Step 6.
 
 ---
 
 ## Step 6: Detect already-answered threads
 
-Search for your own recent messages in the same window:
+Because `search.messages` strips thread metadata, the answered
+signal has to come from `conversations.history`. Collect the unique
+channel ids from the Step 5 results, then fetch one history page per
+channel filtered to the search window:
 
 ```powershell
-${query2} = "from:@<your-username>"
-${r2}     = Invoke-RestMethod -Uri "https://slack.com/api/search.messages?query=$([uri]::EscapeDataString(${query2}))&sort=timestamp&sort_dir=desc&count=100" -Headers ${headers}
+${cutoffTs} = [int][double]::Parse((Get-Date (Get-Date).AddDays(-${days}).ToUniversalTime() -UFormat %s))
+${chIds}    = ${r}.messages.matches | ForEach-Object { $_.channel.id } | Sort-Object -Unique
+${parents}  = @{}
+foreach (${ch} in ${chIds}) {
+    ${url} = "https://slack.com/api/conversations.history?channel=${ch}&oldest=${cutoffTs}&limit=200"
+    ${h}   = Invoke-RestMethod -Uri ${url} -Headers ${headers}
+    foreach (${m} in ${h}.messages) {
+        ${ru} = if (${m}.PSObject.Properties.Name -contains 'reply_users') { ${m}.reply_users } else { @() }
+        ${rc} = if (${m}.PSObject.Properties.Name -contains 'reply_count') { ${m}.reply_count } else { 0 }
+        ${parents}["${ch}|$(${m}.ts)"] = [pscustomobject]@{ reply_users=${ru}; reply_count=${rc} }
+    }
+}
 ```
 
-For each watch-user message, mark "answered" if any of:
+For each watch-user match:
 
-- The message has `reply_count > 0` AND any of those replies is from
-  your `user_id`. Fetch via `conversations.replies?channel=<ch>&ts=<parent_ts>`
-  only when `reply_count > 0` to keep API calls bounded.
-- A bot message you posted (via cc_<workspace> app token) is in the
-  thread (these appear in your search.messages results).
+- Compose the key as `${match.channel.id}|${match.ts}`.
+- If `${parents}` contains the key AND `${parents[key]}.reply_users`
+  contains your `user_id`, mark the match **answered**.
+- Otherwise mark **unanswered**. Watch-user messages that are
+  themselves thread replies (in a thread the watch user did not
+  start) will NOT appear in `conversations.history` (which returns
+  parents only) and will fall through as unanswered. This is the
+  safe default: a false negative in the answered bucket is worse
+  than a false positive in the unanswered bucket.
 
-Items already-answered get pushed to a separate "already addressed"
-bucket below.
+If precision matters for an orphan match, fan out one
+`conversations.replies?channel=<ch>&ts=<parent_ts>` call per parent
+in the same channel and look for both user ids in the reply list.
+Skip this fan-out by default to keep API usage bounded.
+
+Items marked answered go to the "already addressed" bucket; all
+others remain candidates for HIGH/MEDIUM/LOW classification in
+Step 7.
+
+Why this is reliable: `conversations.history` returns `reply_users`
+(set-membership of everyone who replied) and `reply_count` for each
+parent, which `search.messages` omits entirely. One history call
+per channel keeps the run within Slack's tier-2 budget for any
+realistic watch-user activity volume.
 
 ---
 
@@ -373,8 +404,9 @@ and continue; the next successful run repairs the omission.
 ## Rate-limit and rule notes
 
 - Slack tier-2 endpoints (`search.messages`, `conversations.history`)
-  allow ~20 calls/min. The pattern above takes 2-4 calls per run,
-  well under the limit.
+  allow ~20 calls/min. The pattern above takes 1 `auth.test` + 1
+  `search.messages` + one `conversations.history` per channel the
+  watch user posted in (typically 5-15), comfortably under the limit.
 - The state file at `~/.cache/check-slack/<workspace>/state.json` is
   a local cache only. It is not committed, not synced, and not a
   Slack write. The skill remains read-only against Slack.
