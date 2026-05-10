@@ -6,7 +6,7 @@
     Script Name : regenerate_shortcuts.ps1
     Source repo : iam6ft7in/public/cfg_dev_environment
                   https://github.com/iam6ft7in/cfg_dev_environment
-    Last update : 2026-04-25
+    Last update : 2026-05-05
 
     DO NOT EDIT THE DEPLOYED COPY.
     This script is deployed by Phase 07b
@@ -40,6 +40,12 @@
       - The Windows Terminal tab title is left to claude itself: WT
         honors the OSC title sequence claude emits when launched with
         --name, so passing --title is unnecessary.
+      - Windows Terminal is launched with --maximized so the window
+        fills the current monitor instead of Windows picking a size
+        and position. Setting WindowStyle on the .lnk does not work
+        for wt.exe (WT spawns its own window and ignores the parent
+        process's ShowWindow hint), so the flag is passed as a WT
+        global argument instead.
 
 .NOTES
     Projects root resolution:
@@ -131,7 +137,11 @@ foreach (${r} in ${repos}) {
     # claude emits when launched with --name, so the tab adopts the session
     # name automatically. pwsh -NoExit keeps the tab open after claude exits
     # so any final output remains visible.
-    ${sc}.Arguments        = "new-tab --startingDirectory `"$(${r}.Path)`" pwsh.exe -NoExit -Command claude --name $(${r}.SessionName)"
+    # --maximized is a WT global option (must come before the new-tab
+    # subcommand). Setting ${sc}.WindowStyle = 3 here would be ignored:
+    # WT spawns its own window and does not inherit the launcher's
+    # ShowWindow hint.
+    ${sc}.Arguments        = "--maximized new-tab --startingDirectory `"$(${r}.Path)`" pwsh.exe -NoExit -Command claude --name $(${r}.SessionName)"
     ${sc}.WorkingDirectory = ${r}.Path
     ${sc}.IconLocation     = ${iconSrc}
     ${sc}.Description      = "Claude Code session: $(${r}.SessionName)"
