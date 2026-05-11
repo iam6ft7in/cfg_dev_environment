@@ -359,55 +359,116 @@ git -C {local_path} fetch origin
 git -C {local_path} branch --set-upstream-to=origin/main main
 ```
 
-### 3l. Apply Branch Protection
-Apply standard branch protection to `main` using the GitHub API. The
-`required_pull_request_reviews` value is a nested JSON object, which
-`gh --field` cannot send (magic type conversion covers bool/null/integer
-only; objects become literal strings and the API rejects them). Pass the
-JSON body via `--input -` instead.
+### 3l. Apply Branch Ruleset on main
+Create the gold-standard `main-protection` ruleset on `main` via the
+GitHub Rulesets API. The ruleset enforces: no deletion, no force-push,
+PR required (`required_approving_review_count: 0` for solo repos), and
+required signed commits, with no bypass actors. This matches the shape
+already replicated across the iam6ft7in repos created on 2026-04-04
+and is the same shape `apply-standard` Step 4r writes when retrofitting
+existing repos, so day-one bootstrap and later retrofit converge.
 
 `required_approving_review_count` is set to `0` (not `1`) by default:
-PRs are still required (so direct push to main stays banned, branch
-protection stays in force) but the author can self-merge without an
+PRs are still required (so direct push to main stays banned, the
+ruleset stays in force) but the author can self-merge without an
 approver. This is the right default for solo-dev repos. When a repo
-gets actual collaborators, raise the count via:
-
-```powershell
-gh api -X PATCH `
-    "repos/{username}/{repo_name}/branches/main/protection/required_pull_request_reviews" `
-    -F required_approving_review_count=1
-```
-
-See `~/.claude/memory/reference_repo_bootstrap_main_push.md` for the
+gets actual collaborators, raise the count via the PATCH recipe at
+the bottom of this step. See
+`~/.claude/memory/reference_repo_bootstrap_main_push.md` for the
 solo-vs-team analysis.
 
 PowerShell:
 ```powershell
 @'
 {
-  "required_status_checks": null,
-  "enforce_admins": true,
-  "required_pull_request_reviews": {"required_approving_review_count": 0},
-  "restrictions": null
+  "name": "main-protection",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "include": ["refs/heads/main"],
+      "exclude": []
+    }
+  },
+  "rules": [
+    { "type": "deletion" },
+    { "type": "non_fast_forward" },
+    {
+      "type": "pull_request",
+      "parameters": {
+        "required_approving_review_count": 0,
+        "dismiss_stale_reviews_on_push": false,
+        "required_reviewers": [],
+        "require_code_owner_review": false,
+        "require_last_push_approval": false,
+        "required_review_thread_resolution": false,
+        "allowed_merge_methods": ["merge", "squash", "rebase"]
+      }
+    },
+    { "type": "required_signatures" }
+  ],
+  "bypass_actors": []
 }
-'@ | gh api --method PUT `
-    "repos/{username}/{repo_name}/branches/main/protection" `
+'@ | gh api --method POST `
+    "repos/{username}/{repo_name}/rulesets" `
     --input -
 ```
 
 Bash fallback (for non-Windows contexts):
 ```bash
-gh api --method PUT \
-    "repos/{username}/{repo_name}/branches/main/protection" \
+gh api --method POST \
+    "repos/{username}/{repo_name}/rulesets" \
     --input - <<'JSON'
 {
-  "required_status_checks": null,
-  "enforce_admins": true,
-  "required_pull_request_reviews": {"required_approving_review_count": 0},
-  "restrictions": null
+  "name": "main-protection",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "include": ["refs/heads/main"],
+      "exclude": []
+    }
+  },
+  "rules": [
+    { "type": "deletion" },
+    { "type": "non_fast_forward" },
+    {
+      "type": "pull_request",
+      "parameters": {
+        "required_approving_review_count": 0,
+        "dismiss_stale_reviews_on_push": false,
+        "required_reviewers": [],
+        "require_code_owner_review": false,
+        "require_last_push_approval": false,
+        "required_review_thread_resolution": false,
+        "allowed_merge_methods": ["merge", "squash", "rebase"]
+      }
+    },
+    { "type": "required_signatures" }
+  ],
+  "bypass_actors": []
 }
 JSON
 ```
+
+To raise the review count when collaborators arrive, find the ruleset
+id and PATCH the `pull_request` rule's `required_approving_review_count`:
+
+```powershell
+${rulesetId} = gh api "repos/{username}/{repo_name}/rulesets" |
+    ConvertFrom-Json |
+    Where-Object name -eq 'main-protection' |
+    Select-Object -ExpandProperty id
+# Then PATCH repos/{username}/{repo_name}/rulesets/${rulesetId} with the
+# rules array, updating required_approving_review_count to 1.
+```
+
+Note: The ruleset enforces signed commits via the `required_signatures`
+rule, so signed-commit setup no longer requires UI action. Squash-only
+enforcement remains UI-only because the API allows all three merge
+methods; instruct the user to set "Allowed merge methods: Squash only"
+under Settings, Rules, Rulesets if that policy is desired (requires
+GitHub Pro or higher).
 
 ### 3m. Create GitHub Projects Kanban Board
 Create a Projects (v2) board titled `{repo_name} Board` and standardize its
