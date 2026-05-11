@@ -6,7 +6,7 @@
     Script Name : regenerate_shortcuts.ps1
     Source repo : iam6ft7in/public/cfg_dev_environment
                   https://github.com/iam6ft7in/cfg_dev_environment
-    Last update : 2026-05-05
+    Last update : 2026-05-11
 
     DO NOT EDIT THE DEPLOYED COPY.
     This script is deployed by Phase 07b
@@ -56,6 +56,14 @@
 #>
 
 ${ErrorActionPreference} = 'Stop'
+
+# Surface Write-Information output by default. The script's status lines
+# (per-shortcut "Created:" plus the final summary) flow through the
+# information stream rather than the success stream, so they stay out of
+# the pipeline if the script is captured (${r} = & ./regenerate.ps1) but
+# remain visible when run interactively. Callers can silence with
+# -InformationAction SilentlyContinue.
+${InformationPreference} = 'Continue'
 
 ${wt} = "${env:LOCALAPPDATA}\Microsoft\WindowsApps\wt.exe"
 
@@ -147,8 +155,8 @@ foreach (${r} in ${repos}) {
     ${sc}.Description      = "Claude Code session: $(${r}.SessionName)"
     ${sc}.Save()
 
-    Write-Host "Created: $(${r}.SessionName).lnk  ->  $(${r}.Path)"
+    Write-Information "Created: $(${r}.SessionName).lnk  ->  $(${r}.Path)"
 }
 
-Write-Host ""
-Write-Host "Done. ${shortcutsDir} contains $(${repos}.Count) shortcut(s)."
+Write-Information ''
+Write-Information "Done. ${shortcutsDir} contains $(${repos}.Count) shortcut(s)."
