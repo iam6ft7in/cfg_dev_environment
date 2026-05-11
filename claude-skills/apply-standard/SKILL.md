@@ -419,50 +419,124 @@ by convention; individual repos may or may not gitignore it. Do not add it
 to `.gitignore` in this pass, that is the user's call.
 
 ### 4r. Branch Ruleset on main
-Apply via GitHub API. `required_pull_request_reviews` is a nested JSON object
-and `gh --field` cannot send it (magic type conversion covers bool/null/int
-only; objects become literal strings and the API rejects them). Pass the
-body via `--input -`.
+Apply the gold-standard ruleset on `main` via the GitHub Rulesets API.
+The ruleset enforces: no deletion, no force-push, PR required
+(`required_approving_review_count: 0` for solo repos), and required
+signed commits, with no bypass actors. This matches the shape of
+ruleset `main-protection` already replicated across the iam6ft7in
+repos created on 2026-04-04.
+
+The Rulesets API replaces the older classic branch-protection API
+(`branches/main/protection`). Step 2 audits for a ruleset; this step
+creates one if absent.
 
 PowerShell:
 ```powershell
 @'
 {
-  "required_status_checks": null,
-  "enforce_admins": true,
-  "required_pull_request_reviews": {"required_approving_review_count": 1},
-  "restrictions": null
+  "name": "main-protection",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "include": ["refs/heads/main"],
+      "exclude": []
+    }
+  },
+  "rules": [
+    { "type": "deletion" },
+    { "type": "non_fast_forward" },
+    {
+      "type": "pull_request",
+      "parameters": {
+        "required_approving_review_count": 0,
+        "dismiss_stale_reviews_on_push": false,
+        "required_reviewers": [],
+        "require_code_owner_review": false,
+        "require_last_push_approval": false,
+        "required_review_thread_resolution": false,
+        "allowed_merge_methods": ["merge", "squash", "rebase"]
+      }
+    },
+    { "type": "required_signatures" }
+  ],
+  "bypass_actors": []
 }
-'@ | gh api --method PUT `
-    "repos/{username}/{repo}/branches/main/protection" `
+'@ | gh api --method POST `
+    "repos/{username}/{repo}/rulesets" `
     --input -
 ```
 
 Bash fallback:
 ```bash
-gh api --method PUT \
-    "repos/{username}/{repo}/branches/main/protection" \
+gh api --method POST \
+    "repos/{username}/{repo}/rulesets" \
     --input - <<'JSON'
 {
-  "required_status_checks": null,
-  "enforce_admins": true,
-  "required_pull_request_reviews": {"required_approving_review_count": 1},
-  "restrictions": null
+  "name": "main-protection",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "include": ["refs/heads/main"],
+      "exclude": []
+    }
+  },
+  "rules": [
+    { "type": "deletion" },
+    { "type": "non_fast_forward" },
+    {
+      "type": "pull_request",
+      "parameters": {
+        "required_approving_review_count": 0,
+        "dismiss_stale_reviews_on_push": false,
+        "required_reviewers": [],
+        "require_code_owner_review": false,
+        "require_last_push_approval": false,
+        "required_review_thread_resolution": false,
+        "allowed_merge_methods": ["merge", "squash", "rebase"]
+      }
+    },
+    { "type": "required_signatures" }
+  ],
+  "bypass_actors": []
 }
 JSON
 ```
 
-If this fails (e.g., the repo does not yet have a `main` branch on GitHub), report
-the error and instruct the user to push to GitHub first, then re-run `/apply-standard`.
+`required_approving_review_count: 0` matches the solo self-merge
+default that `new-repo` Step 3l adopted (see
+`~/.claude/memory/reference_repo_bootstrap_main_push.md`). PATCH the
+count up to 1 only when collaborators arrive:
 
-Note: For full squash-only enforcement and signed-commit requirements, instruct the
-user to verify in the browser under Settings → Rules → Rulesets that:
+```powershell
+${rulesetId} = gh api "repos/{username}/{repo}/rulesets" |
+    ConvertFrom-Json |
+    Where-Object name -eq 'main-protection' |
+    Select-Object -ExpandProperty id
+# Then PATCH the rules array with required_approving_review_count: 1.
+```
+
+Idempotency: Step 2 already audited for a ruleset targeting `main`
+and would have skipped to PRESENT if one exists. If execution reaches
+here, no ruleset is present, so POST creates a new one. For belt-and-
+suspenders, first GET `/rulesets`, find any existing `main-protection`,
+and DELETE before POST (GitHub's API is POST-to-create, PATCH-to-
+update; there is no PUT for rulesets).
+
+If this fails (e.g., the repo does not yet have a `main` branch on
+GitHub), report the error and instruct the user to push to GitHub
+first, then re-run `/apply-standard`.
+
+Note: The ruleset above enforces signed commits via the
+`required_signatures` rule, so signed-commit setup no longer needs
+the UI. Squash-only enforcement remains UI-only because the API
+allows all three merge methods. Instruct the user to verify in the
+browser under Settings, Rules, Rulesets that:
 - Allowed merge methods: Squash only
-- Require signed commits: enabled
 - Automatically delete head branches: enabled
 
-These settings require GitHub Pro or higher and are not fully configurable via the
-REST API, they must be set through the UI or GitHub's GraphQL API.
+These UI-only settings require GitHub Pro or higher.
 
 ### 4s. Standard Issue Labels
 First check which labels already exist:
