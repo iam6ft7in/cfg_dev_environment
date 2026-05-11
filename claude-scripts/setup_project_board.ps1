@@ -122,10 +122,27 @@ function Get-StatusAssignedItems {
         [Parameter(Mandatory)][int]${Number}
     )
 
-    ${query} = @'
-query($login: String!, $num: Int!) {
-  user(login: $login) {
-    projectV2(number: $num) {
+    # GraphQL projectV2 lives under either user(login:) or organization(login:),
+    # never both. Querying the wrong one returns a null field AND a top-level
+    # errors[] entry, which gh api graphql exits non-zero on (even though the
+    # other namespace's data is in the response). So we detect the owner type
+    # up front via REST and only query the matching namespace. Without this,
+    # org-owned boards (any repo whose Owner is a GitHub Organization rather
+    # than a User) fail at the gh layer before PowerShell sees the response.
+    ${ownerType} = (Invoke-GhProject -Description 'gh api users (owner type)' -GhArgs @(
+        'api', "users/${Owner}", '--jq', '.type'
+    )).Trim()
+
+    ${ownerNamespace} = switch (${ownerType}) {
+        'User'         { 'user' }
+        'Organization' { 'organization' }
+        default        { throw "Unexpected owner type '${ownerType}' for '${Owner}' (expected User or Organization)" }
+    }
+
+    ${query} = @"
+query(`$login: String!, `$num: Int!) {
+  ${ownerNamespace}(login: `$login) {
+    projectV2(number: `$num) {
       items(first: 100) {
         nodes {
           content {
@@ -148,14 +165,14 @@ query($login: String!, $num: Int!) {
     }
   }
 }
-'@
+"@
 
     ${raw} = Invoke-GhProject -Description 'gh api graphql (list items)' -GhArgs @(
         'api', 'graphql', '-f', "query=${query}",
         '-F', "login=${Owner}", '-F', "num=${Number}"
     )
     ${response} = ${raw} | ConvertFrom-Json
-    ${items} = ${response}.data.user.projectV2.items.nodes
+    ${items} = ${response}.data.${ownerNamespace}.projectV2.items.nodes
 
     ${assigned} = @()
     foreach (${item} in ${items}) {
